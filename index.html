@@ -379,8 +379,48 @@
     align-items:center;
     justify-content:center;
     gap:8px;
-    margin-top:20px;
+    margin-top:12px;
   }
+
+  /* ---- Form inputs (confirm screen) ---- */
+  .form-group{margin-bottom:12px;}
+  .form-label{
+    display:block;
+    font-size:11px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--muted);
+    margin-bottom:6px;
+    font-weight:600;
+  }
+  .form-input{
+    width:100%;
+    background:var(--surface);
+    border:1px solid var(--brown);
+    border-radius:12px;
+    padding:13px 14px;
+    color:var(--cream);
+    font-family:'Work Sans',sans-serif;
+    font-size:14px;
+    outline:none;
+    transition:border-color .2s ease;
+  }
+  .form-input:focus{border-color:var(--gold);}
+  .form-input::placeholder{color:var(--muted);}
+
+  .error-banner{
+    background:rgba(182,82,47,0.15);
+    border:1px solid var(--danger);
+    color:#e8a37f;
+    border-radius:12px;
+    padding:12px 14px;
+    font-size:12.5px;
+    margin-top:14px;
+    line-height:1.4;
+  }
+
+  .cta-primary.loading{opacity:0.7; cursor:wait;}
+  .cta-primary:disabled{opacity:0.4; cursor:not-allowed;}
 
   .success-box{
     text-align:center;
@@ -508,35 +548,35 @@
           <div class="step-dots"><span class="done"></span><span></span><span></span></div>
         </div>
         <div class="screen-body" style="padding-top:0;">
-          <div class="service-row" data-price="50" data-name="Corte" onclick="toggleService(this)">
+          <div class="service-row" data-price="50" data-name="Corte" data-duration="60" onclick="toggleService(this)">
             <div class="service-row-left">
               <div class="checkbox"></div>
               <div class="info"><div class="name">Corte</div><div class="dur">60 min</div></div>
             </div>
             <div class="price">R$ 50</div>
           </div>
-          <div class="service-row" data-price="50" data-name="Barba" onclick="toggleService(this)">
+          <div class="service-row" data-price="50" data-name="Barba" data-duration="60" onclick="toggleService(this)">
             <div class="service-row-left">
               <div class="checkbox"></div>
               <div class="info"><div class="name">Barba</div><div class="dur">60 min</div></div>
             </div>
             <div class="price">R$ 50</div>
           </div>
-          <div class="service-row" data-price="15" data-name="Sobrancelha" onclick="toggleService(this)">
+          <div class="service-row" data-price="15" data-name="Sobrancelha" data-duration="0" onclick="toggleService(this)">
             <div class="service-row-left">
               <div class="checkbox"></div>
               <div class="info"><div class="name">Sobrancelha</div><div class="dur">complemento</div></div>
             </div>
             <div class="price">R$ 15</div>
           </div>
-          <div class="service-row" data-price="15" data-name="Pezinho" onclick="toggleService(this)">
+          <div class="service-row" data-price="15" data-name="Pezinho" data-duration="15" onclick="toggleService(this)">
             <div class="service-row-left">
               <div class="checkbox"></div>
               <div class="info"><div class="name">Pezinho</div><div class="dur">15 min</div></div>
             </div>
             <div class="price">R$ 15</div>
           </div>
-          <div class="service-row" data-price="45" data-name="Corte Kids" onclick="toggleService(this)">
+          <div class="service-row" data-price="45" data-name="Corte Kids" data-duration="60" onclick="toggleService(this)">
             <div class="service-row-left">
               <div class="checkbox"></div>
               <div class="info"><div class="name">Corte Kids</div><div class="dur">60 min</div></div>
@@ -558,31 +598,15 @@
           <div class="step-dots"><span class="done"></span><span class="done"></span><span></span></div>
         </div>
         <div class="screen-body" style="padding-top:0;">
-          <p class="eyebrow" style="margin-bottom:10px;">Julho 2026</p>
-          <div class="date-scroller">
-            <div class="date-chip" onclick="selectDate(this)"><div class="dow">Qui</div><div class="num">03</div></div>
-            <div class="date-chip selected" onclick="selectDate(this)"><div class="dow">Sex</div><div class="num">04</div></div>
-            <div class="date-chip" onclick="selectDate(this)"><div class="dow">Sáb</div><div class="num">05</div></div>
-            <div class="date-chip" onclick="selectDate(this)"><div class="dow">Seg</div><div class="num">07</div></div>
-            <div class="date-chip" onclick="selectDate(this)"><div class="dow">Ter</div><div class="num">08</div></div>
-            <div class="date-chip" onclick="selectDate(this)"><div class="dow">Qua</div><div class="num">09</div></div>
-          </div>
+          <p class="eyebrow" id="monthLabel" style="margin-bottom:10px;">—</p>
+          <div class="date-scroller" id="dateScroller"></div>
           <div class="gold-divider"></div>
           <p class="eyebrow" style="margin-bottom:10px;">Horários disponíveis</p>
-          <div class="time-grid">
-            <div class="time-slot" onclick="selectTime(this)">09:00</div>
-            <div class="time-slot taken">10:00</div>
-            <div class="time-slot selected" onclick="selectTime(this)">11:00</div>
-            <div class="time-slot" onclick="selectTime(this)">14:00</div>
-            <div class="time-slot taken">15:00</div>
-            <div class="time-slot" onclick="selectTime(this)">16:00</div>
-            <div class="time-slot" onclick="selectTime(this)">17:00</div>
-            <div class="time-slot" onclick="selectTime(this)">18:00</div>
-            <div class="time-slot" onclick="selectTime(this)">19:00</div>
-          </div>
+          <div class="time-grid" id="timeGrid"></div>
+          <p class="hint" style="margin-top:12px; text-align:left; font-size:11px;">Horários sujeitos a disponibilidade — o Deeh confirma na hora.</p>
         </div>
         <div class="sticky-footer">
-          <button class="cta-primary" onclick="goTo('confirm')">Continuar</button>
+          <button class="cta-primary" id="btnToConfirm" onclick="goToConfirm()" disabled>Continuar</button>
         </div>
       </div>
 
@@ -594,15 +618,25 @@
           <div class="step-dots"><span class="done"></span><span class="done"></span><span class="done"></span></div>
         </div>
         <div class="screen-body" style="padding-top:0;">
-          <div class="summary-card">
-            <div class="summary-row"><span class="label">Serviço</span><span class="val">Corte + Barba</span></div>
-            <div class="summary-row"><span class="label">Data</span><span class="val">Sex, 04 de julho</span></div>
-            <div class="summary-row"><span class="label">Horário</span><span class="val">11:00</span></div>
-            <div class="summary-row"><span class="label">Local</span><span class="val">Jd. Morada do Sol</span></div>
-            <div class="summary-row"><span class="label">Total</span><span class="val" style="color:var(--gold); font-size:16px;">R$ 95</span></div>
+          <div class="form-group">
+            <label class="form-label">Seu nome</label>
+            <input type="text" id="inputNome" class="form-input" placeholder="Nome completo">
           </div>
-          <button class="whatsapp-btn" onclick="goTo('success')">📲 Confirmar via WhatsApp</button>
-          <p class="hint" style="margin-top:14px; text-align:left;">Você será direcionado ao WhatsApp <b>(19) 99390-0880</b> com os dados preenchidos para o Deeh confirmar.</p>
+          <div class="form-group">
+            <label class="form-label">WhatsApp</label>
+            <input type="tel" id="inputTelefone" class="form-input" placeholder="(19) 99999-9999">
+          </div>
+          <div class="summary-card">
+            <div class="summary-row"><span class="label">Serviço</span><span class="val" id="sumServico">—</span></div>
+            <div class="summary-row"><span class="label">Data</span><span class="val" id="sumData">—</span></div>
+            <div class="summary-row"><span class="label">Horário</span><span class="val" id="sumHorario">—</span></div>
+            <div class="summary-row"><span class="label">Local</span><span class="val">Jd. Morada do Sol</span></div>
+            <div class="summary-row"><span class="label">Total</span><span class="val" id="sumTotal" style="color:var(--gold); font-size:16px;">R$ 0</span></div>
+          </div>
+          <div id="confirmError" class="error-banner" style="display:none;"></div>
+          <button class="cta-primary" id="btnConfirmar" style="margin-top:18px;" onclick="confirmarAgendamento()">Confirmar agendamento</button>
+          <a id="whatsappFallback" class="whatsapp-btn" style="display:none; text-decoration:none;" target="_blank">📲 Confirmar via WhatsApp</a>
+          <p class="hint" style="margin-top:14px; text-align:left;">Ao confirmar, seu horário é reservado direto na agenda do Deeh.</p>
         </div>
       </div>
 
@@ -610,9 +644,9 @@
       <div class="screen" id="screen-success">
         <div class="screen-body success-box">
           <div class="success-icon">✓</div>
-          <h2>Agendamento enviado!</h2>
-          <p>Sua solicitação foi enviada para o WhatsApp da Barbearia do Deeh. Aguarde a confirmação final.</p>
-          <button class="cta-primary" style="margin-top:26px;" onclick="goTo('home')">Voltar ao início</button>
+          <h2>Agendamento confirmado!</h2>
+          <p id="successMsg">Seu horário foi reservado na agenda da Barbearia do Deeh.</p>
+          <button class="cta-primary" style="margin-top:26px;" onclick="resetFlow()">Voltar ao início</button>
         </div>
       </div>
 
@@ -661,6 +695,27 @@
   <p class="hint">Croqui navegável do fluxo do app. Use <b>Visão Cliente</b> para o agendamento e <b>Visão Deeh</b> para o painel do barbeiro.</p>
 
 <script>
+  // ====== CONFIG ======
+  const API_URL = 'https://backend-v2-five-topaz.vercel.app/api/agendar';
+  const WHATSAPP_NUMBER = '5519993900880';
+
+  // Horário de funcionamento: 0=Dom ... 6=Sáb
+  const BUSINESS_HOURS = {
+    2: { open: 9, close: 19 }, // Terça
+    3: { open: 9, close: 19 }, // Quarta
+    4: { open: 9, close: 19 }, // Quinta
+    5: { open: 9, close: 19 }, // Sexta
+    6: { open: 8, close: 17 }, // Sábado
+  };
+
+  const DOW_LABELS = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+  const MONTH_LABELS = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
+  // ====== STATE ======
+  let selectedServices = []; // [{name, price, duration}]
+  let selectedDate = null;   // Date object (00:00 local)
+  let selectedTime = null;   // "HH:MM"
+
   function goTo(id){
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById('screen-' + id).classList.add('active');
@@ -676,21 +731,194 @@
   function toggleService(el){
     el.classList.toggle('selected');
     let total = 0;
+    selectedServices = [];
     document.querySelectorAll('.service-row.selected').forEach(row => {
-      total += parseInt(row.dataset.price, 10);
+      const price = parseInt(row.dataset.price, 10);
+      total += price;
+      selectedServices.push({
+        name: row.dataset.name,
+        price,
+        duration: parseInt(row.dataset.duration, 10)
+      });
     });
     document.getElementById('totalPrice').textContent = 'R$ ' + total;
   }
 
-  function selectDate(el){
-    document.querySelectorAll('.date-chip').forEach(c => c.classList.remove('selected'));
-    el.classList.add('selected');
+  // ---- Calendar: build next available days dynamically ----
+  function buildDateScroller(){
+    const scroller = document.getElementById('dateScroller');
+    scroller.innerHTML = '';
+    const today = new Date();
+    today.setHours(0,0,0,0);
+
+    const days = [];
+    let cursor = new Date(today);
+    while(days.length < 7){
+      if(BUSINESS_HOURS[cursor.getDay()]){
+        days.push(new Date(cursor));
+      }
+      cursor.setDate(cursor.getDate() + 1);
+    }
+
+    days.forEach((d, idx) => {
+      const chip = document.createElement('div');
+      chip.className = 'date-chip' + (idx === 0 ? ' selected' : '');
+      chip.innerHTML = `<div class="dow">${DOW_LABELS[d.getDay()]}</div><div class="num">${String(d.getDate()).padStart(2,'0')}</div>`;
+      chip.onclick = () => selectDate(chip, d);
+      scroller.appendChild(chip);
+    });
+
+    selectDate(scroller.children[0], days[0]);
   }
 
-  function selectTime(el){
+  function updateMonthLabel(d){
+    document.getElementById('monthLabel').textContent = `${MONTH_LABELS[d.getMonth()]} ${d.getFullYear()}`;
+  }
+
+  function selectDate(el, dateObj){
+    document.querySelectorAll('.date-chip').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedDate = dateObj;
+    updateMonthLabel(dateObj);
+    buildTimeGrid(dateObj);
+  }
+
+  function buildTimeGrid(dateObj){
+    const grid = document.getElementById('timeGrid');
+    grid.innerHTML = '';
+    selectedTime = null;
+    document.getElementById('btnToConfirm').disabled = true;
+
+    const hours = BUSINESS_HOURS[dateObj.getDay()];
+    if(!hours) return;
+
+    const now = new Date();
+    const isToday = dateObj.toDateString() === now.toDateString();
+
+    for(let h = hours.open; h < hours.close; h++){
+      // esconde horários que já passaram, se for hoje
+      if(isToday && h <= now.getHours()) continue;
+
+      const slot = document.createElement('div');
+      slot.className = 'time-slot';
+      const label = String(h).padStart(2,'0') + ':00';
+      slot.textContent = label;
+      slot.onclick = () => selectTime(slot, label);
+      grid.appendChild(slot);
+    }
+  }
+
+  function selectTime(el, label){
     document.querySelectorAll('.time-slot').forEach(t => t.classList.remove('selected'));
     el.classList.add('selected');
+    selectedTime = label;
+    document.getElementById('btnToConfirm').disabled = false;
   }
+
+  // ---- Confirm screen ----
+  function goToConfirm(){
+    if(!selectedServices.length || !selectedDate || !selectedTime) return;
+
+    const total = selectedServices.reduce((s, x) => s + x.price, 0);
+    const names = selectedServices.map(x => x.name).join(' + ');
+
+    document.getElementById('sumServico').textContent = names;
+    document.getElementById('sumData').textContent = `${DOW_LABELS[selectedDate.getDay()]}, ${String(selectedDate.getDate()).padStart(2,'0')} de ${MONTH_LABELS[selectedDate.getMonth()].toLowerCase()}`;
+    document.getElementById('sumHorario').textContent = selectedTime;
+    document.getElementById('sumTotal').textContent = 'R$ ' + total;
+
+    document.getElementById('confirmError').style.display = 'none';
+    document.getElementById('whatsappFallback').style.display = 'none';
+
+    goTo('confirm');
+  }
+
+  function getBookingPayload(){
+    const nome = document.getElementById('inputNome').value.trim();
+    const telefone = document.getElementById('inputTelefone').value.trim();
+    const total = selectedServices.reduce((s, x) => s + x.price, 0);
+    const names = selectedServices.map(x => x.name).join(' + ');
+    const hasFullService = selectedServices.some(x => x.duration >= 60);
+    const duracaoMin = hasFullService ? 60 : 15;
+    const dia = String(selectedDate.getDate()).padStart(2,'0');
+    const mes = String(selectedDate.getMonth() + 1).padStart(2,'0');
+    const ano = selectedDate.getFullYear();
+
+    return {
+      nome, telefone,
+      servico: names,
+      data: `${dia}/${mes}/${ano}`,
+      horario: selectedTime,
+      duracao: duracaoMin === 15 ? '15 min' : '60 min',
+      preco: 'R$' + total
+    };
+  }
+
+  async function confirmarAgendamento(){
+    const payload = getBookingPayload();
+    const errorBox = document.getElementById('confirmError');
+    const whatsappLink = document.getElementById('whatsappFallback');
+    const btn = document.getElementById('btnConfirmar');
+
+    if(!payload.nome || !payload.telefone){
+      errorBox.textContent = 'Preencha seu nome e WhatsApp para confirmar.';
+      errorBox.style.display = 'block';
+      whatsappLink.style.display = 'none';
+      return;
+    }
+
+    errorBox.style.display = 'none';
+    whatsappLink.style.display = 'none';
+    btn.disabled = true;
+    btn.classList.add('loading');
+    btn.textContent = 'Confirmando...';
+
+    try {
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+
+      if(!res.ok || !data.success){
+        throw new Error(data.error || 'Não foi possível confirmar o agendamento.');
+      }
+
+      document.getElementById('successMsg').textContent =
+        `${payload.nome}, seu horário de ${payload.servico} no dia ${payload.data} às ${payload.horario} foi reservado na agenda da Barbearia do Deeh.`;
+      goTo('success');
+
+    } catch (err) {
+      errorBox.textContent = 'Não conseguimos confirmar automaticamente. Tente novamente ou fale direto com o Deeh no WhatsApp.';
+      errorBox.style.display = 'block';
+
+      const msg = encodeURIComponent(
+        `Olá! Quero agendar: ${payload.servico}, dia ${payload.data} às ${payload.horario}. Nome: ${payload.nome}`
+      );
+      whatsappLink.href = `https://wa.me/${WHATSAPP_NUMBER}?text=${msg}`;
+      whatsappLink.style.display = 'flex';
+
+    } finally {
+      btn.disabled = false;
+      btn.classList.remove('loading');
+      btn.textContent = 'Confirmar agendamento';
+    }
+  }
+
+  function resetFlow(){
+    selectedServices = [];
+    selectedDate = null;
+    selectedTime = null;
+    document.querySelectorAll('.service-row.selected').forEach(r => r.classList.remove('selected'));
+    document.getElementById('totalPrice').textContent = 'R$ 0';
+    document.getElementById('inputNome').value = '';
+    document.getElementById('inputTelefone').value = '';
+    goTo('home');
+  }
+
+  // ---- Init ----
+  buildDateScroller();
 </script>
 
 </body>
