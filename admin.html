@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>App Barbearia do Deeh</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Work+Sans:wght@400;500;600;700&display=swap');
+
+  :root{
+    --black: #0f0e0d;
+    --surface: #1a1613;
+    --surface-2: #221c17;
+    --brown: #2e2010;
+    --gold: #C8A040;
+    --gold-light: #e3c878;
+    --cream: #f5f1e8;
+    --muted: #9c9488;
+    --danger: #b6522f;
+  }
+
+  *{margin:0;padding:0;box-sizing:border-box;}
+
+  body{
+    background: #05050580;
+    background-color: #050505;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:24px;
+    padding:40px 16px 80px;
+    font-family:'Work Sans',sans-serif;
+    color:var(--cream);
+  }
+
+  /* ---- Mode switcher ---- */
+  .mode-switch{
+    display:flex;
+    background:var(--surface);
+    border:1px solid var(--brown);
+    border-radius:999px;
+    padding:4px;
+    gap:4px;
+  }
+  .mode-switch button{
+    border:none;
+    background:transparent;
+    color:var(--muted);
+    font-family:'Work Sans',sans-serif;
+    font-weight:600;
+    font-size:13px;
+    letter-spacing:0.04em;
+    padding:9px 22px;
+    border-radius:999px;
+    cursor:pointer;
+    transition:all .25s ease;
+  }
+  .mode-switch button.active{
+    background:var(--gold);
+    color:var(--black);
+  }
+
+  /* ---- Phone frame ---- */
+  .phone{
+    width:375px;
+    height:790px;
+    background:var(--black);
+    border-radius:44px;
+    border:10px solid #000;
+    box-shadow:0 0 0 1.5px var(--brown), 0 40px 80px -20px rgba(0,0,0,.8);
+    position:relative;
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+  }
+  .notch{
+    position:absolute;
+    top:10px;left:50%;
+    transform:translateX(-50%);
+    width:120px;height:22px;
+    background:#000;
+    border-radius:0 0 16px 16px;
+    z-index:50;
+  }
+  .statusbar{
+    height:46px;
+    display:flex;
+    align-items:flex-end;
+    justify-content:space-between;
+    padding:0 24px 8px;
+    font-size:13px;
+    font-weight:600;
+    color:var(--cream);
+    flex-shrink:0;
+  }
+
+  .screens{
+    flex:1;
+    position:relative;
+    overflow:hidden;
+  }
+  .screen{
+    position:absolute;
+    inset:0;
+    display:flex;
+    flex-direction:column;
+    opacity:0;
+    pointer-events:none;
+    transform:translateX(16px);
+    transition:opacity .28s ease, transform .28s ease;
+    overflow-y:auto;
+  }
+  .screen.active{
+    opacity:1;
+    pointer-events:auto;
+    transform:translateX(0);
+  }
+
+  .screen-body{
+    padding:20px 20px 24px;
+    flex:1;
+  }
+
+  /* ---- Shared typography ---- */
+  h1,h2,h3{font-family:'Bebas Neue',sans-serif; letter-spacing:0.03em; font-weight:400;}
+  .eyebrow{
+    font-size:11px;
+    letter-spacing:0.16em;
+    text-transform:uppercase;
+    color:var(--gold);
+    font-weight:600;
+  }
+
+  .gold-divider{
+    height:1px;
+    background:linear-gradient(90deg, transparent, var(--gold), transparent);
+    margin:14px 0;
+    position:relative;
+  }
+  .gold-divider::after{
+    content:'✂';
+    position:absolute;
+    left:50%; top:50%;
+    transform:translate(-50%,-50%);
+    background:var(--black);
+    color:var(--gold);
+    font-size:12px;
+    padding:0 8px;
+  }
+
+  /* ---- Header w/ logo ---- */
+  .brand-header{
+    padding:6px 20px 18px;
+    flex-shrink:0;
+    display:flex;
+    align-items:center;
+    gap:12px;
+  }
+  .brand-header .logo-img{
+    width:48px;
+    height:48px;
+    flex-shrink:0;
+    filter:drop-shadow(0 2px 6px rgba(0,0,0,.5));
+  }
+  .brand-header .brand-text{flex:1;min-width:0;}
+  .brand-header h1{
+    font-size:30px;
+    color:var(--cream);
+    line-height:1;
+  }
+  .brand-header h1 span{color:var(--gold);}
+  .brand-header p{
+    font-size:12px;
+    color:var(--muted);
+    margin-top:4px;
+  }
+
+  /* ---- Home screen ---- */
+  .cta-primary{
+    background:var(--gold);
+    color:var(--black);
+    border:none;
+    width:100%;
+    padding:16px;
+    border-radius:14px;
+    font-family:'Work Sans',sans-serif;
+    font-weight:700;
+    font-size:15px;
+    cursor:pointer;
+    letter-spacing:0.01em;
+    transition:transform .15s ease, background .2s ease;
+  }
+  .cta-primary:active{transform:scale(0.98);}
+  .cta-primary:hover{background:var(--gold-light);}
+
+  .quick-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+    margin-top:18px;
+  }
+  .quick-card{
+    background:var(--surface);
+    border:1px solid var(--brown);
+    border-radius:12px;
+    padding:14px;
+    cursor:pointer;
+    transition:border-color .2s ease, background .2s ease;
+  }
+  .quick-card:hover{border-color:var(--gold);}
+  .quick-card .name{font-weight:600; font-size:13.5px; color:var(--cream);}
+  .quick-card .price{font-size:12px; color:var(--gold); margin-top:4px; font-weight:600;}
+
+  .plan-banner{
+    margin-top:20px;
+    background:linear-gradient(135deg, var(--brown), var(--surface-2));
+    border:1px solid var(--gold);
+    border-radius:14px;
+    padding:16px;
+    cursor:pointer;
+  }
+  .plan-banner .eyebrow{margin-bottom:4px;}
+  .plan-banner h3{font-size:19px; color:var(--cream);}
+  .plan-banner p{font-size:12px; color:var(--muted); margin-top:3px;}
+
+  /* ---- Bottom nav ---- */
+  .bottom-nav{
+    display:flex;
+    justify-content:space-around;
+    align-items:center;
+    padding:12px 0 18px;
+    background:var(--surface);
+    border-top:1px solid var(--brown);
+    flex-shrink:0;
+  }
+  .nav-item{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:4px;
+    color:var(--muted);
+    font-size:10px;
+    font-weight:600;
+    cursor:pointer;
+    background:none;border:none;
+    font-family:'Work Sans',sans-serif;
+  }
+  .nav-item .dot{width:6px;height:6px;border-radius:50%;background:transparent;}
+  .nav-item.active{color:var(--gold);}
+  .nav-item.active .dot{background:var(--gold);}
+  .nav-icon{font-size:18px;}
+
+  /* ---- Step header (booking flow) ---- */
+  .step-header{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:14px 18px;
+    flex-shrink:0;
+  }
+  .back-btn{
+    width:34px;height:34px;
+    border-radius:10px;
+    background:var(--surface);
+    border:1px solid var(--brown);
+    color:var(--cream);
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;
+    font-size:16px;
+  }
+  .step-title{font-size:22px; color:var(--cream);}
+  .step-dots{display:flex; gap:5px; margin-left:auto;}
+  .step-dots span{width:6px;height:6px;border-radius:50%;background:var(--brown);}
+  .step-dots span.done{background:var(--gold);}
+
+  /* ---- Service list ---- */
+  .service-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    background:var(--surface);
+    border:1px solid var(--brown);
+    border-radius:12px;
+    padding:14px 16px;
+    margin-bottom:10px;
+    cursor:pointer;
+    transition:border-color .2s ease;
+  }
+  .service-row.selected{border-color:var(--gold); background:var(--surface-2);}
+  .service-row .info .name{font-weight:600; font-size:14px;}
+  .service-row .info .dur{font-size:11.5px; color:var(--muted); margin-top:2px;}
+  .service-row .price{font-weight:700; color:var(--gold); font-size:14px;}
+  .checkbox{
+    width:20px;height:20px;
+    border-radius:6px;
+    border:1.5px solid var(--muted);
+    margin-right:12px;
+    flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;
+    font-size:12px;
+    color:var(--black);
+  }
+  .service-row.selected .checkbox{background:var(--gold); border-color:var(--gold);}
+  .service-row-left{display:flex; align-items:center;}
+
+  .sticky-footer{
+    padding:14px 20px 20px;
+    background:linear-gradient(180deg, transparent, var(--black) 30%);
+    flex-shrink:0;
+  }
+  .total-line{
+    display:flex; justify-content:space-between;
+    font-size:13px; color:var(--muted);
+    margin-bottom:10px;
+  }
+  .total-line b{color:var(--cream); font-size:15px;}
+
+  /* ---- Calendar ---- */
+  .date-scroller{
+    display:flex;
+    gap:8px;
+    overflow-x:auto;
+    padding-bottom:4px;
+  }
+  .date-chip{
+    min-width:52px;
+    background:var(--surface);
+    border:1px solid var(--brown);
+    border-radius:12px;
+    padding:10px 6px;
+    text-align:center;
+    cursor:pointer;
+    flex-shrink:0;
+  }
+  .date-chip .dow{font-size:10px; color:var(--muted); text-transform:uppercase;}
+  .date-chip .num{font-size:17px; font-weight:700; margin-top:2px;}
+  .date-chip.selected{background:var(--gold); border-color:var(--gold);}
+  .date-chip.selected .dow, .date-chip.selected .num{color:var(--black);}
+
+  .time-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:10px;
+    margin-top:16px;
+  }
+  .time-slot{
+    background:var(--surface);
+    border:1px solid var(--brown);
+    border-radius:10px;
+    padding:11px 0;
+    text-align:center;
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+  }
+  .time-slot.selected{background:var(--gold); color:var(--black); border-color:var(--gold);}
+  .time-slot.taken{color:var(--muted); text-decoration:line-through; cursor:not-allowed; opacity:.5;}
+
+  /* ---- Confirm screen ---- */
+  .summary-card{
+    background:var(--surface);
+    border:1px solid var(--brown);
+    border-radius:16px;
+    padding:18px;
+    margin-top:8px;
+  }
+  .summary-row{
+    display:flex; justify-content:space-between;
+    padding:9px 0;
+    font-size:13.5px;
+    border-bottom:1px solid var(--brown);
+  }
+  .summary-row:last-child{border-bottom:none;}
+  .summary-row .label{color:var(--muted);}
+  .summary-row .val{color:var(--cream); font-weight:600;}
+
+  .whatsapp-btn{
+    background:#25D366;
+    color:#04220f;
+    border:none;
+    width:100%;
+    padding:16px;
+    border-radius:14px;
+    font-weight:700;
+    font-size:15px;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    margin-top:12px;
+  }
+
+  /* ---- Form inputs (confirm screen) ---- */
+  .form-group{margin-bottom:12px;}
+  .form-label{
+    display:block;
+    font-size:11px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--muted);
+    margin-bottom:6px;
+    font-weight:600;
+  }
+  .form-input{
+    width:100%;
+    background:var(--surface);
+    border:1px solid var(--brown);
+    border-radius:12px;
+    padding:13px 14px;
+    color:var(--cream);
+    font-family:'Work Sans',sans-serif;
+    font-size:14px;
+    outline:none;
+    transition:border-color .2s ease;
+  }
+  .form-input:focus{border-color:var(--gold);}
+  .form-input::placeholder{color:var(--muted);}
+
+  .error-banner{
+    background:rgba(182,82,47,0.15);
+    border:1px solid var(--danger);
+    color:#e8a37f;
+    border-radius:12px;
+    padding:12px 14px;
+    font-size:12.5px;
+    margin-top:14px;
+    line-height:1.4;
+  }
+
+  .cta-primary.loading{opacity:0.7; cursor:wait;}
+  .cta-primary:disabled{opacity:0.4; cursor:not-allowed;}
+
+  .success-box{
+    text-align:center;
+    padding:40px 20px;
+  }
+  .success-icon{
+    width:64px;height:64px;
+    border-radius:50%;
+    background:var(--gold);
+    color:var(--black);
+    display:flex;align-items:center;justify-content:center;
+    font-size:30px;
+    margin:0 auto 18px;
+  }
+  .success-box h2{font-size:24px; color:var(--cream);}
+  .success-box p{font-size:13px; color:var(--muted); margin-top:8px; line-height:1.5;}
+
+  /* ---- Dashboard (Deeh) ---- */
+  .stat-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+    margin-bottom:18px;
+  }
+  .stat-card{
+    background:var(--surface);
+    border:1px solid var(--brown);
+    border-radius:12px;
+    padding:14px;
+  }
+  .stat-card .val{font-family:'Bebas Neue',sans-serif; font-size:26px; color:var(--gold);}
+  .stat-card .lbl{font-size:11px; color:var(--muted); margin-top:2px;}
+
+  .agenda-item{
+    display:flex;
+    gap:12px;
+    padding:12px 0;
+    border-bottom:1px solid var(--brown);
+    align-items:center;
+  }
+  .agenda-time{
+    font-family:'Bebas Neue',sans-serif;
+    font-size:17px;
+    color:var(--gold);
+    width:52px;
+    flex-shrink:0;
+  }
+  .agenda-info .cli{font-weight:600; font-size:13.5px;}
+  .agenda-info .srv{font-size:11.5px; color:var(--muted); margin-top:2px;}
+
+  .hint{
+    text-align:center;
+    font-size:12px;
+    color:var(--muted);
+    max-width:375px;
+    line-height:1.5;
+  }
+  .hint b{color:var(--gold);}
+</style>
+</head>
+<body>
+
+  <div class="mode-switch">
+    <button class="active" style="cursor:default;">Painel Deeh (admin)</button>
+    <button onclick="logoutAdmin()">Sair</button>
+  </div>
+
+  <!-- Tela de login -->
+  <div id="loginGate" style="max-width:375px;margin:60px auto;text-align:center;color:var(--cream);">
+    <img class="logo-img" src="logo.png" alt="Logo Barbearia do Deeh" style="width:64px;margin-bottom:16px;">
+    <h2 style="margin-bottom:16px;">Acesso restrito</h2>
+    <input type="password" id="adminPassword" class="form-input" placeholder="Senha" style="max-width:260px;margin:0 auto 12px;" onkeydown="if(event.key==='Enter')tentarLogin()">
+    <br>
+    <button class="cta-primary" style="max-width:260px;" onclick="tentarLogin()">Entrar</button>
+    <p id="loginError" style="color:#ff6b6b;font-size:12px;margin-top:10px;display:none;">Senha incorreta.</p>
+  </div>
+
+  <div class="phone" id="appShell" style="display:none;">
+    <div class="notch"></div>
+    <div class="statusbar">
+      <span>9:41</span>
+      <span>●●●●</span>
+    </div>
+
+    <div class="screens">
+
+      <!-- 1. HOME -->
+      <div class="screen active" id="screen-home">
+        <div class="brand-header">
+          <img class="logo-img" src="logo.png" alt="Logo Barbearia do Deeh">
+          <div class="brand-text">
+            <p class="eyebrow">Indaiatuba · SP</p>
+            <h1>BARBEARIA <span>DO DEEH</span></h1>
+            <p>Seu horário garantido, sem complicação.</p>
+          </div>
+        </div>
+        <div class="screen-body" style="padding-top:0;">
+          <button class="cta-primary" onclick="goTo('services')">Agendar horário</button>
+          <div class="gold-divider"></div>
+          <p class="eyebrow" style="margin-bottom:10px;">Serviços rápidos</p>
+          <div class="quick-grid">
+            <div class="quick-card" onclick="goTo('services')">
+              <div class="name">Corte</div>
+              <div class="price">R$ 50</div>
+            </div>
+            <div class="quick-card" onclick="goTo('services')">
+              <div class="name">Barba</div>
+              <div class="price">R$ 50</div>
+            </div>
+            <div class="quick-card" onclick="goTo('services')">
+              <div class="name">Corte + Barba</div>
+              <div class="price">R$ 95</div>
+            </div>
+            <div class="quick-card" onclick="goTo('services')">
+              <div class="name">Corte Kids</div>
+              <div class="price">R$ 45</div>
+            </div>
+          </div>
+          <div class="plan-banner">
+            <p class="eyebrow">Planos mensais</p>
+            <h3>O Clássico</h3>
+            <p>Cortes ilimitados + barba todo mês. Toque para ver os planos.</p>
+          </div>
+        </div>
+        <div class="bottom-nav">
+          <button class="nav-item" data-target="home" onclick="goTo('home')"><span class="nav-icon">⌂</span>Início<span class="dot"></span></button>
+          <button class="nav-item" data-target="services" onclick="goTo('services')"><span class="nav-icon">✂</span>Agendar<span class="dot"></span></button>
+          <button class="nav-item" data-target="plans" onclick="goTo('plans')"><span class="nav-icon">◆</span>Planos<span class="dot"></span></button>
+          <button class="nav-item" data-target="profile" onclick="goTo('profile')"><span class="nav-icon">☺</span>Perfil<span class="dot"></span></button>
+        </div>
+      </div>
+
+      <!-- 2. SERVICES -->
+      <div class="screen" id="screen-services">
+        <div class="step-header">
+          <button class="back-btn" onclick="goTo('home')">←</button>
+          <h2 class="step-title">Serviços</h2>
+          <div class="step-dots"><span class="done"></span><span></span><span></span></div>
+        </div>
+        <div class="screen-body" style="padding-top:0;">
+          <div class="service-row" data-price="50" data-name="Corte" data-duration="60" onclick="toggleService(this)">
+            <div class="service-row-left">
+              <div class="checkbox"></div>
+              <div class="info"><div class="name">Corte</div><div class="dur">60 min</div></div>
+            </div>
+            <div class="price">R$ 50</div>
+          </div>
+          <div class="service-row" data-price="50" data-name="Barba" data-duration="60" onclick="toggleService(this)">
+            <div class="service-row-left">
+              <div class="checkbox"></div>
+              <div class="info"><div class="name">Barba</div><div class="dur">60 min</div></div>
+            </div>
+            <div class="price">R$ 50</div>
+          </div>
+          <div class="service-row" data-price="15" data-name="Sobrancelha" data-duration="0" onclick="toggleService(this)">
+            <div class="service-row-left">
+              <div class="checkbox"></div>
+              <div class="info"><div class="name">Sobrancelha</div><div class="dur">complemento</div></div>
+            </div>
+            <div class="price">R$ 15</div>
+          </div>
+          <div class="service-row" data-price="15" data-name="Pezinho" data-duration="15" onclick="toggleService(this)">
+            <div class="service-row-left">
+              <div class="checkbox"></div>
+              <div class="info"><div class="name">Pezinho</div><div class="dur">15 min</div></div>
+            </div>
+            <div class="price">R$ 15</div>
+          </div>
+          <div class="service-row" data-price="45" data-name="Corte Kids" data-duration="60" onclick="toggleService(this)">
+            <div class="service-row-left">
+              <div class="checkbox"></div>
+              <div class="info"><div class="name">Corte Kids</div><div class="dur">60 min</div></div>
+            </div>
+            <div class="price">R$ 45</div>
+          </div>
+        </div>
+        <div class="sticky-footer">
+          <div class="total-line"><span>Total</span><b id="totalPrice">R$ 0</b></div>
+          <button class="cta-primary" onclick="goTo('calendar')">Continuar</button>
+        </div>
+      </div>
+
+      <!-- 3. CALENDAR -->
+      <div class="screen" id="screen-calendar">
+        <div class="step-header">
+          <button class="back-btn" onclick="goTo('services')">←</button>
+          <h2 class="step-title">Data e hora</h2>
+          <div class="step-dots"><span class="done"></span><span class="done"></span><span></span></div>
+        </div>
+        <div class="screen-body" style="padding-top:0;">
+          <p class="eyebrow" id="monthLabel" style="margin-bottom:10px;">—</p>
+          <div class="date-scroller" id="dateScroller"></div>
+          <div class="gold-divider"></div>
+          <p class="eyebrow" style="margin-bottom:10px;">Horários disponíveis</p>
+          <div class="time-grid" id="timeGrid"></div>
+          <p class="hint" style="margin-top:12px; text-align:left; font-size:11px;">Horários sujeitos a disponibilidade — o Deeh confirma na hora.</p>
+        </div>
+        <div class="sticky-footer">
+          <button class="cta-primary" id="btnToConfirm" onclick="goToConfirm()" disabled>Continuar</button>
+        </div>
+      </div>
+
+      <!-- 4. CONFIRM -->
+      <div class="screen" id="screen-confirm">
+        <div class="step-header">
+          <button class="back-btn" onclick="goTo('calendar')">←</button>
+          <h2 class="step-title">Confirmar</h2>
+          <div class="step-dots"><span class="done"></span><span class="done"></span><span class="done"></span></div>
+        </div>
+        <div class="screen-body" style="padding-top:0;">
+          <div class="form-group">
+            <label class="form-label">Seu nome</label>
+            <input type="text" id="inputNome" class="form-input" placeholder="Nome completo">
+          </div>
+          <div class="form-group">
+            <label class="form-label">WhatsApp</label>
+            <input type="tel" id="inputTelefone" class="form-input" placeholder="(19) 99999-9999">
+          </div>
+          <div class="summary-card">
+            <div class="summary-row"><span class="label">Serviço</span><span class="val" id="sumServico">—</span></div>
+            <div class="summary-row"><span class="label">Data</span><span class="val" id="sumData">—</span></div>
+            <div class="summary-row"><span class="label">Horário</span><span class="val" id="sumHorario">—</span></div>
+            <div class="summary-row"><span class="label">Local</span><span class="val">Jd. Morada do Sol</span></div>
+            <div class="summary-row"><span class="label">Total</span><span class="val" id="sumTotal" style="color:var(--gold); font-size:16px;">R$ 0</span></div>
+          </div>
+          <div id="confirmError" class="error-banner" style="display:none;"></div>
+          <button class="cta-primary" id="btnConfirmar" style="margin-top:18px;" onclick="confirmarAgendamento()">Confirmar agendamento</button>
+          <a id="whatsappFallback" class="whatsapp-btn" style="display:none; text-decoration:none;" target="_blank">📲 Confirmar via WhatsApp</a>
+          <p class="hint" style="margin-top:14px; text-align:left;">Ao confirmar, seu horário é reservado direto na agenda do Deeh.</p>
+        </div>
+      </div>
+
+      <!-- 4b. SUCCESS -->
+      <div class="screen" id="screen-success">
+        <div class="screen-body success-box">
+          <div class="success-icon">✓</div>
+          <h2>Agendamento confirmado!</h2>
+          <p id="successMsg">Seu horário foi reservado na agenda da Barbearia do Deeh.</p>
+          <button class="cta-primary" style="margin-top:26px;" onclick="resetFlow()">Voltar ao início</button>
+        </div>
+      </div>
+
+      <!-- 5. DASHBOARD (DEEH) -->
+      <div class="screen" id="screen-dashboard">
+        <div class="brand-header">
+          <img class="logo-img" src="logo.png" alt="Logo Barbearia do Deeh">
+          <div class="brand-text">
+            <p class="eyebrow">Sexta-feira, 04 de julho</p>
+            <h1 style="font-size:26px;">Olá, <span>Deeh</span></h1>
+          </div>
+        </div>
+        <div class="screen-body" style="padding-top:0;">
+          <div class="stat-grid">
+            <div class="stat-card"><div class="val">7</div><div class="lbl">Agendamentos hoje</div></div>
+            <div class="stat-card"><div class="val">R$ 480</div><div class="lbl">Faturamento estimado</div></div>
+            <div class="stat-card"><div class="val">15:00</div><div class="lbl">Próximo horário livre</div></div>
+            <div class="stat-card"><div class="val">3</div><div class="lbl">Clientes recorrentes</div></div>
+          </div>
+          <p class="eyebrow" style="margin-bottom:6px;">Agenda de hoje</p>
+          <div class="agenda-item">
+            <div class="agenda-time">09:00</div>
+            <div class="agenda-info"><div class="cli">Marcos Silva</div><div class="srv">Corte + Barba · R$ 95</div></div>
+          </div>
+          <div class="agenda-item">
+            <div class="agenda-time">11:00</div>
+            <div class="agenda-info"><div class="cli">João Pedro</div><div class="srv">Corte + Barba · R$ 95</div></div>
+          </div>
+          <div class="agenda-item">
+            <div class="agenda-time">14:00</div>
+            <div class="agenda-info"><div class="cli">Rafael Costa</div><div class="srv">Corte · R$ 50</div></div>
+          </div>
+          <div class="agenda-item">
+            <div class="agenda-time">16:00</div>
+            <div class="agenda-info"><div class="cli">Lucas Almeida</div><div class="srv">Barba · R$ 50</div></div>
+          </div>
+        </div>
+        <div class="bottom-nav">
+          <button class="nav-item" data-target="dashboard" onclick="goTo('dashboard')"><span class="nav-icon">⌂</span>Painel<span class="dot"></span></button>
+          <button class="nav-item" data-target="dashboard" onclick="goTo('dashboard')"><span class="nav-icon">🗓</span>Agenda<span class="dot"></span></button>
+          <button class="nav-item" data-target="plans" onclick="goTo('plans')"><span class="nav-icon">◆</span>Planos<span class="dot"></span></button>
+          <button class="nav-item" data-target="profile" onclick="goTo('profile')"><span class="nav-icon">☺</span>Perfil<span class="dot"></span></button>
+        </div>
+      </div>
+
+      <!-- 6. PLANOS -->
+      <div class="screen" id="screen-plans">
+        <div class="step-header">
+          <button class="back-btn" onclick="goTo(currentMode)">←</button>
+          <h2 class="step-title">Planos mensais</h2>
+        </div>
+        <div class="screen-body" style="padding-top:0;">
+          <div class="summary-card" style="margin-bottom:14px;">
+            <div class="summary-row"><span class="label" style="font-size:15px;color:var(--cream);font-weight:700;">Essencial</span><span class="val" style="color:var(--gold);">R$ 160/mês</span></div>
+            <div class="summary-row"><span class="label">4 cortes ou 4 barbas por mês</span></div>
+          </div>
+          <div class="summary-card" style="margin-bottom:14px;">
+            <div class="summary-row"><span class="label" style="font-size:15px;color:var(--cream);font-weight:700;">Clássico</span><span class="val" style="color:var(--gold);">R$ 260/mês</span></div>
+            <div class="summary-row"><span class="label">4 barbas + 2 cortes + 2 pezinhos de brinde</span></div>
+          </div>
+          <div class="summary-card" style="margin-bottom:14px;">
+            <div class="summary-row"><span class="label" style="font-size:15px;color:var(--cream);font-weight:700;">Empresário</span><span class="val" style="color:var(--gold);">R$ 340/mês</span></div>
+            <div class="summary-row"><span class="label">4 cortes + 4 barbas + sobrancelha de brinde</span></div>
+          </div>
+          <button class="whatsapp-btn" onclick="assinarPlano()">📲 Assinar via WhatsApp</button>
+        </div>
+      </div>
+
+      <!-- 7. PERFIL -->
+      <div class="screen" id="screen-profile">
+        <div class="step-header">
+          <button class="back-btn" onclick="goTo(currentMode)">←</button>
+          <h2 class="step-title">Perfil</h2>
+        </div>
+        <div class="screen-body" style="padding-top:0;">
+          <div class="form-group">
+            <label class="form-label">Nome</label>
+            <input type="text" id="profileNome" class="form-input" placeholder="Seu nome">
+          </div>
+          <div class="form-group">
+            <label class="form-label">WhatsApp</label>
+            <input type="tel" id="profileTelefone" class="form-input" placeholder="(19) 99999-9999">
+          </div>
+          <button class="cta-primary" onclick="salvarPerfil()">Salvar</button>
+          <div class="gold-divider"></div>
+          <p class="eyebrow" style="margin-bottom:10px;">Meus agendamentos</p>
+          <p class="hint" style="text-align:left;">Em breve: histórico de agendamentos direto aqui.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <p class="hint">Use <b>Visão Cliente</b> para o agendamento e <b>Visão Deeh</b> para o painel do barbeiro.</p>
+
+<script>
+  // ====== CONFIG ======
+  const API_URL = 'https://backend-v2-five-topaz.vercel.app/api/agendar';
+  const API_DISPONIBILIDADE_URL = 'https://backend-v2-five-topaz.vercel.app/api/disponibilidade';
+  const WHATSAPP_NUMBER = '5519993900880';
+
+  // Horário de funcionamento: 0=Dom ... 6=Sáb
+  const BUSINESS_HOURS = {
+    2: { open: 9, close: 19 }, // Terça
+    3: { open: 9, close: 19 }, // Quarta
+    4: { open: 9, close: 19 }, // Quinta
+    5: { open: 9, close: 19 }, // Sexta
+    6: { open: 8, close: 17 }, // Sábado
+  };
+
+  const DOW_LABELS = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+  const MONTH_LABELS = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
+  // ====== STATE ======
+  let selectedServices = []; // [{name, price, duration}]
+  let selectedDate = null;   // Date object (00:00 local)
+  let selectedTime = null;   // "HH:MM"
+
+  let currentMode = 'home';
+
+  function goTo(id){
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('screen-' + id).classList.add('active');
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.target === id));
+    if(id === 'home' || id === 'dashboard'){ currentMode = id; }
+  }
+
+  // ====== LOGIN (admin) ======
+  // ATENÇÃO: proteção simples do lado do cliente. Impede acesso casual,
+  // mas não é criptografia real (qualquer um que abrir o código-fonte vê a senha).
+  // Troque a senha abaixo quando quiser.
+  const ADMIN_PASSWORD = 'deeh2026';
+
+  function tentarLogin(){
+    const val = document.getElementById('adminPassword').value;
+    if(val === ADMIN_PASSWORD){
+      sessionStorage.setItem('deehAdminAuth', '1');
+      abrirPainel();
+    } else {
+      document.getElementById('loginError').style.display = 'block';
+    }
+  }
+
+  function abrirPainel(){
+    document.getElementById('loginGate').style.display = 'none';
+    document.getElementById('appShell').style.display = '';
+    buildDateScroller();
+    goTo('dashboard');
+  }
+
+  function logoutAdmin(){
+    sessionStorage.removeItem('deehAdminAuth');
+    location.reload();
+  }
+
+  function assinarPlano(){
+    const msg = encodeURIComponent('Olá! Quero assinar um plano mensal da Barbearia do Deeh.');
+    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${msg}`, '_blank');
+  }
+
+  function salvarPerfil(){
+    const nome = document.getElementById('profileNome').value.trim();
+    const telefone = document.getElementById('profileTelefone').value.trim();
+    if(nome) document.getElementById('inputNome').value = nome;
+    if(telefone) document.getElementById('inputTelefone').value = telefone;
+    alert('Perfil salvo!');
+  }
+
+  function toggleService(el){
+    el.classList.toggle('selected');
+    let total = 0;
+    selectedServices = [];
+    document.querySelectorAll('.service-row.selected').forEach(row => {
+      const price = parseInt(row.dataset.price, 10);
+      total += price;
+      selectedServices.push({
+        name: row.dataset.name,
+        price,
+        duration: parseInt(row.dataset.duration, 10)
+      });
+    });
+    document.getElementById('totalPrice').textContent = 'R$ ' + total;
+  }
+
+  // ---- Calendar: build next available days dynamically ----
+  function buildDateScroller(){
+    const scroller = document.getElementById('dateScroller');
+    scroller.innerHTML = '';
+    const today = new Date();
+    today.setHours(0,0,0,0);
+
+    const days = [];
+    let cursor = new Date(today);
+    while(days.length < 7){
+      if(BUSINESS_HOURS[cursor.getDay()]){
+        days.push(new Date(cursor));
+      }
+      cursor.setDate(cursor.getDate() + 1);
+    }
+
+    days.forEach((d, idx) => {
+      const chip = document.createElement('div');
+      chip.className = 'date-chip' + (idx === 0 ? ' selected' : '');
+      chip.innerHTML = `<div class="dow">${DOW_LABELS[d.getDay()]}</div><div class="num">${String(d.getDate()).padStart(2,'0')}</div>`;
+      chip.onclick = () => selectDate(chip, d);
+      scroller.appendChild(chip);
+    });
+
+    selectDate(scroller.children[0], days[0]);
+  }
+
+  function updateMonthLabel(d){
+    document.getElementById('monthLabel').textContent = `${MONTH_LABELS[d.getMonth()]} ${d.getFullYear()}`;
+  }
+
+  function selectDate(el, dateObj){
+    document.querySelectorAll('.date-chip').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedDate = dateObj;
+    updateMonthLabel(dateObj);
+    buildTimeGrid(dateObj);
+  }
+
+  async function buscarHorariosOcupados(dataDDMMAAAA){
+    try {
+      const resp = await fetch(`${API_DISPONIBILIDADE_URL}?data=${encodeURIComponent(dataDDMMAAAA)}`);
+      const json = await resp.json();
+      if(!json.success) return [];
+      return json.ocupados; // [{ inicio: "10:00", fim: "11:00" }]
+    } catch(e){
+      console.error('Erro ao buscar disponibilidade:', e);
+      return []; // falha segura: se a API cair, não bloqueia nenhum horário
+    }
+  }
+
+  function horarioConflita(horarioInicio, duracaoMin, ocupados){
+    const [h, m] = horarioInicio.split(':').map(Number);
+    const inicioMin = h * 60 + m;
+    const fimMin = inicioMin + duracaoMin;
+
+    return ocupados.some(periodo => {
+      const [hi, mi] = periodo.inicio.split(':').map(Number);
+      const [hf, mf] = periodo.fim.split(':').map(Number);
+      const ocupInicio = hi * 60 + mi;
+      const ocupFim = hf * 60 + mf;
+      return inicioMin < ocupFim && fimMin > ocupInicio;
+    });
+  }
+
+  async function buildTimeGrid(dateObj){
+    const grid = document.getElementById('timeGrid');
+    grid.innerHTML = '<div style="color:var(--muted);font-size:12px;padding:8px 0;">Carregando horários...</div>';
+    selectedTime = null;
+    document.getElementById('btnToConfirm').disabled = true;
+
+    const hours = BUSINESS_HOURS[dateObj.getDay()];
+    if(!hours){ grid.innerHTML = ''; return; }
+
+    const now = new Date();
+    const isToday = dateObj.toDateString() === now.toDateString();
+
+    const dia = String(dateObj.getDate()).padStart(2,'0');
+    const mes = String(dateObj.getMonth() + 1).padStart(2,'0');
+    const ano = dateObj.getFullYear();
+    const dataStr = `${dia}/${mes}/${ano}`;
+
+    const hasFullService = selectedServices.some(x => x.duration >= 60);
+    const duracaoMin = selectedServices.length ? (hasFullService ? 60 : 15) : 60;
+
+    const ocupados = await buscarHorariosOcupados(dataStr);
+
+    grid.innerHTML = '';
+
+    for(let h = hours.open; h < hours.close; h++){
+      // esconde horários que já passaram, se for hoje
+      if(isToday && h <= now.getHours()) continue;
+
+      const label = String(h).padStart(2,'0') + ':00';
+      // esconde horários já ocupados no Google Calendar
+      if(horarioConflita(label, duracaoMin, ocupados)) continue;
+
+      const slot = document.createElement('div');
+      slot.className = 'time-slot';
+      slot.textContent = label;
+      slot.onclick = () => selectTime(slot, label);
+      grid.appendChild(slot);
+    }
+
+    if(!grid.children.length){
+      grid.innerHTML = '<div style="color:var(--muted);font-size:12px;padding:8px 0;">Nenhum horário disponível neste dia.</div>';
+    }
+  }
+
+  function selectTime(el, label){
+    document.querySelectorAll('.time-slot').forEach(t => t.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedTime = label;
+    document.getElementById('btnToConfirm').disabled = false;
+  }
+
+  // ---- Confirm screen ----
+  function goToConfirm(){
+    if(!selectedServices.length || !selectedDate || !selectedTime) return;
+
+    const total = selectedServices.reduce((s, x) => s + x.price, 0);
+    const names = selectedServices.map(x => x.name).join(' + ');
+
+    document.getElementById('sumServico').textContent = names;
+    document.getElementById('sumData').textContent = `${DOW_LABELS[selectedDate.getDay()]}, ${String(selectedDate.getDate()).padStart(2,'0')} de ${MONTH_LABELS[selectedDate.getMonth()].toLowerCase()}`;
+    document.getElementById('sumHorario').textContent = selectedTime;
+    document.getElementById('sumTotal').textContent = 'R$ ' + total;
+
+    document.getElementById('confirmError').style.display = 'none';
+    document.getElementById('whatsappFallback').style.display = 'none';
+
+    goTo('confirm');
+  }
+
+  function getBookingPayload(){
+    const nome = document.getElementById('inputNome').value.trim();
+    const telefone = document.getElementById('inputTelefone').value.trim();
+    const total = selectedServices.reduce((s, x) => s + x.price, 0);
+    const names = selectedServices.map(x => x.name).join(' + ');
+    const hasFullService = selectedServices.some(x => x.duration >= 60);
+    const duracaoMin = hasFullService ? 60 : 15;
+    const dia = String(selectedDate.getDate()).padStart(2,'0');
+    const mes = String(selectedDate.getMonth() + 1).padStart(2,'0');
+    const ano = selectedDate.getFullYear();
+
+    return {
+      nome, telefone,
+      servico: names,
+      data: `${dia}/${mes}/${ano}`,
+      horario: selectedTime,
+      duracao: duracaoMin === 15 ? '15 min' : '60 min',
+      preco: 'R$' + total
+    };
+  }
+
+  async function confirmarAgendamento(){
+    const payload = getBookingPayload();
+    const errorBox = document.getElementById('confirmError');
+    const whatsappLink = document.getElementById('whatsappFallback');
+    const btn = document.getElementById('btnConfirmar');
+
+    if(!payload.nome || !payload.telefone){
+      errorBox.textContent = 'Preencha seu nome e WhatsApp para confirmar.';
+      errorBox.style.display = 'block';
+      whatsappLink.style.display = 'none';
+      return;
+    }
+
+    errorBox.style.display = 'none';
+    whatsappLink.style.display = 'none';
+    btn.disabled = true;
+    btn.classList.add('loading');
+    btn.textContent = 'Confirmando...';
+
+    try {
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+
+      if(!res.ok || !data.success){
+        throw new Error(data.error || 'Não foi possível confirmar o agendamento.');
+      }
+
+      document.getElementById('successMsg').textContent =
+        `${payload.nome}, seu horário de ${payload.servico} no dia ${payload.data} às ${payload.horario} foi reservado na agenda da Barbearia do Deeh.`;
+      goTo('success');
+
+    } catch (err) {
+      errorBox.textContent = 'Não conseguimos confirmar automaticamente. Tente novamente ou fale direto com o Deeh no WhatsApp.';
+      errorBox.style.display = 'block';
+
+      const msg = encodeURIComponent(
+        `Olá! Quero agendar: ${payload.servico}, dia ${payload.data} às ${payload.horario}. Nome: ${payload.nome}`
+      );
+      whatsappLink.href = `https://wa.me/${WHATSAPP_NUMBER}?text=${msg}`;
+      whatsappLink.style.display = 'flex';
+
+    } finally {
+      btn.disabled = false;
+      btn.classList.remove('loading');
+      btn.textContent = 'Confirmar agendamento';
+    }
+  }
+
+  function resetFlow(){
+    selectedServices = [];
+    selectedDate = null;
+    selectedTime = null;
+    document.querySelectorAll('.service-row.selected').forEach(r => r.classList.remove('selected'));
+    document.getElementById('totalPrice').textContent = 'R$ 0';
+    document.getElementById('inputNome').value = '';
+    document.getElementById('inputTelefone').value = '';
+    goTo('home');
+  }
+
+  // ---- Init ----
+  if(sessionStorage.getItem('deehAdminAuth') === '1'){
+    abrirPainel();
+  }
+  // se não estiver autenticado, fica só a tela de login visível (appShell continua display:none)
+</script>
+
+</body>
+</html>
