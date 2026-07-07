@@ -493,11 +493,6 @@
 </head>
 <body>
 
-  <div class="mode-switch">
-    <button id="btnClientMode" class="active" onclick="setMode('client')">Visão Cliente</button>
-    <button id="btnDeehMode" onclick="setMode('deeh')">Visão Deeh</button>
-  </div>
-
   <div class="phone">
     <div class="notch"></div>
     <div class="statusbar">
@@ -663,48 +658,6 @@
         </div>
       </div>
 
-      <!-- 5. DASHBOARD (DEEH) -->
-      <div class="screen" id="screen-dashboard">
-        <div class="brand-header">
-          <img class="logo-img" src="logo.png" alt="Logo Barbearia do Deeh">
-          <div class="brand-text">
-            <p class="eyebrow">Sexta-feira, 04 de julho</p>
-            <h1 style="font-size:26px;">Olá, <span>Deeh</span></h1>
-          </div>
-        </div>
-        <div class="screen-body" style="padding-top:0;">
-          <div class="stat-grid">
-            <div class="stat-card"><div class="val">7</div><div class="lbl">Agendamentos hoje</div></div>
-            <div class="stat-card"><div class="val">R$ 480</div><div class="lbl">Faturamento estimado</div></div>
-            <div class="stat-card"><div class="val">15:00</div><div class="lbl">Próximo horário livre</div></div>
-            <div class="stat-card"><div class="val">3</div><div class="lbl">Clientes recorrentes</div></div>
-          </div>
-          <p class="eyebrow" style="margin-bottom:6px;">Agenda de hoje</p>
-          <div class="agenda-item">
-            <div class="agenda-time">09:00</div>
-            <div class="agenda-info"><div class="cli">Marcos Silva</div><div class="srv">Corte + Barba · R$ 95</div></div>
-          </div>
-          <div class="agenda-item">
-            <div class="agenda-time">11:00</div>
-            <div class="agenda-info"><div class="cli">João Pedro</div><div class="srv">Corte + Barba · R$ 95</div></div>
-          </div>
-          <div class="agenda-item">
-            <div class="agenda-time">14:00</div>
-            <div class="agenda-info"><div class="cli">Rafael Costa</div><div class="srv">Corte · R$ 50</div></div>
-          </div>
-          <div class="agenda-item">
-            <div class="agenda-time">16:00</div>
-            <div class="agenda-info"><div class="cli">Lucas Almeida</div><div class="srv">Barba · R$ 50</div></div>
-          </div>
-        </div>
-        <div class="bottom-nav">
-          <button class="nav-item" data-target="dashboard" onclick="goTo('dashboard')"><span class="nav-icon">⌂</span>Painel<span class="dot"></span></button>
-          <button class="nav-item" data-target="dashboard" onclick="goTo('dashboard')"><span class="nav-icon">🗓</span>Agenda<span class="dot"></span></button>
-          <button class="nav-item" data-target="plans" onclick="goTo('plans')"><span class="nav-icon">◆</span>Planos<span class="dot"></span></button>
-          <button class="nav-item" data-target="profile" onclick="goTo('profile')"><span class="nav-icon">☺</span>Perfil<span class="dot"></span></button>
-        </div>
-      </div>
-
       <!-- 6. PLANOS -->
       <div class="screen" id="screen-plans">
         <div class="step-header">
@@ -753,7 +706,7 @@
     </div>
   </div>
 
-  <p class="hint">Use <b>Visão Cliente</b> para o agendamento e <b>Visão Deeh</b> para o painel do barbeiro.</p>
+  <p class="hint">Barbearia do Deeh — agende seu horário em segundos.</p>
 
 <script>
   // ====== CONFIG ======
@@ -784,14 +737,7 @@
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById('screen-' + id).classList.add('active');
     document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.target === id));
-    if(id === 'home' || id === 'dashboard'){ currentMode = id; }
-  }
-
-  function setMode(mode){
-    document.getElementById('btnClientMode').classList.toggle('active', mode === 'client');
-    document.getElementById('btnDeehMode').classList.toggle('active', mode === 'deeh');
-    if(mode === 'client'){ goTo('home'); }
-    else { goTo('dashboard'); }
+    if(id === 'home'){ currentMode = id; }
   }
 
   function assinarPlano(){
