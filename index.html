@@ -697,6 +697,7 @@
 <script>
   // ====== CONFIG ======
   const API_URL = 'https://backend-v2-five-topaz.vercel.app/api/agendar';
+  const API_DISPONIBILIDADE_URL = 'https://backend-v2-five-topaz.vercel.app/api/disponibilidade';
   const WHATSAPP_NUMBER = '5519993900880';
 
   // Horário de funcionamento: 0=Dom ... 6=Sáb
@@ -783,28 +784,73 @@
     buildTimeGrid(dateObj);
   }
 
-  function buildTimeGrid(dateObj){
+  async function buscarHorariosOcupados(dataDDMMAAAA){
+    try {
+      const resp = await fetch(`${API_DISPONIBILIDADE_URL}?data=${encodeURIComponent(dataDDMMAAAA)}`);
+      const json = await resp.json();
+      if(!json.success) return [];
+      return json.ocupados; // [{ inicio: "10:00", fim: "11:00" }]
+    } catch(e){
+      console.error('Erro ao buscar disponibilidade:', e);
+      return []; // falha segura: se a API cair, não bloqueia nenhum horário
+    }
+  }
+
+  function horarioConflita(horarioInicio, duracaoMin, ocupados){
+    const [h, m] = horarioInicio.split(':').map(Number);
+    const inicioMin = h * 60 + m;
+    const fimMin = inicioMin + duracaoMin;
+
+    return ocupados.some(periodo => {
+      const [hi, mi] = periodo.inicio.split(':').map(Number);
+      const [hf, mf] = periodo.fim.split(':').map(Number);
+      const ocupInicio = hi * 60 + mi;
+      const ocupFim = hf * 60 + mf;
+      return inicioMin < ocupFim && fimMin > ocupInicio;
+    });
+  }
+
+  async function buildTimeGrid(dateObj){
     const grid = document.getElementById('timeGrid');
-    grid.innerHTML = '';
+    grid.innerHTML = '<div style="color:var(--muted);font-size:12px;padding:8px 0;">Carregando horários...</div>';
     selectedTime = null;
     document.getElementById('btnToConfirm').disabled = true;
 
     const hours = BUSINESS_HOURS[dateObj.getDay()];
-    if(!hours) return;
+    if(!hours){ grid.innerHTML = ''; return; }
 
     const now = new Date();
     const isToday = dateObj.toDateString() === now.toDateString();
+
+    const dia = String(dateObj.getDate()).padStart(2,'0');
+    const mes = String(dateObj.getMonth() + 1).padStart(2,'0');
+    const ano = dateObj.getFullYear();
+    const dataStr = `${dia}/${mes}/${ano}`;
+
+    const hasFullService = selectedServices.some(x => x.duration >= 60);
+    const duracaoMin = selectedServices.length ? (hasFullService ? 60 : 15) : 60;
+
+    const ocupados = await buscarHorariosOcupados(dataStr);
+
+    grid.innerHTML = '';
 
     for(let h = hours.open; h < hours.close; h++){
       // esconde horários que já passaram, se for hoje
       if(isToday && h <= now.getHours()) continue;
 
+      const label = String(h).padStart(2,'0') + ':00';
+      // esconde horários já ocupados no Google Calendar
+      if(horarioConflita(label, duracaoMin, ocupados)) continue;
+
       const slot = document.createElement('div');
       slot.className = 'time-slot';
-      const label = String(h).padStart(2,'0') + ':00';
       slot.textContent = label;
       slot.onclick = () => selectTime(slot, label);
       grid.appendChild(slot);
+    }
+
+    if(!grid.children.length){
+      grid.innerHTML = '<div style="color:var(--muted);font-size:12px;padding:8px 0;">Nenhum horário disponível neste dia.</div>';
     }
   }
 
