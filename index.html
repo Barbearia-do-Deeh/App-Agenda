@@ -489,6 +489,33 @@
     line-height:1.5;
   }
   .hint b{color:var(--gold);}
+
+  /* ---- Responsivo: em celular de verdade, a moldura vira a tela inteira ---- */
+  @media (max-width: 480px){
+    body{
+      padding:0;
+      gap:0;
+      height:100dvh;
+      min-height:100dvh;
+    }
+    .mode-switch{
+      margin:8px 0;
+      flex-shrink:0;
+    }
+    .phone{
+      width:100%;
+      max-width:100%;
+      height:auto;
+      min-height:0;
+      flex:1;
+      border:none;
+      border-radius:0;
+      box-shadow:none;
+    }
+    .notch{ display:none; }
+    .statusbar{ display:none; }
+    .hint{ display:none; }
+  }
 </style>
 </head>
 <body>
