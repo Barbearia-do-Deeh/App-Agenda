@@ -42,3 +42,27 @@ self.addEventListener('fetch', (event) => {
       .catch(() => caches.match(event.request))
   );
 });
+
+// ---- Push notifications (lembrete de agendamento) ----
+self.addEventListener('push', (event) => {
+  let data = { title: 'Barbearia do Deeh', body: 'Você tem um agendamento em breve.' };
+  try { data = event.data.json(); } catch (e) { /* mantém o padrão acima */ }
+
+  event.waitUntil(
+    self.registration.showNotification(data.title, {
+      body: data.body,
+      icon: data.icon || '/icon-192.png',
+      badge: '/icon-192.png',
+    })
+  );
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window' }).then((clients) => {
+      if (clients.length > 0) return clients[0].focus();
+      return self.clients.openWindow('/');
+    })
+  );
+});
