@@ -747,6 +747,8 @@
   // ====== CONFIG ======
   const API_URL = 'https://backend-v2-five-topaz.vercel.app/api/agendar';
   const API_DISPONIBILIDADE_URL = 'https://backend-v2-five-topaz.vercel.app/api/disponibilidade';
+  const API_PUSH_SUBSCRIBE_URL = 'https://backend-v2-five-topaz.vercel.app/api/push-subscribe';
+  const VAPID_PUBLIC_KEY = 'BNzJ9wRzsZfApYbNpnOJr9pOjPqOviKoEidD4tXgA0Arp_WH3JbKu1xaHdpwtBVmJBhGXvll9560GvCp0khH62s';
   const WHATSAPP_NUMBER = '5519993900880';
 
   // Horário de funcionamento: 0=Dom ... 6=Sáb
@@ -920,6 +922,37 @@
     document.getElementById('btnToConfirm').disabled = false;
   }
 
+  // ---- Push notifications (lembrete de agendamento) ----
+  function urlBase64ToUint8Array(base64String){
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+    const rawData = atob(base64);
+    return Uint8Array.from([...rawData].map(c => c.charCodeAt(0)));
+  }
+
+  async function inscreverPushNotification(telefone){
+    if(!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+
+    const permissao = await Notification.requestPermission();
+    if(permissao !== 'granted') return;
+
+    const registration = await navigator.serviceWorker.ready;
+    let subscription = await registration.pushManager.getSubscription();
+
+    if(!subscription){
+      subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+      });
+    }
+
+    await fetch(API_PUSH_SUBSCRIBE_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ telefone, subscription }),
+    });
+  }
+
   // ---- Confirm screen ----
   function goToConfirm(){
     if(!selectedServices.length || !selectedDate || !selectedTime) return;
@@ -993,6 +1026,10 @@
       document.getElementById('successMsg').textContent =
         `${payload.nome}, seu horário de ${payload.servico} no dia ${payload.data} às ${payload.horario} foi reservado na agenda da Barbearia do Deeh.`;
       goTo('success');
+
+      // Pede permissão de notificação e inscreve pro lembrete de 3h antes.
+      // Não bloqueia nem mostra erro pro cliente — é um "bônus" silencioso.
+      inscreverPushNotification(payload.telefone).catch(() => {});
 
     } catch (err) {
       errorBox.textContent = 'Não conseguimos confirmar automaticamente. Tente novamente ou fale direto com o Deeh no WhatsApp.';
