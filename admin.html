@@ -805,6 +805,33 @@
           </div>
           <div id="editarClienteError" class="error-banner" style="display:none;"></div>
           <button class="cta-primary" onclick="salvarEdicaoCliente()">Salvar alterações</button>
+
+          <div class="gold-divider"></div>
+          <p class="eyebrow" style="margin-bottom:10px;">Horário fixo semanal</p>
+          <div class="form-group">
+            <label class="form-label">Serviço</label>
+            <select id="fixoServico" class="form-input">
+              <option value="Corte">Corte</option>
+              <option value="Barba">Barba</option>
+              <option value="Corte + Barba">Corte + Barba</option>
+              <option value="Corte Kids">Corte Kids</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Primeira data (DD/MM/AAAA)</label>
+            <input type="text" id="fixoDataInicio" class="form-input" placeholder="05/08/2026">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Horário (HH:MM)</label>
+            <input type="text" id="fixoHorario" class="form-input" placeholder="15:00">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Repetir por quantas semanas</label>
+            <input type="number" id="fixoRepeticoes" class="form-input" value="12" min="1">
+          </div>
+          <div id="fixoError" class="error-banner" style="display:none;"></div>
+          <div id="fixoSucesso" class="hint" style="display:none;text-align:left;color:var(--gold);"></div>
+          <button class="cta-primary" style="background:var(--surface); color:var(--gold); border:1px solid var(--gold);" onclick="criarHorarioFixo()">🔁 Criar horário fixo</button>
         </div>
       </div>
 
@@ -841,6 +868,7 @@
   const API_DISPONIBILIDADE_URL = 'https://backend-v2-five-topaz.vercel.app/api/disponibilidade';
   const API_AGENDA_HOJE_URL = 'https://backend-v2-five-topaz.vercel.app/api/agenda-hoje';
   const API_CLIENTES_URL = 'https://backend-v2-five-topaz.vercel.app/api/clientes';
+  const API_AGENDAR_FIXO_URL = 'https://backend-v2-five-topaz.vercel.app/api/agendar-fixo';
   const WHATSAPP_NUMBER = '5519993900880';
 
   // Horário de funcionamento: 0=Dom ... 6=Sáb
@@ -982,6 +1010,46 @@
       goTo('clientes');
     }catch(err){
       errorBox.textContent = 'Erro ao salvar alterações. Tente novamente.';
+      errorBox.style.display = 'block';
+    }
+  }
+
+  async function criarHorarioFixo(){
+    if(!clienteEditandoId) return;
+    const c = clientesCache.find(x => x.id === clienteEditandoId);
+    const errorBox = document.getElementById('fixoError');
+    const sucessoBox = document.getElementById('fixoSucesso');
+    errorBox.style.display = 'none';
+    sucessoBox.style.display = 'none';
+
+    const servico = document.getElementById('fixoServico').value;
+    const dataInicio = document.getElementById('fixoDataInicio').value.trim();
+    const horario = document.getElementById('fixoHorario').value.trim();
+    const repeticoes = document.getElementById('fixoRepeticoes').value;
+
+    if(!/^\d{2}\/\d{2}\/\d{4}$/.test(dataInicio) || !/^\d{2}:\d{2}$/.test(horario)){
+      errorBox.textContent = 'Preencha data (DD/MM/AAAA) e horário (HH:MM) corretamente.';
+      errorBox.style.display = 'block';
+      return;
+    }
+
+    const duracao = servico === 'Corte Kids' || servico.includes('Barba') || servico === 'Corte' || servico.includes('+') ? '60 min' : '60 min';
+
+    try{
+      const resp = await fetch(API_AGENDAR_FIXO_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          nome: c.nome, telefone: c.telefone, servico, dataInicio, horario,
+          duracao, preco: 'incluso no pacote', repeticoes
+        })
+      });
+      const data = await resp.json();
+      if(!resp.ok || !data.success) throw new Error(data.error || 'Falha ao criar horário fixo');
+      sucessoBox.textContent = `Horário fixo criado (${repeticoes} semanas).`;
+      sucessoBox.style.display = 'block';
+    }catch(err){
+      errorBox.textContent = 'Erro ao criar horário fixo. Tente novamente.';
       errorBox.style.display = 'block';
     }
   }
