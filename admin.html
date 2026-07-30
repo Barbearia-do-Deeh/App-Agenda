@@ -489,33 +489,6 @@
     line-height:1.5;
   }
   .hint b{color:var(--gold);}
-
-  /* ---- Responsivo: em celular de verdade, a moldura vira a tela inteira ---- */
-  @media (max-width: 480px){
-    body{
-      padding:0;
-      gap:0;
-      height:100dvh;
-      min-height:100dvh;
-    }
-    .mode-switch{
-      margin:8px 0;
-      flex-shrink:0;
-    }
-    .phone{
-      width:100%;
-      max-width:100%;
-      height:auto;
-      min-height:0;
-      flex:1;
-      border:none;
-      border-radius:0;
-      box-shadow:none;
-    }
-    .notch{ display:none; }
-    .statusbar{ display:none; }
-    .hint{ display:none; }
-  }
 </style>
 </head>
 <body>
@@ -726,7 +699,7 @@
         </div>
         <div class="bottom-nav">
           <button class="nav-item" data-target="dashboard" onclick="goTo('dashboard')"><span class="nav-icon">⌂</span>Painel<span class="dot"></span></button>
-          <button class="nav-item" data-target="dashboard" onclick="goTo('dashboard')"><span class="nav-icon">🗓</span>Agenda<span class="dot"></span></button>
+          <button class="nav-item" data-target="clientes" onclick="goTo('clientes')"><span class="nav-icon">👤</span>Clientes<span class="dot"></span></button>
           <button class="nav-item" data-target="plans" onclick="goTo('plans')"><span class="nav-icon">◆</span>Planos<span class="dot"></span></button>
           <button class="nav-item" data-target="profile" onclick="goTo('profile')"><span class="nav-icon">☺</span>Perfil<span class="dot"></span></button>
         </div>
@@ -752,6 +725,86 @@
             <div class="summary-row"><span class="label">4 cortes + 4 barbas + sobrancelha de brinde</span></div>
           </div>
           <button class="whatsapp-btn" onclick="assinarPlano()">📲 Assinar via WhatsApp</button>
+        </div>
+      </div>
+
+      <!-- 8. CLIENTES (admin) -->
+      <div class="screen" id="screen-clientes">
+        <div class="step-header">
+          <h2 class="step-title">Clientes</h2>
+        </div>
+        <div class="screen-body" style="padding-top:0;">
+          <button class="cta-primary" onclick="abrirNovoCliente()">+ Novo cliente</button>
+          <div class="gold-divider"></div>
+          <div id="clientesLista"><p class="hint" style="text-align:left;">Carregando...</p></div>
+        </div>
+      </div>
+
+      <!-- 8b. NOVO CLIENTE (admin) -->
+      <div class="screen" id="screen-cliente-novo">
+        <div class="step-header">
+          <button class="back-btn" onclick="goTo('clientes')">←</button>
+          <h2 class="step-title">Novo cliente</h2>
+        </div>
+        <div class="screen-body" style="padding-top:0;">
+          <div class="form-group">
+            <label class="form-label">Nome</label>
+            <input type="text" id="novoClienteNome" class="form-input" placeholder="Nome completo">
+          </div>
+          <div class="form-group">
+            <label class="form-label">WhatsApp</label>
+            <input type="tel" id="novoClienteTelefone" class="form-input" placeholder="19993900880">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Plano</label>
+            <select id="novoClientePlano" class="form-input">
+              <option value="nenhum">Sem plano</option>
+              <option value="essencial">Essencial</option>
+              <option value="classico">Clássico</option>
+              <option value="empresario">Empresário</option>
+            </select>
+          </div>
+          <div class="form-group" id="subtipoEssencialGroup" style="display:none;">
+            <label class="form-label">Essencial — tipo</label>
+            <select id="novoClienteSubtipo" class="form-input">
+              <option value="corte">Cortes</option>
+              <option value="barba">Barbas</option>
+            </select>
+          </div>
+          <div id="novoClienteError" class="error-banner" style="display:none;"></div>
+          <button class="cta-primary" onclick="salvarNovoCliente()">Cadastrar</button>
+        </div>
+      </div>
+
+      <!-- 8c. EDITAR CLIENTE (admin) -->
+      <div class="screen" id="screen-cliente-editar">
+        <div class="step-header">
+          <button class="back-btn" onclick="goTo('clientes')">←</button>
+          <h2 class="step-title" id="editarClienteNome">Cliente</h2>
+        </div>
+        <div class="screen-body" style="padding-top:0;">
+          <p class="eyebrow" style="margin-bottom:10px;">Saldo do pacote</p>
+          <div class="form-group">
+            <label class="form-label">Cortes restantes</label>
+            <input type="number" id="editCortes" class="form-input" min="0">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Barbas restantes</label>
+            <input type="number" id="editBarbas" class="form-input" min="0">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Pezinhos restantes</label>
+            <input type="number" id="editPezinhos" class="form-input" min="0">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Sobrancelha de brinde</label>
+            <select id="editSobrancelha" class="form-input">
+              <option value="true">Disponível</option>
+              <option value="false">Já usada</option>
+            </select>
+          </div>
+          <div id="editarClienteError" class="error-banner" style="display:none;"></div>
+          <button class="cta-primary" onclick="salvarEdicaoCliente()">Salvar alterações</button>
         </div>
       </div>
 
@@ -816,6 +869,121 @@
     document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.target === id));
     if(id === 'home' || id === 'dashboard'){ currentMode = id; }
     if(id === 'dashboard'){ carregarDashboard(); }
+    if(id === 'clientes'){ carregarClientes(); }
+  }
+
+  const PLANO_LABELS = { nenhum: 'Sem plano', essencial: 'Essencial', classico: 'Clássico', empresario: 'Empresário' };
+  let clientesCache = [];
+
+  document.addEventListener('change', (e) => {
+    if(e.target && e.target.id === 'novoClientePlano'){
+      document.getElementById('subtipoEssencialGroup').style.display =
+        e.target.value === 'essencial' ? '' : 'none';
+    }
+  });
+
+  async function carregarClientes(){
+    const lista = document.getElementById('clientesLista');
+    lista.innerHTML = '<p class="hint" style="text-align:left;">Carregando...</p>';
+    try{
+      const resp = await fetch(API_CLIENTES_URL);
+      const data = await resp.json();
+      if(!data.success) throw new Error(data.error || 'Falha ao buscar clientes');
+      clientesCache = data.clientes || [];
+      if(!clientesCache.length){
+        lista.innerHTML = '<p class="hint" style="text-align:left;">Nenhum cliente cadastrado ainda.</p>';
+        return;
+      }
+      lista.innerHTML = clientesCache.map(c => {
+        const plano = PLANO_LABELS[c.plano] || c.plano;
+        const saldo = c.plano && c.plano !== 'nenhum'
+          ? `${c.cortes_restantes ?? 0} cortes · ${c.barbas_restantes ?? 0} barbas · ${c.pezinhos_restantes ?? 0} pezinhos`
+          : 'Sem pacote ativo';
+        return `<div class="summary-card" style="margin-bottom:10px;cursor:pointer;" onclick="abrirEditarCliente(${c.id})">
+          <div class="summary-row"><span class="label" style="font-size:14px;color:var(--cream);font-weight:700;">${c.nome}</span><span class="val" style="color:var(--gold);">${plano}</span></div>
+          <div class="summary-row" style="border-bottom:none;"><span class="label">${c.telefone} · ${saldo}</span></div>
+        </div>`;
+      }).join('');
+    }catch(err){
+      lista.innerHTML = '<p class="hint" style="text-align:left;color:#e8a37f;">Erro ao carregar clientes.</p>';
+    }
+  }
+
+  function abrirNovoCliente(){
+    document.getElementById('novoClienteNome').value = '';
+    document.getElementById('novoClienteTelefone').value = '';
+    document.getElementById('novoClientePlano').value = 'nenhum';
+    document.getElementById('subtipoEssencialGroup').style.display = 'none';
+    document.getElementById('novoClienteError').style.display = 'none';
+    goTo('cliente-novo');
+  }
+
+  async function salvarNovoCliente(){
+    const nome = document.getElementById('novoClienteNome').value.trim();
+    const telefone = document.getElementById('novoClienteTelefone').value.trim().replace(/\D/g, '');
+    const plano = document.getElementById('novoClientePlano').value;
+    const subtipo_essencial = plano === 'essencial' ? document.getElementById('novoClienteSubtipo').value : null;
+    const errorBox = document.getElementById('novoClienteError');
+
+    if(!nome || !telefone){
+      errorBox.textContent = 'Preencha nome e WhatsApp.';
+      errorBox.style.display = 'block';
+      return;
+    }
+
+    try{
+      const resp = await fetch(API_CLIENTES_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nome, telefone, plano, subtipo_essencial })
+      });
+      const data = await resp.json();
+      if(!resp.ok || !data.success) throw new Error(data.error || 'Falha ao cadastrar');
+      goTo('clientes');
+    }catch(err){
+      errorBox.textContent = 'Erro ao cadastrar cliente. Tente novamente.';
+      errorBox.style.display = 'block';
+    }
+  }
+
+  let clienteEditandoId = null;
+
+  function abrirEditarCliente(id){
+    const c = clientesCache.find(x => x.id === id);
+    if(!c) return;
+    clienteEditandoId = id;
+    document.getElementById('editarClienteNome').textContent = c.nome;
+    document.getElementById('editCortes').value = c.cortes_restantes ?? 0;
+    document.getElementById('editBarbas').value = c.barbas_restantes ?? 0;
+    document.getElementById('editPezinhos').value = c.pezinhos_restantes ?? 0;
+    document.getElementById('editSobrancelha').value = String(!!c.sobrancelha_restante);
+    document.getElementById('editarClienteError').style.display = 'none';
+    goTo('cliente-editar');
+  }
+
+  async function salvarEdicaoCliente(){
+    if(!clienteEditandoId) return;
+    const errorBox = document.getElementById('editarClienteError');
+    const payload = {
+      id: clienteEditandoId,
+      cortes_restantes: parseInt(document.getElementById('editCortes').value, 10) || 0,
+      barbas_restantes: parseInt(document.getElementById('editBarbas').value, 10) || 0,
+      pezinhos_restantes: parseInt(document.getElementById('editPezinhos').value, 10) || 0,
+      sobrancelha_restante: document.getElementById('editSobrancelha').value === 'true'
+    };
+    try{
+      const resp = await fetch(API_CLIENTES_URL, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await resp.json();
+      if(!resp.ok || !data.success) throw new Error(data.error || 'Falha ao salvar');
+      goTo('clientes');
+    }catch(err){
+      errorBox.textContent = 'Erro ao salvar alterações. Tente novamente.';
+      errorBox.style.display = 'block';
+    }
   }
 
   // ====== LOGIN (admin) ======
