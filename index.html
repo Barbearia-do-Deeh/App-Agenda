@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>App Barbearia do Deeh</title>
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#0f0e0d">
@@ -117,7 +117,7 @@
     pointer-events:none;
     transform:translateX(16px);
     transition:opacity .28s ease, transform .28s ease;
-    overflow-y:auto;
+    overflow:hidden;
   }
   .screen.active{
     opacity:1;
@@ -128,6 +128,8 @@
   .screen-body{
     padding:20px 20px 24px;
     flex:1;
+    overflow-y:auto;
+    min-height:0;
   }
 
   /* ---- Shared typography ---- */
@@ -237,7 +239,7 @@
     display:flex;
     justify-content:space-around;
     align-items:center;
-    padding:12px 0 18px;
+    padding:12px 0 calc(18px + env(safe-area-inset-bottom));
     background:var(--surface);
     border-top:1px solid var(--brown);
     flex-shrink:0;
@@ -568,6 +570,7 @@
       border:none;
       border-radius:0;
       box-shadow:none;
+      padding-top:env(safe-area-inset-top);
     }
     .notch{ display:none; }
     .statusbar{ display:none; }
@@ -589,7 +592,7 @@
       <!-- 1. HOME -->
       <div class="screen active" id="screen-home">
         <div class="brand-header">
-          <img class="logo-img" src="logo.png" alt="Logo Barbearia do Deeh">
+          <img class="logo-img" src="logo-v2.png" alt="Logo Barbearia do Deeh">
           <div class="brand-text">
             <p class="eyebrow">Indaiatuba · SP</p>
             <h1>BARBEARIA <span>DO DEEH</span></h1>
@@ -618,10 +621,29 @@
               <div class="price">R$ 45</div>
             </div>
           </div>
-          <div class="plan-banner">
-            <p class="eyebrow">Planos mensais</p>
-            <h3>O Clássico</h3>
-            <p>Cortes ilimitados + barba todo mês. Toque para ver os planos.</p>
+          <p class="eyebrow" style="margin-top:20px;margin-bottom:10px;">Planos mensais</p>
+          <div class="plans-carousel" id="plansCarousel" onscroll="syncPlanDots()">
+            <div class="plan-card" onclick="goTo('plans')">
+              <div class="plan-name">Essencial</div>
+              <div class="plan-price">R$ 160/mês</div>
+              <div class="plan-desc">4 cortes ou 4 barbas por mês. Toque para ver os planos.</div>
+            </div>
+            <div class="plan-card featured" onclick="goTo('plans')">
+              <span class="plan-badge">MAIS ESCOLHIDO</span>
+              <div class="plan-name">Clássico</div>
+              <div class="plan-price">R$ 260/mês</div>
+              <div class="plan-desc">4 barbas + 2 cortes + 2 pezinhos de brinde. Toque para ver os planos.</div>
+            </div>
+            <div class="plan-card" onclick="goTo('plans')">
+              <div class="plan-name">Empresário</div>
+              <div class="plan-price">R$ 340/mês</div>
+              <div class="plan-desc">4 cortes + 4 barbas + sobrancelha de brinde. Toque para ver os planos.</div>
+            </div>
+          </div>
+          <div class="plans-dots" id="plansDots">
+            <span class="dot-ind active"></span>
+            <span class="dot-ind"></span>
+            <span class="dot-ind"></span>
           </div>
         </div>
         <div class="bottom-nav">
@@ -749,28 +771,17 @@
           <h2 class="step-title">Planos mensais</h2>
         </div>
         <div class="screen-body" style="padding-top:0;">
-          <div class="plans-carousel" id="plansCarousel" onscroll="syncPlanDots()">
-            <div class="plan-card">
-              <div class="plan-name">Essencial</div>
-              <div class="plan-price">R$ 160/mês</div>
-              <div class="plan-desc">4 cortes ou 4 barbas por mês</div>
-            </div>
-            <div class="plan-card featured">
-              <span class="plan-badge">MAIS ESCOLHIDO</span>
-              <div class="plan-name">Clássico</div>
-              <div class="plan-price">R$ 260/mês</div>
-              <div class="plan-desc">4 barbas + 2 cortes + 2 pezinhos de brinde</div>
-            </div>
-            <div class="plan-card">
-              <div class="plan-name">Empresário</div>
-              <div class="plan-price">R$ 340/mês</div>
-              <div class="plan-desc">4 cortes + 4 barbas + sobrancelha de brinde</div>
-            </div>
+          <div class="summary-card" style="margin-bottom:14px;">
+            <div class="summary-row"><span class="label" style="font-size:15px;color:var(--cream);font-weight:700;">Essencial</span><span class="val" style="color:var(--gold);">R$ 160/mês</span></div>
+            <div class="summary-row"><span class="label">4 cortes ou 4 barbas por mês</span></div>
           </div>
-          <div class="plans-dots" id="plansDots">
-            <span class="dot-ind active"></span>
-            <span class="dot-ind"></span>
-            <span class="dot-ind"></span>
+          <div class="summary-card" style="margin-bottom:14px;">
+            <div class="summary-row"><span class="label" style="font-size:15px;color:var(--cream);font-weight:700;">Clássico</span><span class="val" style="color:var(--gold);">R$ 260/mês</span></div>
+            <div class="summary-row"><span class="label">4 barbas + 2 cortes + 2 pezinhos de brinde</span></div>
+          </div>
+          <div class="summary-card" style="margin-bottom:14px;">
+            <div class="summary-row"><span class="label" style="font-size:15px;color:var(--cream);font-weight:700;">Empresário</span><span class="val" style="color:var(--gold);">R$ 340/mês</span></div>
+            <div class="summary-row"><span class="label">4 cortes + 4 barbas + sobrancelha de brinde</span></div>
           </div>
           <button class="whatsapp-btn" onclick="assinarPlano()">📲 Assinar via WhatsApp</button>
         </div>
