@@ -805,7 +805,37 @@
           <button class="cta-primary" onclick="salvarPerfil()">Salvar</button>
           <div class="gold-divider"></div>
           <p class="eyebrow" style="margin-bottom:10px;">Meus agendamentos</p>
-          <p class="hint" style="text-align:left;">Em breve: histórico de agendamentos direto aqui.</p>
+          <div id="historicoLista"><p class="hint" style="text-align:left;">Salve seu WhatsApp acima para ver seu histórico.</p></div>
+
+          <div class="gold-divider"></div>
+          <p class="eyebrow" style="margin-bottom:10px;">Contato</p>
+          <div class="summary-card" style="margin-bottom:14px;">
+            <a href="https://www.google.com/maps/search/?api=1&query=Rua+Seraphin+Gilberto+Candelo%2C+2063+-+Jd.+Morada+do+Sol%2C+Indaiatuba+-+SP" target="_blank" rel="noopener" style="text-decoration:none;">
+              <div class="summary-row" style="cursor:pointer;">
+                <span class="label">📍 Endereço</span>
+                <span class="val" style="color:var(--gold);">Ver no mapa →</span>
+              </div>
+            </a>
+            <p class="hint" style="text-align:left; margin:6px 0 0; padding:0;">Rua Seraphin Gilberto Candelo, 2063 — Jd. Morada do Sol, Indaiatuba/SP</p>
+          </div>
+          <div class="summary-card" style="margin-bottom:14px;">
+            <a href="https://wa.me/5519993900880" target="_blank" rel="noopener" style="text-decoration:none;">
+              <div class="summary-row" style="cursor:pointer; border-bottom:none;">
+                <span class="label">📲 WhatsApp</span>
+                <span class="val" style="color:var(--gold);">(19) 99390-0880</span>
+              </div>
+            </a>
+          </div>
+
+          <div class="gold-divider"></div>
+          <p class="eyebrow" style="margin-bottom:10px;">Pagamentos</p>
+          <div class="summary-card" style="margin-bottom:14px;">
+            <div class="summary-row" style="border-bottom:none;">
+              <span class="label">Chave Pix (telefone)</span>
+              <span class="val" id="pixKeyVal" style="color:var(--gold);">(19) 99390-0880</span>
+            </div>
+          </div>
+          <button class="cta-primary" style="background:var(--surface); color:var(--gold); border:1px solid var(--gold);" onclick="copiarPix()">📋 Copiar chave Pix</button>
         </div>
       </div>
 
@@ -818,6 +848,7 @@
   // ====== CONFIG ======
   const API_URL = 'https://backend-v2-five-topaz.vercel.app/api/agendar';
   const API_DISPONIBILIDADE_URL = 'https://backend-v2-five-topaz.vercel.app/api/disponibilidade';
+  const API_ATENDIMENTOS_URL = 'https://backend-v2-five-topaz.vercel.app/api/atendimentos';
   const WHATSAPP_NUMBER = '5519993900880';
 
   // Horário de funcionamento: 0=Dom ... 6=Sáb
@@ -844,6 +875,7 @@
     document.getElementById('screen-' + id).classList.add('active');
     document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.target === id));
     if(id === 'home'){ currentMode = id; }
+    if(id === 'profile'){ initPerfil(); }
   }
 
   function syncPlanDots(){
@@ -853,6 +885,15 @@
     const cardWidth = carousel.firstElementChild.offsetWidth + 14;
     const index = Math.round(carousel.scrollLeft / cardWidth);
     dots.forEach((d,i)=> d.classList.toggle('active', i === index));
+  }
+
+  function copiarPix(){
+    const chave = '19993900880';
+    navigator.clipboard.writeText(chave).then(()=>{
+      alert('Chave Pix copiada!');
+    }).catch(()=>{
+      alert('Não foi possível copiar. Chave Pix: ' + chave);
+    });
   }
 
   function assinarPlano(){
@@ -865,7 +906,47 @@
     const telefone = document.getElementById('profileTelefone').value.trim();
     if(nome) document.getElementById('inputNome').value = nome;
     if(telefone) document.getElementById('inputTelefone').value = telefone;
+    if(nome) localStorage.setItem('deeh_nome', nome);
+    if(telefone){
+      localStorage.setItem('deeh_telefone', telefone);
+      carregarHistorico(telefone);
+    }
     alert('Perfil salvo!');
+  }
+
+  async function carregarHistorico(telefone){
+    const container = document.getElementById('historicoLista');
+    container.innerHTML = '<p class="hint" style="text-align:left;">Carregando...</p>';
+    try{
+      const telefoneLimpo = telefone.replace(/\D/g, '');
+      const resp = await fetch(`${API_ATENDIMENTOS_URL}?telefone=${encodeURIComponent(telefoneLimpo)}`);
+      const data = await resp.json();
+      if(!data.success || !data.atendimentos || data.atendimentos.length === 0){
+        container.innerHTML = '<p class="hint" style="text-align:left;">Nenhum atendimento encontrado ainda.</p>';
+        return;
+      }
+      container.innerHTML = data.atendimentos.map(a => {
+        const data_hora = new Date(a.data_hora);
+        const dataFmt = data_hora.toLocaleDateString('pt-BR');
+        const servicos = Array.isArray(a.servicos) ? a.servicos.join(', ') : (JSON.parse(a.servicos || '[]').join(', '));
+        return `<div class="summary-card" style="margin-bottom:10px;">
+          <div class="summary-row"><span class="label">${dataFmt}</span><span class="val" style="color:var(--gold);">R$ ${a.valor_cobrado}</span></div>
+          <div class="summary-row" style="border-bottom:none;"><span class="label">${servicos}</span></div>
+        </div>`;
+      }).join('');
+    }catch(err){
+      container.innerHTML = '<p class="hint" style="text-align:left;">Erro ao carregar histórico.</p>';
+    }
+  }
+
+  function initPerfil(){
+    const nomeSalvo = localStorage.getItem('deeh_nome');
+    const telefoneSalvo = localStorage.getItem('deeh_telefone');
+    if(nomeSalvo) document.getElementById('profileNome').value = nomeSalvo;
+    if(telefoneSalvo){
+      document.getElementById('profileTelefone').value = telefoneSalvo;
+      carregarHistorico(telefoneSalvo);
+    }
   }
 
   function toggleService(el){
