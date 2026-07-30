@@ -696,6 +696,28 @@
           <div id="agendaHojeList">
             <p class="hint" style="text-align:left;">Carregando agenda...</p>
           </div>
+
+          <div class="gold-divider"></div>
+          <p class="eyebrow" style="margin-bottom:10px;">Bloquear horário (ex: almoço)</p>
+          <div class="form-group">
+            <label class="form-label">Data (DD/MM/AAAA)</label>
+            <input type="text" id="bloqData" class="form-input" placeholder="30/07/2026">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Das</label>
+            <input type="text" id="bloqInicio" class="form-input" placeholder="12:00">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Até</label>
+            <input type="text" id="bloqFim" class="form-input" placeholder="13:00">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Motivo</label>
+            <input type="text" id="bloqMotivo" class="form-input" placeholder="Almoço" value="Almoço">
+          </div>
+          <div id="bloqError" class="error-banner" style="display:none;"></div>
+          <div id="bloqSucesso" class="hint" style="display:none;text-align:left;color:var(--gold);"></div>
+          <button class="cta-primary" style="background:var(--surface); color:var(--gold); border:1px solid var(--gold);" onclick="bloquearHorario()">🚫 Bloquear</button>
         </div>
         <div class="bottom-nav">
           <button class="nav-item" data-target="dashboard" onclick="goTo('dashboard')"><span class="nav-icon">⌂</span>Painel<span class="dot"></span></button>
@@ -869,6 +891,7 @@
   const API_AGENDA_HOJE_URL = 'https://backend-v2-five-topaz.vercel.app/api/agenda-hoje';
   const API_CLIENTES_URL = 'https://backend-v2-five-topaz.vercel.app/api/clientes';
   const API_AGENDAR_FIXO_URL = 'https://backend-v2-five-topaz.vercel.app/api/agendar-fixo';
+  const API_BLOQUEAR_URL = 'https://backend-v2-five-topaz.vercel.app/api/bloquear-horario';
   const WHATSAPP_NUMBER = '5519993900880';
 
   // Horário de funcionamento: 0=Dom ... 6=Sáb
@@ -1010,6 +1033,39 @@
       goTo('clientes');
     }catch(err){
       errorBox.textContent = 'Erro ao salvar alterações. Tente novamente.';
+      errorBox.style.display = 'block';
+    }
+  }
+
+  async function bloquearHorario(){
+    const errorBox = document.getElementById('bloqError');
+    const sucessoBox = document.getElementById('bloqSucesso');
+    errorBox.style.display = 'none';
+    sucessoBox.style.display = 'none';
+
+    const data = document.getElementById('bloqData').value.trim();
+    const horaInicio = document.getElementById('bloqInicio').value.trim();
+    const horaFim = document.getElementById('bloqFim').value.trim();
+    const motivo = document.getElementById('bloqMotivo').value.trim() || 'Almoço';
+
+    if(!/^\d{2}\/\d{2}\/\d{4}$/.test(data) || !/^\d{2}:\d{2}$/.test(horaInicio) || !/^\d{2}:\d{2}$/.test(horaFim)){
+      errorBox.textContent = 'Preencha data (DD/MM/AAAA) e horários (HH:MM) corretamente.';
+      errorBox.style.display = 'block';
+      return;
+    }
+
+    try{
+      const resp = await fetch(API_BLOQUEAR_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ data, horaInicio, horaFim, motivo })
+      });
+      const result = await resp.json();
+      if(!resp.ok || !result.success) throw new Error(result.error || 'Falha ao bloquear');
+      sucessoBox.textContent = `Horário bloqueado: ${data} ${horaInicio}–${horaFim}.`;
+      sucessoBox.style.display = 'block';
+    }catch(err){
+      errorBox.textContent = 'Erro ao bloquear horário. Tente novamente.';
       errorBox.style.display = 'block';
     }
   }
