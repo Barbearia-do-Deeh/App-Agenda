@@ -2,8 +2,16 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>App Barbearia do Deeh</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#0f0e0d">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Deeh App">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Work+Sans:wght@400;500;600;700&display=swap');
 
@@ -109,7 +117,7 @@
     pointer-events:none;
     transform:translateX(16px);
     transition:opacity .28s ease, transform .28s ease;
-    overflow-y:auto;
+    overflow:hidden;
   }
   .screen.active{
     opacity:1;
@@ -120,6 +128,8 @@
   .screen-body{
     padding:20px 20px 24px;
     flex:1;
+    overflow-y:auto;
+    min-height:0;
   }
 
   /* ---- Shared typography ---- */
@@ -229,7 +239,7 @@
     display:flex;
     justify-content:space-around;
     align-items:center;
-    padding:12px 0 18px;
+    padding:12px 0 calc(18px + env(safe-area-inset-bottom));
     background:var(--surface);
     border-top:1px solid var(--brown);
     flex-shrink:0;
@@ -375,6 +385,55 @@
   .summary-row .label{color:var(--muted);}
   .summary-row .val{color:var(--cream); font-weight:600;}
 
+  /* ---- Plans carousel ---- */
+  .plans-carousel{
+    display:flex;
+    overflow-x:auto;
+    scroll-snap-type:x mandatory;
+    gap:14px;
+    padding:4px 4px 18px;
+    margin:0 -4px;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
+  }
+  .plans-carousel::-webkit-scrollbar{display:none;}
+  .plan-card{
+    scroll-snap-align:center;
+    flex:0 0 84%;
+    background:var(--surface);
+    border:1px solid var(--brown);
+    border-radius:16px;
+    padding:20px 18px;
+  }
+  .plan-card.featured{border-color:var(--gold); background:linear-gradient(160deg, var(--brown), var(--surface-2));}
+  .plan-card .plan-name{font-size:19px; color:var(--cream); font-weight:700;}
+  .plan-card .plan-price{color:var(--gold); font-size:15px; font-weight:700; margin-top:2px;}
+  .plan-card .plan-desc{color:var(--muted); font-size:13px; margin-top:10px; line-height:1.5;}
+  .plan-card .plan-badge{
+    display:inline-block;
+    background:var(--gold);
+    color:var(--black);
+    font-size:10.5px;
+    font-weight:700;
+    letter-spacing:0.04em;
+    padding:3px 9px;
+    border-radius:20px;
+    margin-bottom:10px;
+  }
+  .plans-dots{
+    display:flex;
+    justify-content:center;
+    gap:7px;
+    margin-bottom:16px;
+  }
+  .plans-dots .dot-ind{
+    width:7px; height:7px;
+    border-radius:50%;
+    background:var(--brown);
+    transition:background .2s, transform .2s;
+  }
+  .plans-dots .dot-ind.active{background:var(--gold); transform:scale(1.2);}
+
   .whatsapp-btn{
     background:#25D366;
     color:#04220f;
@@ -489,26 +548,39 @@
     line-height:1.5;
   }
   .hint b{color:var(--gold);}
+
+  /* ---- Responsivo: em celular de verdade, a moldura vira a tela inteira ---- */
+  @media (max-width: 480px){
+    body{
+      padding:0;
+      gap:0;
+      height:100dvh;
+      min-height:100dvh;
+    }
+    .mode-switch{
+      margin:8px 0;
+      flex-shrink:0;
+    }
+    .phone{
+      width:100%;
+      max-width:100%;
+      height:auto;
+      min-height:0;
+      flex:1;
+      border:none;
+      border-radius:0;
+      box-shadow:none;
+      padding-top:env(safe-area-inset-top);
+    }
+    .notch{ display:none; }
+    .statusbar{ display:none; }
+    .hint{ display:none; }
+  }
 </style>
 </head>
 <body>
 
-  <div class="mode-switch">
-    <button class="active" style="cursor:default;">Painel Deeh (admin)</button>
-    <button onclick="logoutAdmin()">Sair</button>
-  </div>
-
-  <!-- Tela de login -->
-  <div id="loginGate" style="max-width:375px;margin:60px auto;text-align:center;color:var(--cream);">
-    <img class="logo-img" src="logo.png" alt="Logo Barbearia do Deeh" style="width:64px;margin-bottom:16px;">
-    <h2 style="margin-bottom:16px;">Acesso restrito</h2>
-    <input type="password" id="adminPassword" class="form-input" placeholder="Senha" style="max-width:260px;margin:0 auto 12px;" onkeydown="if(event.key==='Enter')tentarLogin()">
-    <br>
-    <button class="cta-primary" style="max-width:260px;" onclick="tentarLogin()">Entrar</button>
-    <p id="loginError" style="color:#ff6b6b;font-size:12px;margin-top:10px;display:none;">Senha incorreta.</p>
-  </div>
-
-  <div class="phone" id="appShell" style="display:none;">
+  <div class="phone">
     <div class="notch"></div>
     <div class="statusbar">
       <span>9:41</span>
@@ -520,7 +592,7 @@
       <!-- 1. HOME -->
       <div class="screen active" id="screen-home">
         <div class="brand-header">
-          <img class="logo-img" src="logo.png" alt="Logo Barbearia do Deeh">
+          <img class="logo-img" src="logo-v2.png" alt="Logo Barbearia do Deeh">
           <div class="brand-text">
             <p class="eyebrow">Indaiatuba · SP</p>
             <h1>BARBEARIA <span>DO DEEH</span></h1>
@@ -549,10 +621,29 @@
               <div class="price">R$ 45</div>
             </div>
           </div>
-          <div class="plan-banner">
-            <p class="eyebrow">Planos mensais</p>
-            <h3>O Clássico</h3>
-            <p>Cortes ilimitados + barba todo mês. Toque para ver os planos.</p>
+          <p class="eyebrow" style="margin-top:20px;margin-bottom:10px;">Planos mensais</p>
+          <div class="plans-carousel" id="plansCarousel" onscroll="syncPlanDots()">
+            <div class="plan-card" onclick="goTo('plans')">
+              <div class="plan-name">Essencial</div>
+              <div class="plan-price">R$ 160/mês</div>
+              <div class="plan-desc">4 cortes ou 4 barbas por mês. Toque para ver os planos.</div>
+            </div>
+            <div class="plan-card featured" onclick="goTo('plans')">
+              <span class="plan-badge">MAIS ESCOLHIDO</span>
+              <div class="plan-name">Clássico</div>
+              <div class="plan-price">R$ 260/mês</div>
+              <div class="plan-desc">4 barbas + 2 cortes + 2 pezinhos de brinde. Toque para ver os planos.</div>
+            </div>
+            <div class="plan-card" onclick="goTo('plans')">
+              <div class="plan-name">Empresário</div>
+              <div class="plan-price">R$ 340/mês</div>
+              <div class="plan-desc">4 cortes + 4 barbas + sobrancelha de brinde. Toque para ver os planos.</div>
+            </div>
+          </div>
+          <div class="plans-dots" id="plansDots">
+            <span class="dot-ind active"></span>
+            <span class="dot-ind"></span>
+            <span class="dot-ind"></span>
           </div>
         </div>
         <div class="bottom-nav">
@@ -673,60 +764,6 @@
         </div>
       </div>
 
-      <!-- 5. DASHBOARD (DEEH) -->
-      <div class="screen" id="screen-dashboard">
-        <div class="brand-header">
-          <img class="logo-img" src="logo.png" alt="Logo Barbearia do Deeh">
-          <div class="brand-text">
-            <p class="eyebrow" id="dashDataHoje">—</p>
-            <h1 style="font-size:26px;">Olá, <span>Deeh</span></h1>
-          </div>
-        </div>
-        <div class="screen-body" style="padding-top:0;">
-          <div class="stat-grid">
-            <div class="stat-card"><div class="val" id="statAgendamentos">—</div><div class="lbl">Agendamentos hoje</div></div>
-            <div class="stat-card"><div class="val" id="statFaturamento">—</div><div class="lbl">Faturamento estimado</div></div>
-            <div class="stat-card"><div class="val" id="statProximo">—</div><div class="lbl">Próximo horário livre</div></div>
-            <div class="stat-card"><div class="val" id="statRecorrentes">—</div><div class="lbl">Clientes com plano ativo</div></div>
-          </div>
-          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
-            <p class="eyebrow" style="margin-bottom:0;">Agenda de hoje</p>
-            <button onclick="carregarDashboard()" style="background:none;border:none;color:var(--gold);font-size:11px;cursor:pointer;font-family:'Work Sans',sans-serif;font-weight:600;">↻ Atualizar</button>
-          </div>
-          <div id="agendaHojeList">
-            <p class="hint" style="text-align:left;">Carregando agenda...</p>
-          </div>
-
-          <div class="gold-divider"></div>
-          <p class="eyebrow" style="margin-bottom:10px;">Bloquear horário (ex: almoço)</p>
-          <div class="form-group">
-            <label class="form-label">Data (DD/MM/AAAA)</label>
-            <input type="text" id="bloqData" class="form-input" placeholder="30/07/2026">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Das</label>
-            <input type="text" id="bloqInicio" class="form-input" placeholder="12:00">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Até</label>
-            <input type="text" id="bloqFim" class="form-input" placeholder="13:00">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Motivo</label>
-            <input type="text" id="bloqMotivo" class="form-input" placeholder="Almoço" value="Almoço">
-          </div>
-          <div id="bloqError" class="error-banner" style="display:none;"></div>
-          <div id="bloqSucesso" class="hint" style="display:none;text-align:left;color:var(--gold);"></div>
-          <button class="cta-primary" style="background:var(--surface); color:var(--gold); border:1px solid var(--gold);" onclick="bloquearHorario()">🚫 Bloquear</button>
-        </div>
-        <div class="bottom-nav">
-          <button class="nav-item" data-target="dashboard" onclick="goTo('dashboard')"><span class="nav-icon">⌂</span>Painel<span class="dot"></span></button>
-          <button class="nav-item" data-target="clientes" onclick="goTo('clientes')"><span class="nav-icon">👤</span>Clientes<span class="dot"></span></button>
-          <button class="nav-item" data-target="financeiro" onclick="goTo('financeiro')"><span class="nav-icon">💰</span>Financeiro<span class="dot"></span></button>
-          <button class="nav-item" data-target="profile" onclick="goTo('profile')"><span class="nav-icon">☺</span>Perfil<span class="dot"></span></button>
-        </div>
-      </div>
-
       <!-- 6. PLANOS -->
       <div class="screen" id="screen-plans">
         <div class="step-header">
@@ -750,158 +787,6 @@
         </div>
       </div>
 
-      <!-- 8. CLIENTES (admin) -->
-      <div class="screen" id="screen-clientes">
-        <div class="step-header">
-          <h2 class="step-title">Clientes</h2>
-        </div>
-        <div class="screen-body" style="padding-top:0;">
-          <button class="cta-primary" onclick="abrirNovoCliente()">+ Novo cliente</button>
-          <div class="gold-divider"></div>
-          <div id="clientesLista"><p class="hint" style="text-align:left;">Carregando...</p></div>
-        </div>
-      </div>
-
-      <!-- 8b. NOVO CLIENTE (admin) -->
-      <div class="screen" id="screen-cliente-novo">
-        <div class="step-header">
-          <button class="back-btn" onclick="goTo('clientes')">←</button>
-          <h2 class="step-title">Novo cliente</h2>
-        </div>
-        <div class="screen-body" style="padding-top:0;">
-          <div class="form-group">
-            <label class="form-label">Nome</label>
-            <input type="text" id="novoClienteNome" class="form-input" placeholder="Nome completo">
-          </div>
-          <div class="form-group">
-            <label class="form-label">WhatsApp</label>
-            <input type="tel" id="novoClienteTelefone" class="form-input" placeholder="19993900880">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Plano</label>
-            <select id="novoClientePlano" class="form-input">
-              <option value="nenhum">Sem plano</option>
-              <option value="essencial">Essencial</option>
-              <option value="classico">Clássico</option>
-              <option value="empresario">Empresário</option>
-            </select>
-          </div>
-          <div class="form-group" id="subtipoEssencialGroup" style="display:none;">
-            <label class="form-label">Essencial — tipo</label>
-            <select id="novoClienteSubtipo" class="form-input">
-              <option value="corte">Cortes</option>
-              <option value="barba">Barbas</option>
-            </select>
-          </div>
-          <div id="novoClienteError" class="error-banner" style="display:none;"></div>
-          <button class="cta-primary" onclick="salvarNovoCliente()">Cadastrar</button>
-        </div>
-      </div>
-
-      <!-- 8c. EDITAR CLIENTE (admin) -->
-      <div class="screen" id="screen-cliente-editar">
-        <div class="step-header">
-          <button class="back-btn" onclick="goTo('clientes')">←</button>
-          <h2 class="step-title" id="editarClienteNome">Cliente</h2>
-        </div>
-        <div class="screen-body" style="padding-top:0;">
-          <p class="eyebrow" style="margin-bottom:10px;">Saldo do pacote</p>
-          <div class="form-group">
-            <label class="form-label">Cortes restantes</label>
-            <input type="number" id="editCortes" class="form-input" min="0">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Barbas restantes</label>
-            <input type="number" id="editBarbas" class="form-input" min="0">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Pezinhos restantes</label>
-            <input type="number" id="editPezinhos" class="form-input" min="0">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Sobrancelha de brinde</label>
-            <select id="editSobrancelha" class="form-input">
-              <option value="true">Disponível</option>
-              <option value="false">Já usada</option>
-            </select>
-          </div>
-          <div id="editarClienteError" class="error-banner" style="display:none;"></div>
-          <button class="cta-primary" onclick="salvarEdicaoCliente()">Salvar alterações</button>
-
-          <div class="gold-divider"></div>
-          <p class="eyebrow" style="margin-bottom:10px;">Horário fixo semanal</p>
-          <div class="form-group">
-            <label class="form-label">Serviço</label>
-            <select id="fixoServico" class="form-input">
-              <option value="Corte">Corte</option>
-              <option value="Barba">Barba</option>
-              <option value="Corte + Barba">Corte + Barba</option>
-              <option value="Corte Kids">Corte Kids</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Primeira data (DD/MM/AAAA)</label>
-            <input type="text" id="fixoDataInicio" class="form-input" placeholder="05/08/2026">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Horário (HH:MM)</label>
-            <input type="text" id="fixoHorario" class="form-input" placeholder="15:00">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Repetir por quantas semanas</label>
-            <input type="number" id="fixoRepeticoes" class="form-input" value="12" min="1">
-          </div>
-          <div id="fixoError" class="error-banner" style="display:none;"></div>
-          <div id="fixoSucesso" class="hint" style="display:none;text-align:left;color:var(--gold);"></div>
-          <button class="cta-primary" style="background:var(--surface); color:var(--gold); border:1px solid var(--gold);" onclick="criarHorarioFixo()">🔁 Criar horário fixo</button>
-
-          <div class="gold-divider"></div>
-          <p class="eyebrow" style="margin-bottom:10px;">Pagamento do plano</p>
-          <p class="hint" style="text-align:left;" id="planoAtualLabel"></p>
-          <div id="pagamentoPlanoError" class="error-banner" style="display:none;"></div>
-          <div id="pagamentoPlanoSucesso" class="hint" style="display:none;text-align:left;color:var(--gold);"></div>
-          <button class="whatsapp-btn" onclick="registrarPagamentoPlano()">💰 Registrar pagamento recebido</button>
-        </div>
-      </div>
-
-      <!-- 9. FINANCEIRO (admin) -->
-      <div class="screen" id="screen-financeiro">
-        <div class="step-header">
-          <h2 class="step-title">Financeiro</h2>
-        </div>
-        <div class="screen-body" style="padding-top:0;">
-          <div id="financeiroResumo"><p class="hint" style="text-align:left;">Carregando...</p></div>
-
-          <div class="gold-divider"></div>
-          <p class="eyebrow" style="margin-bottom:10px;">Nova despesa</p>
-          <div class="form-group">
-            <label class="form-label">Descrição</label>
-            <input type="text" id="despesaDescricao" class="form-input" placeholder="Aluguel, produtos...">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Categoria</label>
-            <select id="despesaCategoria" class="form-input">
-              <option value="aluguel">Aluguel</option>
-              <option value="produtos">Produtos</option>
-              <option value="contas">Contas (água/luz/internet)</option>
-              <option value="funcionario">Funcionário</option>
-              <option value="marketing">Marketing</option>
-              <option value="outro">Outro</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Valor (R$)</label>
-            <input type="number" id="despesaValor" class="form-input" min="0" step="0.01">
-          </div>
-          <div id="despesaError" class="error-banner" style="display:none;"></div>
-          <button class="cta-primary" onclick="adicionarDespesa()">+ Adicionar despesa</button>
-
-          <div class="gold-divider"></div>
-          <p class="eyebrow" style="margin-bottom:10px;">Despesas do mês</p>
-          <div id="despesasLista"><p class="hint" style="text-align:left;">Carregando...</p></div>
-        </div>
-      </div>
-
       <!-- 7. PERFIL -->
       <div class="screen" id="screen-profile">
         <div class="step-header">
@@ -920,26 +805,50 @@
           <button class="cta-primary" onclick="salvarPerfil()">Salvar</button>
           <div class="gold-divider"></div>
           <p class="eyebrow" style="margin-bottom:10px;">Meus agendamentos</p>
-          <p class="hint" style="text-align:left;">Em breve: histórico de agendamentos direto aqui.</p>
+          <div id="historicoLista"><p class="hint" style="text-align:left;">Salve seu WhatsApp acima para ver seu histórico.</p></div>
+
+          <div class="gold-divider"></div>
+          <p class="eyebrow" style="margin-bottom:10px;">Contato</p>
+          <div class="summary-card" style="margin-bottom:14px;">
+            <a href="https://www.google.com/maps/search/?api=1&query=Rua+Seraphin+Gilberto+Candelo%2C+2063+-+Jd.+Morada+do+Sol%2C+Indaiatuba+-+SP" target="_blank" rel="noopener" style="text-decoration:none;">
+              <div class="summary-row" style="cursor:pointer;">
+                <span class="label">📍 Endereço</span>
+                <span class="val" style="color:var(--gold);">Ver no mapa →</span>
+              </div>
+            </a>
+            <p class="hint" style="text-align:left; margin:6px 0 0; padding:0;">Rua Seraphin Gilberto Candelo, 2063 — Jd. Morada do Sol, Indaiatuba/SP</p>
+          </div>
+          <div class="summary-card" style="margin-bottom:14px;">
+            <a href="https://wa.me/5519993900880" target="_blank" rel="noopener" style="text-decoration:none;">
+              <div class="summary-row" style="cursor:pointer; border-bottom:none;">
+                <span class="label">📲 WhatsApp</span>
+                <span class="val" style="color:var(--gold);">(19) 99390-0880</span>
+              </div>
+            </a>
+          </div>
+
+          <div class="gold-divider"></div>
+          <p class="eyebrow" style="margin-bottom:10px;">Pagamentos</p>
+          <div class="summary-card" style="margin-bottom:14px;">
+            <div class="summary-row" style="border-bottom:none;">
+              <span class="label">Chave Pix (telefone)</span>
+              <span class="val" id="pixKeyVal" style="color:var(--gold);">(19) 99390-0880</span>
+            </div>
+          </div>
+          <button class="cta-primary" style="background:var(--surface); color:var(--gold); border:1px solid var(--gold);" onclick="copiarPix()">📋 Copiar chave Pix</button>
         </div>
       </div>
 
     </div>
   </div>
 
-  <p class="hint">Use <b>Visão Cliente</b> para o agendamento e <b>Visão Deeh</b> para o painel do barbeiro.</p>
+  <p class="hint">Barbearia do Deeh — agende seu horário em segundos.</p>
 
 <script>
   // ====== CONFIG ======
   const API_URL = 'https://backend-v2-five-topaz.vercel.app/api/agendar';
   const API_DISPONIBILIDADE_URL = 'https://backend-v2-five-topaz.vercel.app/api/disponibilidade';
-  const API_AGENDA_HOJE_URL = 'https://backend-v2-five-topaz.vercel.app/api/agenda-hoje';
-  const API_CLIENTES_URL = 'https://backend-v2-five-topaz.vercel.app/api/clientes';
-  const API_AGENDAR_FIXO_URL = 'https://backend-v2-five-topaz.vercel.app/api/agendar-fixo';
-  const API_BLOQUEAR_URL = 'https://backend-v2-five-topaz.vercel.app/api/bloquear-horario';
-  const API_FINANCEIRO_URL = 'https://backend-v2-five-topaz.vercel.app/api/financeiro';
-  const API_DESPESAS_URL = 'https://backend-v2-five-topaz.vercel.app/api/despesas';
-  const API_PAGAMENTOS_PLANOS_URL = 'https://backend-v2-five-topaz.vercel.app/api/pagamentos-planos';
+  const API_ATENDIMENTOS_URL = 'https://backend-v2-five-topaz.vercel.app/api/atendimentos';
   const WHATSAPP_NUMBER = '5519993900880';
 
   // Horário de funcionamento: 0=Dom ... 6=Sáb
@@ -952,7 +861,6 @@
   };
 
   const DOW_LABELS = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
-  const DOW_LABELS_LONGO = ['Domingo','Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado'];
   const MONTH_LABELS = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 
   // ====== STATE ======
@@ -966,337 +874,26 @@
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById('screen-' + id).classList.add('active');
     document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.target === id));
-    if(id === 'home' || id === 'dashboard'){ currentMode = id; }
-    if(id === 'dashboard'){ carregarDashboard(); }
-    if(id === 'clientes'){ carregarClientes(); }
-    if(id === 'financeiro'){ carregarFinanceiro(); }
+    if(id === 'home'){ currentMode = id; }
+    if(id === 'profile'){ initPerfil(); }
   }
 
-  const PLANO_LABELS = { nenhum: 'Sem plano', essencial: 'Essencial', classico: 'Clássico', empresario: 'Empresário' };
-  let clientesCache = [];
-
-  document.addEventListener('change', (e) => {
-    if(e.target && e.target.id === 'novoClientePlano'){
-      document.getElementById('subtipoEssencialGroup').style.display =
-        e.target.value === 'essencial' ? '' : 'none';
-    }
-  });
-
-  async function carregarClientes(){
-    const lista = document.getElementById('clientesLista');
-    lista.innerHTML = '<p class="hint" style="text-align:left;">Carregando...</p>';
-    try{
-      const resp = await fetch(API_CLIENTES_URL);
-      const data = await resp.json();
-      if(!data.success) throw new Error(data.error || 'Falha ao buscar clientes');
-      clientesCache = data.clientes || [];
-      if(!clientesCache.length){
-        lista.innerHTML = '<p class="hint" style="text-align:left;">Nenhum cliente cadastrado ainda.</p>';
-        return;
-      }
-      lista.innerHTML = clientesCache.map(c => {
-        const plano = PLANO_LABELS[c.plano] || c.plano;
-        const saldo = c.plano && c.plano !== 'nenhum'
-          ? `${c.cortes_restantes ?? 0} cortes · ${c.barbas_restantes ?? 0} barbas · ${c.pezinhos_restantes ?? 0} pezinhos`
-          : 'Sem pacote ativo';
-        return `<div class="summary-card" style="margin-bottom:10px;cursor:pointer;" onclick="abrirEditarCliente(${c.id})">
-          <div class="summary-row"><span class="label" style="font-size:14px;color:var(--cream);font-weight:700;">${c.nome}</span><span class="val" style="color:var(--gold);">${plano}</span></div>
-          <div class="summary-row" style="border-bottom:none;"><span class="label">${c.telefone} · ${saldo}</span></div>
-        </div>`;
-      }).join('');
-    }catch(err){
-      lista.innerHTML = '<p class="hint" style="text-align:left;color:#e8a37f;">Erro ao carregar clientes.</p>';
-    }
+  function syncPlanDots(){
+    const carousel = document.getElementById('plansCarousel');
+    const dots = document.querySelectorAll('#plansDots .dot-ind');
+    if(!carousel || !dots.length) return;
+    const cardWidth = carousel.firstElementChild.offsetWidth + 14;
+    const index = Math.round(carousel.scrollLeft / cardWidth);
+    dots.forEach((d,i)=> d.classList.toggle('active', i === index));
   }
 
-  function abrirNovoCliente(){
-    document.getElementById('novoClienteNome').value = '';
-    document.getElementById('novoClienteTelefone').value = '';
-    document.getElementById('novoClientePlano').value = 'nenhum';
-    document.getElementById('subtipoEssencialGroup').style.display = 'none';
-    document.getElementById('novoClienteError').style.display = 'none';
-    goTo('cliente-novo');
-  }
-
-  async function salvarNovoCliente(){
-    const nome = document.getElementById('novoClienteNome').value.trim();
-    const telefone = document.getElementById('novoClienteTelefone').value.trim().replace(/\D/g, '');
-    const plano = document.getElementById('novoClientePlano').value;
-    const subtipo_essencial = plano === 'essencial' ? document.getElementById('novoClienteSubtipo').value : null;
-    const errorBox = document.getElementById('novoClienteError');
-
-    if(!nome || !telefone){
-      errorBox.textContent = 'Preencha nome e WhatsApp.';
-      errorBox.style.display = 'block';
-      return;
-    }
-
-    try{
-      const resp = await fetch(API_CLIENTES_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nome, telefone, plano, subtipo_essencial })
-      });
-      const data = await resp.json();
-      if(!resp.ok || !data.success) throw new Error(data.error || 'Falha ao cadastrar');
-      goTo('clientes');
-    }catch(err){
-      errorBox.textContent = 'Erro ao cadastrar cliente. Tente novamente.';
-      errorBox.style.display = 'block';
-    }
-  }
-
-  let clienteEditandoId = null;
-
-  function abrirEditarCliente(id){
-    const c = clientesCache.find(x => x.id === id);
-    if(!c) return;
-    clienteEditandoId = id;
-    document.getElementById('editarClienteNome').textContent = c.nome;
-    document.getElementById('editCortes').value = c.cortes_restantes ?? 0;
-    document.getElementById('editBarbas').value = c.barbas_restantes ?? 0;
-    document.getElementById('editPezinhos').value = c.pezinhos_restantes ?? 0;
-    document.getElementById('editSobrancelha').value = String(!!c.sobrancelha_restante);
-    document.getElementById('editarClienteError').style.display = 'none';
-    const planoLabel = document.getElementById('planoAtualLabel');
-    planoLabel.textContent = c.plano && c.plano !== 'nenhum'
-      ? `Plano atual: ${PLANO_LABELS[c.plano] || c.plano}`
-      : 'Cliente sem plano ativo.';
-    document.getElementById('pagamentoPlanoError').style.display = 'none';
-    document.getElementById('pagamentoPlanoSucesso').style.display = 'none';
-    goTo('cliente-editar');
-  }
-
-  async function salvarEdicaoCliente(){
-    if(!clienteEditandoId) return;
-    const errorBox = document.getElementById('editarClienteError');
-    const payload = {
-      id: clienteEditandoId,
-      cortes_restantes: parseInt(document.getElementById('editCortes').value, 10) || 0,
-      barbas_restantes: parseInt(document.getElementById('editBarbas').value, 10) || 0,
-      pezinhos_restantes: parseInt(document.getElementById('editPezinhos').value, 10) || 0,
-      sobrancelha_restante: document.getElementById('editSobrancelha').value === 'true'
-    };
-    try{
-      const resp = await fetch(API_CLIENTES_URL, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      const data = await resp.json();
-      if(!resp.ok || !data.success) throw new Error(data.error || 'Falha ao salvar');
-      goTo('clientes');
-    }catch(err){
-      errorBox.textContent = 'Erro ao salvar alterações. Tente novamente.';
-      errorBox.style.display = 'block';
-    }
-  }
-
-  async function registrarPagamentoPlano(){
-    if(!clienteEditandoId) return;
-    const c = clientesCache.find(x => x.id === clienteEditandoId);
-    const errorBox = document.getElementById('pagamentoPlanoError');
-    const sucessoBox = document.getElementById('pagamentoPlanoSucesso');
-    errorBox.style.display = 'none';
-    sucessoBox.style.display = 'none';
-
-    if(!c.plano || c.plano === 'nenhum'){
-      errorBox.textContent = 'Este cliente não tem plano ativo.';
-      errorBox.style.display = 'block';
-      return;
-    }
-
-    try{
-      const resp = await fetch(API_PAGAMENTOS_PLANOS_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cliente_id: c.id, plano: c.plano, forma_pagamento: 'pix' })
-      });
-      const data = await resp.json();
-      if(!resp.ok || !data.success) throw new Error(data.error || 'Falha ao registrar');
-      sucessoBox.textContent = `Pagamento de R$ ${data.valor} registrado.`;
-      sucessoBox.style.display = 'block';
-    }catch(err){
-      errorBox.textContent = 'Erro ao registrar pagamento. Tente novamente.';
-      errorBox.style.display = 'block';
-    }
-  }
-
-  const CATEGORIA_LABELS = { aluguel: 'Aluguel', produtos: 'Produtos', contas: 'Contas', funcionario: 'Funcionário', marketing: 'Marketing', outro: 'Outro' };
-
-  async function carregarFinanceiro(){
-    const resumoBox = document.getElementById('financeiroResumo');
-    const listaBox = document.getElementById('despesasLista');
-    resumoBox.innerHTML = '<p class="hint" style="text-align:left;">Carregando...</p>';
-    listaBox.innerHTML = '<p class="hint" style="text-align:left;">Carregando...</p>';
-    try{
-      const resp = await fetch(API_FINANCEIRO_URL);
-      const r = await resp.json();
-      if(!r.success) throw new Error(r.error || 'Falha ao buscar dados');
-
-      resumoBox.innerHTML = `
-        <div class="summary-card" style="margin-bottom:10px;">
-          <div class="summary-row"><span class="label">Receita total (mês)</span><span class="val" style="color:var(--gold);">R$ ${r.receita.total}</span></div>
-          <div class="summary-row"><span class="label">Serviços avulsos</span><span class="val">R$ ${r.receita.servicos_avulsos}</span></div>
-          <div class="summary-row" style="border-bottom:none;"><span class="label">Planos</span><span class="val">R$ ${r.receita.planos}</span></div>
-        </div>
-        <div class="summary-card" style="margin-bottom:10px;">
-          <div class="summary-row"><span class="label">Despesas (mês)</span><span class="val">R$ ${r.despesas.total}</span></div>
-          <div class="summary-row" style="border-bottom:none;"><span class="label" style="font-weight:700;color:var(--cream);">Lucro líquido</span><span class="val" style="color:var(--gold);font-weight:700;">R$ ${r.lucro_liquido}</span></div>
-        </div>
-        <div class="summary-card" style="margin-bottom:10px;">
-          <div class="summary-row"><span class="label">Ticket médio</span><span class="val">R$ ${r.atendimentos.ticket_medio}</span></div>
-          <div class="summary-row" style="border-bottom:none;"><span class="label">Atendimentos no mês</span><span class="val">${r.atendimentos.quantidade}</span></div>
-        </div>
-        <div class="summary-card">
-          <div class="summary-row" style="border-bottom:none;"><span class="label">MRR estimado (planos ativos)</span><span class="val" style="color:var(--gold);">R$ ${r.mrr_estimado}</span></div>
-        </div>`;
-
-      const despesasResp = await fetch(`${API_DESPESAS_URL}?mes=${r.periodo.mes}&ano=${r.periodo.ano}`);
-      const despesasData = await despesasResp.json();
-      if(despesasData.success && despesasData.despesas.length){
-        listaBox.innerHTML = despesasData.despesas.map(d => `
-          <div class="summary-card" style="margin-bottom:8px;">
-            <div class="summary-row" style="border-bottom:none;"><span class="label">${d.descricao} · ${CATEGORIA_LABELS[d.categoria] || d.categoria}</span><span class="val">R$ ${parseFloat(d.valor).toFixed(2)}</span></div>
-          </div>`).join('');
-      } else {
-        listaBox.innerHTML = '<p class="hint" style="text-align:left;">Nenhuma despesa neste mês.</p>';
-      }
-    }catch(err){
-      resumoBox.innerHTML = '<p class="hint" style="text-align:left;color:#e8a37f;">Erro ao carregar financeiro.</p>';
-      listaBox.innerHTML = '';
-    }
-  }
-
-  async function adicionarDespesa(){
-    const errorBox = document.getElementById('despesaError');
-    errorBox.style.display = 'none';
-    const descricao = document.getElementById('despesaDescricao').value.trim();
-    const categoria = document.getElementById('despesaCategoria').value;
-    const valor = parseFloat(document.getElementById('despesaValor').value);
-
-    if(!descricao || !valor || valor <= 0){
-      errorBox.textContent = 'Preencha descrição e valor válido.';
-      errorBox.style.display = 'block';
-      return;
-    }
-
-    try{
-      const resp = await fetch(API_DESPESAS_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ descricao, categoria, valor })
-      });
-      const data = await resp.json();
-      if(!resp.ok || !data.success) throw new Error(data.error || 'Falha ao adicionar');
-      document.getElementById('despesaDescricao').value = '';
-      document.getElementById('despesaValor').value = '';
-      carregarFinanceiro();
-    }catch(err){
-      errorBox.textContent = 'Erro ao adicionar despesa. Tente novamente.';
-      errorBox.style.display = 'block';
-    }
-  }
-
-  async function bloquearHorario(){
-    const errorBox = document.getElementById('bloqError');
-    const sucessoBox = document.getElementById('bloqSucesso');
-    errorBox.style.display = 'none';
-    sucessoBox.style.display = 'none';
-
-    const data = document.getElementById('bloqData').value.trim();
-    const horaInicio = document.getElementById('bloqInicio').value.trim();
-    const horaFim = document.getElementById('bloqFim').value.trim();
-    const motivo = document.getElementById('bloqMotivo').value.trim() || 'Almoço';
-
-    if(!/^\d{2}\/\d{2}\/\d{4}$/.test(data) || !/^\d{2}:\d{2}$/.test(horaInicio) || !/^\d{2}:\d{2}$/.test(horaFim)){
-      errorBox.textContent = 'Preencha data (DD/MM/AAAA) e horários (HH:MM) corretamente.';
-      errorBox.style.display = 'block';
-      return;
-    }
-
-    try{
-      const resp = await fetch(API_BLOQUEAR_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ data, horaInicio, horaFim, motivo })
-      });
-      const result = await resp.json();
-      if(!resp.ok || !result.success) throw new Error(result.error || 'Falha ao bloquear');
-      sucessoBox.textContent = `Horário bloqueado: ${data} ${horaInicio}–${horaFim}.`;
-      sucessoBox.style.display = 'block';
-    }catch(err){
-      errorBox.textContent = 'Erro ao bloquear horário. Tente novamente.';
-      errorBox.style.display = 'block';
-    }
-  }
-
-  async function criarHorarioFixo(){
-    if(!clienteEditandoId) return;
-    const c = clientesCache.find(x => x.id === clienteEditandoId);
-    const errorBox = document.getElementById('fixoError');
-    const sucessoBox = document.getElementById('fixoSucesso');
-    errorBox.style.display = 'none';
-    sucessoBox.style.display = 'none';
-
-    const servico = document.getElementById('fixoServico').value;
-    const dataInicio = document.getElementById('fixoDataInicio').value.trim();
-    const horario = document.getElementById('fixoHorario').value.trim();
-    const repeticoes = document.getElementById('fixoRepeticoes').value;
-
-    if(!/^\d{2}\/\d{2}\/\d{4}$/.test(dataInicio) || !/^\d{2}:\d{2}$/.test(horario)){
-      errorBox.textContent = 'Preencha data (DD/MM/AAAA) e horário (HH:MM) corretamente.';
-      errorBox.style.display = 'block';
-      return;
-    }
-
-    const duracao = servico === 'Corte Kids' || servico.includes('Barba') || servico === 'Corte' || servico.includes('+') ? '60 min' : '60 min';
-
-    try{
-      const resp = await fetch(API_AGENDAR_FIXO_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          nome: c.nome, telefone: c.telefone, servico, dataInicio, horario,
-          duracao, preco: 'incluso no pacote', repeticoes
-        })
-      });
-      const data = await resp.json();
-      if(!resp.ok || !data.success) throw new Error(data.error || 'Falha ao criar horário fixo');
-      sucessoBox.textContent = `Horário fixo criado (${repeticoes} semanas).`;
-      sucessoBox.style.display = 'block';
-    }catch(err){
-      errorBox.textContent = 'Erro ao criar horário fixo. Tente novamente.';
-      errorBox.style.display = 'block';
-    }
-  }
-
-  // ====== LOGIN (admin) ======
-  // ATENÇÃO: proteção simples do lado do cliente. Impede acesso casual,
-  // mas não é criptografia real (qualquer um que abrir o código-fonte vê a senha).
-  // Troque a senha abaixo quando quiser.
-  const ADMIN_PASSWORD = 'deeh2026';
-
-  function tentarLogin(){
-    const val = document.getElementById('adminPassword').value;
-    if(val === ADMIN_PASSWORD){
-      sessionStorage.setItem('deehAdminAuth', '1');
-      abrirPainel();
-    } else {
-      document.getElementById('loginError').style.display = 'block';
-    }
-  }
-
-  function abrirPainel(){
-    document.getElementById('loginGate').style.display = 'none';
-    document.getElementById('appShell').style.display = '';
-    buildDateScroller();
-    goTo('dashboard');
-  }
-
-  function logoutAdmin(){
-    sessionStorage.removeItem('deehAdminAuth');
-    location.reload();
+  function copiarPix(){
+    const chave = '19993900880';
+    navigator.clipboard.writeText(chave).then(()=>{
+      alert('Chave Pix copiada!');
+    }).catch(()=>{
+      alert('Não foi possível copiar. Chave Pix: ' + chave);
+    });
   }
 
   function assinarPlano(){
@@ -1309,7 +906,47 @@
     const telefone = document.getElementById('profileTelefone').value.trim();
     if(nome) document.getElementById('inputNome').value = nome;
     if(telefone) document.getElementById('inputTelefone').value = telefone;
+    if(nome) localStorage.setItem('deeh_nome', nome);
+    if(telefone){
+      localStorage.setItem('deeh_telefone', telefone);
+      carregarHistorico(telefone);
+    }
     alert('Perfil salvo!');
+  }
+
+  async function carregarHistorico(telefone){
+    const container = document.getElementById('historicoLista');
+    container.innerHTML = '<p class="hint" style="text-align:left;">Carregando...</p>';
+    try{
+      const telefoneLimpo = telefone.replace(/\D/g, '');
+      const resp = await fetch(`${API_ATENDIMENTOS_URL}?telefone=${encodeURIComponent(telefoneLimpo)}`);
+      const data = await resp.json();
+      if(!data.success || !data.atendimentos || data.atendimentos.length === 0){
+        container.innerHTML = '<p class="hint" style="text-align:left;">Nenhum atendimento encontrado ainda.</p>';
+        return;
+      }
+      container.innerHTML = data.atendimentos.map(a => {
+        const data_hora = new Date(a.data_hora);
+        const dataFmt = data_hora.toLocaleDateString('pt-BR');
+        const servicos = Array.isArray(a.servicos) ? a.servicos.join(', ') : (JSON.parse(a.servicos || '[]').join(', '));
+        return `<div class="summary-card" style="margin-bottom:10px;">
+          <div class="summary-row"><span class="label">${dataFmt}</span><span class="val" style="color:var(--gold);">R$ ${a.valor_cobrado}</span></div>
+          <div class="summary-row" style="border-bottom:none;"><span class="label">${servicos}</span></div>
+        </div>`;
+      }).join('');
+    }catch(err){
+      container.innerHTML = '<p class="hint" style="text-align:left;">Erro ao carregar histórico.</p>';
+    }
+  }
+
+  function initPerfil(){
+    const nomeSalvo = localStorage.getItem('deeh_nome');
+    const telefoneSalvo = localStorage.getItem('deeh_telefone');
+    if(nomeSalvo) document.getElementById('profileNome').value = nomeSalvo;
+    if(telefoneSalvo){
+      document.getElementById('profileTelefone').value = telefoneSalvo;
+      carregarHistorico(telefoneSalvo);
+    }
   }
 
   function toggleService(el){
@@ -1444,80 +1081,6 @@
     document.getElementById('btnToConfirm').disabled = false;
   }
 
-  // ---- Dashboard (Deeh): dados reais ----
-  function formatarDataHojeExtenso(){
-    const hoje = new Date();
-    return `${DOW_LABELS_LONGO[hoje.getDay()]}, ${String(hoje.getDate()).padStart(2,'0')} de ${MONTH_LABELS[hoje.getMonth()].toLowerCase()}`;
-  }
-
-  function proximoHorarioLivre(eventos){
-    const hoje = new Date();
-    const hours = BUSINESS_HOURS[hoje.getDay()];
-    if(!hours) return 'Fechado hoje';
-
-    const ocupados = eventos.map(e => ({ inicio: e.horaInicio, fim: e.horaFim }));
-    const agoraMin = hoje.getHours() * 60 + hoje.getMinutes();
-
-    for(let h = hours.open; h < hours.close; h++){
-      const label = String(h).padStart(2,'0') + ':00';
-      const inicioMin = h * 60;
-      if(inicioMin < agoraMin) continue; // já passou
-      if(!horarioConflita(label, 60, ocupados)) return label;
-    }
-    return 'Sem horário livre hoje';
-  }
-
-  async function carregarDashboard(){
-    document.getElementById('dashDataHoje').textContent = formatarDataHojeExtenso();
-
-    const agendaList = document.getElementById('agendaHojeList');
-    agendaList.innerHTML = '<p class="hint" style="text-align:left;">Carregando agenda...</p>';
-
-    // ---- Agenda do dia (Google Calendar) ----
-    try {
-      const resp = await fetch(API_AGENDA_HOJE_URL);
-      const json = await resp.json();
-
-      if(!json.success) throw new Error(json.error || 'Falha ao buscar agenda');
-
-      const eventos = json.eventos || [];
-
-      document.getElementById('statAgendamentos').textContent = json.total ?? eventos.length;
-      document.getElementById('statFaturamento').textContent = 'R$ ' + (json.faturamento_estimado ?? 0);
-      document.getElementById('statProximo').textContent = proximoHorarioLivre(eventos);
-
-      if(!eventos.length){
-        agendaList.innerHTML = '<p class="hint" style="text-align:left;">Nenhum agendamento para hoje.</p>';
-      } else {
-        agendaList.innerHTML = eventos.map(e => `
-          <div class="agenda-item">
-            <div class="agenda-time">${e.horaInicio}</div>
-            <div class="agenda-info"><div class="cli">${e.nome}</div><div class="srv">${e.servico}${e.valor ? ' · R$ ' + e.valor : ''}</div></div>
-          </div>
-        `).join('');
-      }
-    } catch(err){
-      console.error('Erro ao carregar agenda do dia:', err);
-      document.getElementById('statAgendamentos').textContent = '—';
-      document.getElementById('statFaturamento').textContent = '—';
-      document.getElementById('statProximo').textContent = '—';
-      agendaList.innerHTML = '<p class="hint" style="text-align:left;color:#e8a37f;">Não foi possível carregar a agenda de hoje. Toque em "Atualizar" pra tentar de novo.</p>';
-    }
-
-    // ---- Clientes com plano ativo ----
-    try {
-      const resp = await fetch(API_CLIENTES_URL);
-      const json = await resp.json();
-      if(!json.success) throw new Error(json.error || 'Falha ao buscar clientes');
-
-      const ativos = (json.clientes || []).filter(c => c.plano && c.plano !== 'nenhum').length;
-      document.getElementById('statRecorrentes').textContent = ativos;
-    } catch(err){
-      console.error('Erro ao carregar clientes:', err);
-      document.getElementById('statRecorrentes').textContent = '—';
-    }
-  }
-
   // ---- Confirm screen ----
   function goToConfirm(){
     if(!selectedServices.length || !selectedDate || !selectedTime) return;
@@ -1621,10 +1184,17 @@
   }
 
   // ---- Init ----
-  if(sessionStorage.getItem('deehAdminAuth') === '1'){
-    abrirPainel();
+  buildDateScroller();
+  goTo('home');
+
+  // ---- PWA: registra o service worker (permite instalar como app) ----
+  if('serviceWorker' in navigator){
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/service-worker.js').catch(err => {
+        console.error('Erro ao registrar service worker:', err);
+      });
+    });
   }
-  // se não estiver autenticado, fica só a tela de login visível (appShell continua display:none)
 </script>
 
 </body>
