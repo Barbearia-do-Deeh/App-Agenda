@@ -722,7 +722,7 @@
         <div class="bottom-nav">
           <button class="nav-item" data-target="dashboard" onclick="goTo('dashboard')"><span class="nav-icon">⌂</span>Painel<span class="dot"></span></button>
           <button class="nav-item" data-target="clientes" onclick="goTo('clientes')"><span class="nav-icon">👤</span>Clientes<span class="dot"></span></button>
-          <button class="nav-item" data-target="plans" onclick="goTo('plans')"><span class="nav-icon">◆</span>Planos<span class="dot"></span></button>
+          <button class="nav-item" data-target="financeiro" onclick="goTo('financeiro')"><span class="nav-icon">💰</span>Financeiro<span class="dot"></span></button>
           <button class="nav-item" data-target="profile" onclick="goTo('profile')"><span class="nav-icon">☺</span>Perfil<span class="dot"></span></button>
         </div>
       </div>
@@ -854,6 +854,51 @@
           <div id="fixoError" class="error-banner" style="display:none;"></div>
           <div id="fixoSucesso" class="hint" style="display:none;text-align:left;color:var(--gold);"></div>
           <button class="cta-primary" style="background:var(--surface); color:var(--gold); border:1px solid var(--gold);" onclick="criarHorarioFixo()">🔁 Criar horário fixo</button>
+
+          <div class="gold-divider"></div>
+          <p class="eyebrow" style="margin-bottom:10px;">Pagamento do plano</p>
+          <p class="hint" style="text-align:left;" id="planoAtualLabel"></p>
+          <div id="pagamentoPlanoError" class="error-banner" style="display:none;"></div>
+          <div id="pagamentoPlanoSucesso" class="hint" style="display:none;text-align:left;color:var(--gold);"></div>
+          <button class="whatsapp-btn" onclick="registrarPagamentoPlano()">💰 Registrar pagamento recebido</button>
+        </div>
+      </div>
+
+      <!-- 9. FINANCEIRO (admin) -->
+      <div class="screen" id="screen-financeiro">
+        <div class="step-header">
+          <h2 class="step-title">Financeiro</h2>
+        </div>
+        <div class="screen-body" style="padding-top:0;">
+          <div id="financeiroResumo"><p class="hint" style="text-align:left;">Carregando...</p></div>
+
+          <div class="gold-divider"></div>
+          <p class="eyebrow" style="margin-bottom:10px;">Nova despesa</p>
+          <div class="form-group">
+            <label class="form-label">Descrição</label>
+            <input type="text" id="despesaDescricao" class="form-input" placeholder="Aluguel, produtos...">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Categoria</label>
+            <select id="despesaCategoria" class="form-input">
+              <option value="aluguel">Aluguel</option>
+              <option value="produtos">Produtos</option>
+              <option value="contas">Contas (água/luz/internet)</option>
+              <option value="funcionario">Funcionário</option>
+              <option value="marketing">Marketing</option>
+              <option value="outro">Outro</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Valor (R$)</label>
+            <input type="number" id="despesaValor" class="form-input" min="0" step="0.01">
+          </div>
+          <div id="despesaError" class="error-banner" style="display:none;"></div>
+          <button class="cta-primary" onclick="adicionarDespesa()">+ Adicionar despesa</button>
+
+          <div class="gold-divider"></div>
+          <p class="eyebrow" style="margin-bottom:10px;">Despesas do mês</p>
+          <div id="despesasLista"><p class="hint" style="text-align:left;">Carregando...</p></div>
         </div>
       </div>
 
@@ -892,6 +937,9 @@
   const API_CLIENTES_URL = 'https://backend-v2-five-topaz.vercel.app/api/clientes';
   const API_AGENDAR_FIXO_URL = 'https://backend-v2-five-topaz.vercel.app/api/agendar-fixo';
   const API_BLOQUEAR_URL = 'https://backend-v2-five-topaz.vercel.app/api/bloquear-horario';
+  const API_FINANCEIRO_URL = 'https://backend-v2-five-topaz.vercel.app/api/financeiro';
+  const API_DESPESAS_URL = 'https://backend-v2-five-topaz.vercel.app/api/despesas';
+  const API_PAGAMENTOS_PLANOS_URL = 'https://backend-v2-five-topaz.vercel.app/api/pagamentos-planos';
   const WHATSAPP_NUMBER = '5519993900880';
 
   // Horário de funcionamento: 0=Dom ... 6=Sáb
@@ -921,6 +969,7 @@
     if(id === 'home' || id === 'dashboard'){ currentMode = id; }
     if(id === 'dashboard'){ carregarDashboard(); }
     if(id === 'clientes'){ carregarClientes(); }
+    if(id === 'financeiro'){ carregarFinanceiro(); }
   }
 
   const PLANO_LABELS = { nenhum: 'Sem plano', essencial: 'Essencial', classico: 'Clássico', empresario: 'Empresário' };
@@ -1009,6 +1058,12 @@
     document.getElementById('editPezinhos').value = c.pezinhos_restantes ?? 0;
     document.getElementById('editSobrancelha').value = String(!!c.sobrancelha_restante);
     document.getElementById('editarClienteError').style.display = 'none';
+    const planoLabel = document.getElementById('planoAtualLabel');
+    planoLabel.textContent = c.plano && c.plano !== 'nenhum'
+      ? `Plano atual: ${PLANO_LABELS[c.plano] || c.plano}`
+      : 'Cliente sem plano ativo.';
+    document.getElementById('pagamentoPlanoError').style.display = 'none';
+    document.getElementById('pagamentoPlanoSucesso').style.display = 'none';
     goTo('cliente-editar');
   }
 
@@ -1033,6 +1088,112 @@
       goTo('clientes');
     }catch(err){
       errorBox.textContent = 'Erro ao salvar alterações. Tente novamente.';
+      errorBox.style.display = 'block';
+    }
+  }
+
+  async function registrarPagamentoPlano(){
+    if(!clienteEditandoId) return;
+    const c = clientesCache.find(x => x.id === clienteEditandoId);
+    const errorBox = document.getElementById('pagamentoPlanoError');
+    const sucessoBox = document.getElementById('pagamentoPlanoSucesso');
+    errorBox.style.display = 'none';
+    sucessoBox.style.display = 'none';
+
+    if(!c.plano || c.plano === 'nenhum'){
+      errorBox.textContent = 'Este cliente não tem plano ativo.';
+      errorBox.style.display = 'block';
+      return;
+    }
+
+    try{
+      const resp = await fetch(API_PAGAMENTOS_PLANOS_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cliente_id: c.id, plano: c.plano, forma_pagamento: 'pix' })
+      });
+      const data = await resp.json();
+      if(!resp.ok || !data.success) throw new Error(data.error || 'Falha ao registrar');
+      sucessoBox.textContent = `Pagamento de R$ ${data.valor} registrado.`;
+      sucessoBox.style.display = 'block';
+    }catch(err){
+      errorBox.textContent = 'Erro ao registrar pagamento. Tente novamente.';
+      errorBox.style.display = 'block';
+    }
+  }
+
+  const CATEGORIA_LABELS = { aluguel: 'Aluguel', produtos: 'Produtos', contas: 'Contas', funcionario: 'Funcionário', marketing: 'Marketing', outro: 'Outro' };
+
+  async function carregarFinanceiro(){
+    const resumoBox = document.getElementById('financeiroResumo');
+    const listaBox = document.getElementById('despesasLista');
+    resumoBox.innerHTML = '<p class="hint" style="text-align:left;">Carregando...</p>';
+    listaBox.innerHTML = '<p class="hint" style="text-align:left;">Carregando...</p>';
+    try{
+      const resp = await fetch(API_FINANCEIRO_URL);
+      const r = await resp.json();
+      if(!r.success) throw new Error(r.error || 'Falha ao buscar dados');
+
+      resumoBox.innerHTML = `
+        <div class="summary-card" style="margin-bottom:10px;">
+          <div class="summary-row"><span class="label">Receita total (mês)</span><span class="val" style="color:var(--gold);">R$ ${r.receita.total}</span></div>
+          <div class="summary-row"><span class="label">Serviços avulsos</span><span class="val">R$ ${r.receita.servicos_avulsos}</span></div>
+          <div class="summary-row" style="border-bottom:none;"><span class="label">Planos</span><span class="val">R$ ${r.receita.planos}</span></div>
+        </div>
+        <div class="summary-card" style="margin-bottom:10px;">
+          <div class="summary-row"><span class="label">Despesas (mês)</span><span class="val">R$ ${r.despesas.total}</span></div>
+          <div class="summary-row" style="border-bottom:none;"><span class="label" style="font-weight:700;color:var(--cream);">Lucro líquido</span><span class="val" style="color:var(--gold);font-weight:700;">R$ ${r.lucro_liquido}</span></div>
+        </div>
+        <div class="summary-card" style="margin-bottom:10px;">
+          <div class="summary-row"><span class="label">Ticket médio</span><span class="val">R$ ${r.atendimentos.ticket_medio}</span></div>
+          <div class="summary-row" style="border-bottom:none;"><span class="label">Atendimentos no mês</span><span class="val">${r.atendimentos.quantidade}</span></div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-row" style="border-bottom:none;"><span class="label">MRR estimado (planos ativos)</span><span class="val" style="color:var(--gold);">R$ ${r.mrr_estimado}</span></div>
+        </div>`;
+
+      const despesasResp = await fetch(`${API_DESPESAS_URL}?mes=${r.periodo.mes}&ano=${r.periodo.ano}`);
+      const despesasData = await despesasResp.json();
+      if(despesasData.success && despesasData.despesas.length){
+        listaBox.innerHTML = despesasData.despesas.map(d => `
+          <div class="summary-card" style="margin-bottom:8px;">
+            <div class="summary-row" style="border-bottom:none;"><span class="label">${d.descricao} · ${CATEGORIA_LABELS[d.categoria] || d.categoria}</span><span class="val">R$ ${parseFloat(d.valor).toFixed(2)}</span></div>
+          </div>`).join('');
+      } else {
+        listaBox.innerHTML = '<p class="hint" style="text-align:left;">Nenhuma despesa neste mês.</p>';
+      }
+    }catch(err){
+      resumoBox.innerHTML = '<p class="hint" style="text-align:left;color:#e8a37f;">Erro ao carregar financeiro.</p>';
+      listaBox.innerHTML = '';
+    }
+  }
+
+  async function adicionarDespesa(){
+    const errorBox = document.getElementById('despesaError');
+    errorBox.style.display = 'none';
+    const descricao = document.getElementById('despesaDescricao').value.trim();
+    const categoria = document.getElementById('despesaCategoria').value;
+    const valor = parseFloat(document.getElementById('despesaValor').value);
+
+    if(!descricao || !valor || valor <= 0){
+      errorBox.textContent = 'Preencha descrição e valor válido.';
+      errorBox.style.display = 'block';
+      return;
+    }
+
+    try{
+      const resp = await fetch(API_DESPESAS_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ descricao, categoria, valor })
+      });
+      const data = await resp.json();
+      if(!resp.ok || !data.success) throw new Error(data.error || 'Falha ao adicionar');
+      document.getElementById('despesaDescricao').value = '';
+      document.getElementById('despesaValor').value = '';
+      carregarFinanceiro();
+    }catch(err){
+      errorBox.textContent = 'Erro ao adicionar despesa. Tente novamente.';
       errorBox.style.display = 'block';
     }
   }
