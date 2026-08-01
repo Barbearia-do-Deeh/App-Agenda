@@ -1,9 +1,10 @@
 {
+  "id": "/admin.html",
   "name": "Painel Deeh - Admin",
   "short_name": "Painel Deeh",
   "description": "Painel administrativo da Barbearia do Deeh",
   "start_url": "/admin.html",
-  "scope": "/",
+  "scope": "/admin.html",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#0f0e0d",
