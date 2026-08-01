@@ -1639,6 +1639,11 @@
   // se não estiver autenticado, fica só a tela de login visível (appShell continua display:none)
 </script>
 
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/service-worker.js');
+  }
+</script>
 </body>
 </html>
 
