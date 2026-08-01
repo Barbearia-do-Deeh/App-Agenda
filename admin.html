@@ -3,7 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>App Barbearia do Deeh</title>
+<title>Painel Deeh - Admin</title>
+<link rel="manifest" href="/manifest-admin.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Painel Deeh">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Work+Sans:wght@400;500;600;700&display=swap');
 
@@ -701,15 +705,15 @@
           <p class="eyebrow" style="margin-bottom:10px;">Bloquear horário (ex: almoço)</p>
           <div class="form-group">
             <label class="form-label">Data (DD/MM/AAAA)</label>
-            <input type="text" id="bloqData" class="form-input" placeholder="30/07/2026">
+            <input type="date" id="bloqData" class="form-input">
           </div>
           <div class="form-group">
             <label class="form-label">Das</label>
-            <input type="text" id="bloqInicio" class="form-input" placeholder="12:00">
+            <input type="time" id="bloqInicio" class="form-input" value="12:00">
           </div>
           <div class="form-group">
             <label class="form-label">Até</label>
-            <input type="text" id="bloqFim" class="form-input" placeholder="13:00">
+            <input type="time" id="bloqFim" class="form-input" value="13:00">
           </div>
           <div class="form-group">
             <label class="form-label">Motivo</label>
@@ -1204,16 +1208,19 @@
     errorBox.style.display = 'none';
     sucessoBox.style.display = 'none';
 
-    const data = document.getElementById('bloqData').value.trim();
-    const horaInicio = document.getElementById('bloqInicio').value.trim();
-    const horaFim = document.getElementById('bloqFim').value.trim();
+    const dataRaw = document.getElementById('bloqData').value;
+    const horaInicio = document.getElementById('bloqInicio').value;
+    const horaFim = document.getElementById('bloqFim').value;
     const motivo = document.getElementById('bloqMotivo').value.trim() || 'Almoço';
 
-    if(!/^\d{2}\/\d{2}\/\d{4}$/.test(data) || !/^\d{2}:\d{2}$/.test(horaInicio) || !/^\d{2}:\d{2}$/.test(horaFim)){
-      errorBox.textContent = 'Preencha data (DD/MM/AAAA) e horários (HH:MM) corretamente.';
+    if(!dataRaw || !horaInicio || !horaFim){
+      errorBox.textContent = 'Preencha data e horários.';
       errorBox.style.display = 'block';
       return;
     }
+
+    const [ano, mes, dia] = dataRaw.split('-');
+    const data = `${dia}/${mes}/${ano}`;
 
     try{
       const resp = await fetch(API_BLOQUEAR_URL, {
@@ -1470,6 +1477,11 @@
   async function carregarDashboard(){
     document.getElementById('dashDataHoje').textContent = formatarDataHojeExtenso();
 
+    const bloqDataInput = document.getElementById('bloqData');
+    if(bloqDataInput && !bloqDataInput.value){
+      bloqDataInput.value = new Date().toISOString().slice(0, 10);
+    }
+
     const agendaList = document.getElementById('agendaHojeList');
     agendaList.innerHTML = '<p class="hint" style="text-align:left;">Carregando agenda...</p>';
 
@@ -1629,3 +1641,4 @@
 
 </body>
 </html>
+
