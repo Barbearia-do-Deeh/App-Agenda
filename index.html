@@ -805,6 +805,7 @@
           <button class="cta-primary" onclick="salvarPerfil()">Salvar</button>
           <div class="gold-divider"></div>
           <p class="eyebrow" style="margin-bottom:10px;">Meus agendamentos</p>
+          <div id="proximoAgendamento"></div>
           <div id="historicoLista"><p class="hint" style="text-align:left;">Salve seu WhatsApp acima para ver seu histórico.</p></div>
 
           <div class="gold-divider"></div>
@@ -916,11 +917,28 @@
 
   async function carregarHistorico(telefone){
     const container = document.getElementById('historicoLista');
+    const proximoContainer = document.getElementById('proximoAgendamento');
     container.innerHTML = '<p class="hint" style="text-align:left;">Carregando...</p>';
     try{
       const telefoneLimpo = telefone.replace(/\D/g, '');
       const resp = await fetch(`${API_ATENDIMENTOS_URL}?telefone=${encodeURIComponent(telefoneLimpo)}`);
       const data = await resp.json();
+
+      if(data.proximo_agendamento){
+        const p = data.proximo_agendamento;
+        const dataHora = new Date(p.data_hora);
+        const dataFmt = dataHora.toLocaleDateString('pt-BR');
+        const horaFmt = dataHora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        proximoContainer.innerHTML = `<div class="summary-card" style="margin-bottom:14px; border:1px solid var(--gold);">
+          <div class="summary-row" style="border-bottom:none;">
+            <span class="label">📅 Próximo horário</span>
+            <span class="val" style="color:var(--gold);">${p.servico} — ${dataFmt} às ${horaFmt}</span>
+          </div>
+        </div>`;
+      } else {
+        proximoContainer.innerHTML = '';
+      }
+
       if(!data.success || !data.atendimentos || data.atendimentos.length === 0){
         container.innerHTML = '<p class="hint" style="text-align:left;">Nenhum atendimento encontrado ainda.</p>';
         return;
