@@ -1275,4 +1275,117 @@
 
     document.getElementById('sumServico').textContent = names;
     document.getElementById('sumData').textContent = `${DOW_LABELS[selectedDate.getDay()]}, ${String(selectedDate.getDate()).padStart(2,'0')} de ${MONTH_LABELS[selectedDate.getMonth()].toLowerCase()}`;
-    document.getElementById('sumHorario').textCo
+    document.getElementById('sumHorario').textContent = selectedTime;
+    document.getElementById('sumTotal').textContent = 'R$ ' + total;
+
+    document.getElementById('confirmError').style.display = 'none';
+    document.getElementById('whatsappFallback').style.display = 'none';
+
+    goTo('confirm');
+  }
+
+  function getBookingPayload(){
+    const nome = document.getElementById('inputNome').value.trim();
+    const telefone = document.getElementById('inputTelefone').value.trim();
+    const total = selectedServices.reduce((s, x) => s + x.price, 0);
+    const names = selectedServices.map(x => x.name).join(' + ');
+    const hasFullService = selectedServices.some(x => x.duration >= 60);
+    const duracaoMin = hasFullService ? 60 : 15;
+    const dia = String(selectedDate.getDate()).padStart(2,'0');
+    const mes = String(selectedDate.getMonth() + 1).padStart(2,'0');
+    const ano = selectedDate.getFullYear();
+
+    return {
+      nome, telefone,
+      servico: names,
+      data: `${dia}/${mes}/${ano}`,
+      horario: selectedTime,
+      duracao: duracaoMin === 15 ? '15 min' : '60 min',
+      preco: 'R$' + total,
+      produtos: PRODUTOS_CACHE.filter(p => p.quantidade > 0).map(p => ({ id: p.id, quantidade: p.quantidade }))
+    };
+  }
+
+  async function confirmarAgendamento(){
+    const payload = getBookingPayload();
+    const errorBox = document.getElementById('confirmError');
+    const whatsappLink = document.getElementById('whatsappFallback');
+    const btn = document.getElementById('btnConfirmar');
+
+    if(!payload.nome || !payload.telefone){
+      errorBox.textContent = 'Preencha seu nome e WhatsApp para confirmar.';
+      errorBox.style.display = 'block';
+      whatsappLink.style.display = 'none';
+      return;
+    }
+
+    errorBox.style.display = 'none';
+    whatsappLink.style.display = 'none';
+    btn.disabled = true;
+    btn.classList.add('loading');
+    btn.textContent = 'Confirmando...';
+
+    try {
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+
+      if(!res.ok || !data.success){
+        throw new Error(data.error || 'Não foi possível confirmar o agendamento.');
+      }
+
+      document.getElementById('successMsg').textContent =
+        `${payload.nome}, seu horário de ${payload.servico} no dia ${payload.data} às ${payload.horario} foi reservado na agenda da Barbearia do Deeh.`;
+
+      goTo('success');
+
+    } catch (err) {
+      errorBox.textContent = 'Não conseguimos confirmar automaticamente. Tente novamente ou fale direto com o Deeh no WhatsApp.';
+      errorBox.style.display = 'block';
+
+      const msg = encodeURIComponent(
+        `Olá! Quero agendar: ${payload.servico}, dia ${payload.data} às ${payload.horario}. Nome: ${payload.nome}`
+      );
+      whatsappLink.href = `https://wa.me/${WHATSAPP_NUMBER}?text=${msg}`;
+      whatsappLink.style.display = 'flex';
+
+    } finally {
+      btn.disabled = false;
+      btn.classList.remove('loading');
+      btn.textContent = 'Confirmar agendamento';
+    }
+  }
+
+  function resetFlow(){
+    selectedServices = [];
+    selectedDate = null;
+    selectedTime = null;
+    document.querySelectorAll('.service-row.selected').forEach(r => r.classList.remove('selected'));
+    document.getElementById('totalPrice').textContent = 'R$ 0';
+    document.getElementById('inputNome').value = '';
+    document.getElementById('inputTelefone').value = '';
+    PRODUTOS_CACHE.forEach(p => p.quantidade = 0);
+    renderProdutosList();
+    goTo('home');
+  }
+
+  // ---- Init ----
+  buildDateScroller();
+  fetchProdutos();
+  goTo('home');
+
+  // ---- PWA: registra o service worker (permite instalar como app) ----
+  if('serviceWorker' in navigator){
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/service-worker.js').catch(err => {
+        console.error('Erro ao registrar service worker:', err);
+      });
+    });
+  }
+</script>
+
+</body>
+</html>
