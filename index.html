@@ -327,26 +327,54 @@
   .total-line b{color:var(--cream); font-size:15px;}
 
   /* ---- Calendar ---- */
-  .date-scroller{
+  .cal-nav{
     display:flex;
-    gap:8px;
-    overflow-x:auto;
-    padding-bottom:4px;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:10px;
   }
-  .date-chip{
-    min-width:52px;
+  .cal-nav-btn{
+    width:30px;height:30px;
+    border-radius:8px;
+    border:1px solid var(--brown);
+    background:var(--surface);
+    color:var(--cream);
+    font-size:15px;
+    cursor:pointer;
+  }
+  .cal-nav-btn:disabled{opacity:.3; cursor:default;}
+  .cal-dow-row{
+    display:grid;
+    grid-template-columns:repeat(7,1fr);
+    gap:4px;
+    margin-bottom:4px;
+  }
+  .cal-dow-row span{
+    text-align:center;
+    font-size:10px;
+    color:var(--muted);
+    text-transform:uppercase;
+  }
+  .cal-grid{
+    display:grid;
+    grid-template-columns:repeat(7,1fr);
+    gap:4px;
+  }
+  .cal-day{
+    aspect-ratio:1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:10px;
     background:var(--surface);
     border:1px solid var(--brown);
-    border-radius:12px;
-    padding:10px 6px;
-    text-align:center;
+    font-size:13px;
+    font-weight:600;
     cursor:pointer;
-    flex-shrink:0;
   }
-  .date-chip .dow{font-size:10px; color:var(--muted); text-transform:uppercase;}
-  .date-chip .num{font-size:17px; font-weight:700; margin-top:2px;}
-  .date-chip.selected{background:var(--gold); border-color:var(--gold);}
-  .date-chip.selected .dow, .date-chip.selected .num{color:var(--black);}
+  .cal-day.empty{background:transparent; border-color:transparent; cursor:default;}
+  .cal-day.disabled{opacity:.25; cursor:default; pointer-events:none;}
+  .cal-day.selected{background:var(--gold); border-color:var(--gold); color:var(--black);}
 
   .time-grid{
     display:grid;
@@ -712,8 +740,13 @@
           <div class="step-dots"><span class="done"></span><span class="done"></span><span></span></div>
         </div>
         <div class="screen-body" style="padding-top:0;">
-          <p class="eyebrow" id="monthLabel" style="margin-bottom:10px;">—</p>
-          <div class="date-scroller" id="dateScroller"></div>
+          <div class="cal-nav">
+            <button class="cal-nav-btn" id="calPrev" onclick="calNav(-1)">‹</button>
+            <p class="eyebrow" id="monthLabel" style="margin:0;">—</p>
+            <button class="cal-nav-btn" id="calNext" onclick="calNav(1)">›</button>
+          </div>
+          <div class="cal-dow-row" id="calDowRow"></div>
+          <div class="cal-grid" id="calGrid"></div>
           <div class="gold-divider"></div>
           <p class="eyebrow" style="margin-bottom:10px;">Horários disponíveis</p>
           <div class="time-grid" id="timeGrid"></div>
@@ -983,34 +1016,62 @@
     document.getElementById('totalPrice').textContent = 'R$ ' + total;
   }
 
-  // ---- Calendar: build next available days dynamically ----
-  function buildDateScroller(){
-    const scroller = document.getElementById('dateScroller');
-    scroller.innerHTML = '';
-    const today = new Date();
-    today.setHours(0,0,0,0);
+  // ---- Calendar: month grid, limited to 30 days ahead ----
+  const LIMITE_DIAS = 30;
+  const CAL_TODAY = new Date();
+  CAL_TODAY.setHours(0,0,0,0);
+  const CAL_LIMITE = new Date(CAL_TODAY);
+  CAL_LIMITE.setDate(CAL_LIMITE.getDate() + LIMITE_DIAS);
+  let viewMonth = new Date(CAL_TODAY.getFullYear(), CAL_TODAY.getMonth(), 1);
 
-    const LIMITE_DIAS = 30;
-    const days = [];
-    let cursor = new Date(today);
-    let limite = new Date(today);
-    limite.setDate(limite.getDate() + LIMITE_DIAS);
-    while(cursor <= limite){
-      if(BUSINESS_HOURS[cursor.getDay()]){
-        days.push(new Date(cursor));
-      }
-      cursor.setDate(cursor.getDate() + 1);
+  function buildDateScroller(){
+    const dowRow = document.getElementById('calDowRow');
+    dowRow.innerHTML = ['D','S','T','Q','Q','S','S'].map(l => `<span>${l}</span>`).join('');
+
+    const grid = document.getElementById('calGrid');
+    grid.innerHTML = '';
+
+    const firstDow = viewMonth.getDay();
+    const daysInMonth = new Date(viewMonth.getFullYear(), viewMonth.getMonth()+1, 0).getDate();
+
+    for(let i=0; i<firstDow; i++){
+      grid.appendChild(Object.assign(document.createElement('div'), {className:'cal-day empty'}));
     }
 
-    days.forEach((d, idx) => {
-      const chip = document.createElement('div');
-      chip.className = 'date-chip' + (idx === 0 ? ' selected' : '');
-      chip.innerHTML = `<div class="dow">${DOW_LABELS[d.getDay()]}</div><div class="num">${String(d.getDate()).padStart(2,'0')}</div>`;
-      chip.onclick = () => selectDate(chip, d);
-      scroller.appendChild(chip);
-    });
+    let firstEnabled = null;
+    for(let dayNum=1; dayNum<=daysInMonth; dayNum++){
+      const d = new Date(viewMonth.getFullYear(), viewMonth.getMonth(), dayNum);
+      const cell = document.createElement('div');
+      cell.className = 'cal-day';
+      cell.textContent = String(dayNum).padStart(2,'0');
 
-    selectDate(scroller.children[0], days[0]);
+      const foraDoAlcance = d < CAL_TODAY || d > CAL_LIMITE;
+      const fechado = !BUSINESS_HOURS[d.getDay()];
+      if(foraDoAlcance || fechado){
+        cell.classList.add('disabled');
+      } else {
+        if(!firstEnabled) firstEnabled = {cell, date: d};
+        cell.onclick = () => selectDate(cell, d);
+      }
+      if(selectedDate && d.getTime() === selectedDate.getTime()){
+        cell.classList.add('selected');
+      }
+      grid.appendChild(cell);
+    }
+
+    updateMonthLabel(viewMonth);
+    document.getElementById('calPrev').disabled = viewMonth <= new Date(CAL_TODAY.getFullYear(), CAL_TODAY.getMonth(), 1);
+    const nextMonthStart = new Date(viewMonth.getFullYear(), viewMonth.getMonth()+1, 1);
+    document.getElementById('calNext').disabled = nextMonthStart > CAL_LIMITE;
+
+    if(!selectedDate && firstEnabled){
+      selectDate(firstEnabled.cell, firstEnabled.date);
+    }
+  }
+
+  function calNav(delta){
+    viewMonth = new Date(viewMonth.getFullYear(), viewMonth.getMonth()+delta, 1);
+    buildDateScroller();
   }
 
   function updateMonthLabel(d){
@@ -1018,10 +1079,9 @@
   }
 
   function selectDate(el, dateObj){
-    document.querySelectorAll('.date-chip').forEach(c => c.classList.remove('selected'));
+    document.querySelectorAll('.cal-day').forEach(c => c.classList.remove('selected'));
     el.classList.add('selected');
     selectedDate = dateObj;
-    updateMonthLabel(dateObj);
     buildTimeGrid(dateObj);
   }
 
