@@ -376,37 +376,47 @@
   .cal-day.disabled{opacity:.25; cursor:default; pointer-events:none;}
   .cal-day.selected{background:var(--gold); border-color:var(--gold); color:var(--black);}
 
-  .produtos-list{display:flex; flex-direction:column; gap:8px; margin-top:10px;}
+  .produtos-list{
+    display:flex;
+    gap:10px;
+    overflow-x:auto;
+    padding-bottom:6px;
+    margin-top:10px;
+  }
   .produto-row{
     display:flex;
+    flex-direction:column;
     align-items:center;
-    gap:10px;
+    gap:6px;
     background:var(--surface);
     border:1px solid var(--brown);
     border-radius:12px;
-    padding:8px;
+    padding:10px 8px;
+    min-width:92px;
+    flex-shrink:0;
+    text-align:center;
   }
   .produto-row img{
-    width:48px;height:48px;
+    width:56px;height:56px;
     border-radius:8px;
     object-fit:cover;
     flex-shrink:0;
     background:var(--surface-2);
   }
-  .produto-info{flex:1; min-width:0;}
-  .produto-info .nome{font-size:13px; font-weight:600;}
-  .produto-info .preco{font-size:12px; color:var(--gold);}
-  .produto-stepper{display:flex; align-items:center; gap:8px; flex-shrink:0;}
+  .produto-info{width:100%;}
+  .produto-info .nome{font-size:11px; font-weight:600; line-height:1.2; height:26px; overflow:hidden;}
+  .produto-info .preco{font-size:11px; color:var(--gold); margin-top:2px;}
+  .produto-stepper{display:flex; align-items:center; justify-content:center; gap:6px;}
   .produto-stepper button{
-    width:26px;height:26px;
-    border-radius:8px;
+    width:22px;height:22px;
+    border-radius:7px;
     border:1px solid var(--brown);
     background:var(--surface-2);
     color:var(--cream);
-    font-size:15px;
+    font-size:13px;
     cursor:pointer;
   }
-  .produto-stepper .qtd{min-width:14px; text-align:center; font-size:13px; font-weight:600;}
+  .produto-stepper .qtd{min-width:12px; text-align:center; font-size:12px; font-weight:600;}
   .produtos-subtotal{
     display:flex; justify-content:space-between;
     margin-top:10px; font-size:13px; color:var(--muted);
@@ -1225,7 +1235,7 @@
     const list = document.getElementById('produtosList');
     list.innerHTML = PRODUTOS_CACHE.map(p => `
       <div class="produto-row">
-        <img src="/produtos/${p.imagem_url}" alt="${p.nome}">
+        <img src="/produtos/${p.imagem_url}" alt="${p.nome}" onerror="this.style.opacity=0">
         <div class="produto-info">
           <div class="nome">${p.nome}</div>
           <div class="preco">R$ ${Number(p.preco).toFixed(2).replace('.', ',')}</div>
@@ -1265,117 +1275,4 @@
 
     document.getElementById('sumServico').textContent = names;
     document.getElementById('sumData').textContent = `${DOW_LABELS[selectedDate.getDay()]}, ${String(selectedDate.getDate()).padStart(2,'0')} de ${MONTH_LABELS[selectedDate.getMonth()].toLowerCase()}`;
-    document.getElementById('sumHorario').textContent = selectedTime;
-    document.getElementById('sumTotal').textContent = 'R$ ' + total;
-
-    document.getElementById('confirmError').style.display = 'none';
-    document.getElementById('whatsappFallback').style.display = 'none';
-
-    goTo('confirm');
-  }
-
-  function getBookingPayload(){
-    const nome = document.getElementById('inputNome').value.trim();
-    const telefone = document.getElementById('inputTelefone').value.trim();
-    const total = selectedServices.reduce((s, x) => s + x.price, 0);
-    const names = selectedServices.map(x => x.name).join(' + ');
-    const hasFullService = selectedServices.some(x => x.duration >= 60);
-    const duracaoMin = hasFullService ? 60 : 15;
-    const dia = String(selectedDate.getDate()).padStart(2,'0');
-    const mes = String(selectedDate.getMonth() + 1).padStart(2,'0');
-    const ano = selectedDate.getFullYear();
-
-    return {
-      nome, telefone,
-      servico: names,
-      data: `${dia}/${mes}/${ano}`,
-      horario: selectedTime,
-      duracao: duracaoMin === 15 ? '15 min' : '60 min',
-      preco: 'R$' + total,
-      produtos: PRODUTOS_CACHE.filter(p => p.quantidade > 0).map(p => ({ id: p.id, quantidade: p.quantidade }))
-    };
-  }
-
-  async function confirmarAgendamento(){
-    const payload = getBookingPayload();
-    const errorBox = document.getElementById('confirmError');
-    const whatsappLink = document.getElementById('whatsappFallback');
-    const btn = document.getElementById('btnConfirmar');
-
-    if(!payload.nome || !payload.telefone){
-      errorBox.textContent = 'Preencha seu nome e WhatsApp para confirmar.';
-      errorBox.style.display = 'block';
-      whatsappLink.style.display = 'none';
-      return;
-    }
-
-    errorBox.style.display = 'none';
-    whatsappLink.style.display = 'none';
-    btn.disabled = true;
-    btn.classList.add('loading');
-    btn.textContent = 'Confirmando...';
-
-    try {
-      const res = await fetch(API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      const data = await res.json();
-
-      if(!res.ok || !data.success){
-        throw new Error(data.error || 'Não foi possível confirmar o agendamento.');
-      }
-
-      document.getElementById('successMsg').textContent =
-        `${payload.nome}, seu horário de ${payload.servico} no dia ${payload.data} às ${payload.horario} foi reservado na agenda da Barbearia do Deeh.`;
-
-      goTo('success');
-
-    } catch (err) {
-      errorBox.textContent = 'Não conseguimos confirmar automaticamente. Tente novamente ou fale direto com o Deeh no WhatsApp.';
-      errorBox.style.display = 'block';
-
-      const msg = encodeURIComponent(
-        `Olá! Quero agendar: ${payload.servico}, dia ${payload.data} às ${payload.horario}. Nome: ${payload.nome}`
-      );
-      whatsappLink.href = `https://wa.me/${WHATSAPP_NUMBER}?text=${msg}`;
-      whatsappLink.style.display = 'flex';
-
-    } finally {
-      btn.disabled = false;
-      btn.classList.remove('loading');
-      btn.textContent = 'Confirmar agendamento';
-    }
-  }
-
-  function resetFlow(){
-    selectedServices = [];
-    selectedDate = null;
-    selectedTime = null;
-    document.querySelectorAll('.service-row.selected').forEach(r => r.classList.remove('selected'));
-    document.getElementById('totalPrice').textContent = 'R$ 0';
-    document.getElementById('inputNome').value = '';
-    document.getElementById('inputTelefone').value = '';
-    PRODUTOS_CACHE.forEach(p => p.quantidade = 0);
-    renderProdutosList();
-    goTo('home');
-  }
-
-  // ---- Init ----
-  buildDateScroller();
-  fetchProdutos();
-  goTo('home');
-
-  // ---- PWA: registra o service worker (permite instalar como app) ----
-  if('serviceWorker' in navigator){
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/service-worker.js').catch(err => {
-        console.error('Erro ao registrar service worker:', err);
-      });
-    });
-  }
-</script>
-
-</body>
-</html>
+    document.getElementById('sumHorario').textCo
