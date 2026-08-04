@@ -990,9 +990,12 @@
     const today = new Date();
     today.setHours(0,0,0,0);
 
+    const LIMITE_DIAS = 30;
     const days = [];
     let cursor = new Date(today);
-    while(days.length < 7){
+    let limite = new Date(today);
+    limite.setDate(limite.getDate() + LIMITE_DIAS);
+    while(cursor <= limite){
       if(BUSINESS_HOURS[cursor.getDay()]){
         days.push(new Date(cursor));
       }
