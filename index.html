@@ -423,6 +423,31 @@
   }
   .produtos-subtotal b{color:var(--gold);}
 
+  .produtos-grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:12px;
+  }
+  .produto-card-grid{
+    background:var(--surface);
+    border:1px solid var(--brown);
+    border-radius:14px;
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+  }
+  .produto-card-grid img{
+    width:100%;
+    aspect-ratio:1;
+    object-fit:cover;
+    display:block;
+    background:var(--surface-2);
+  }
+  .produto-card-grid .body{padding:10px;}
+  .produto-card-grid .nome{font-size:13px; font-weight:600; line-height:1.25; height:33px; overflow:hidden;}
+  .produto-card-grid .preco{font-size:13px; color:var(--gold); font-weight:700; margin-top:2px;}
+  .produto-card-grid .produto-stepper{margin-top:8px; justify-content:space-between;}
+
   .time-grid{
     display:grid;
     grid-template-columns:repeat(3,1fr);
@@ -725,6 +750,7 @@
           <button class="nav-item" data-target="home" onclick="goTo('home')"><span class="nav-icon">⌂</span>Início<span class="dot"></span></button>
           <button class="nav-item" data-target="services" onclick="goTo('services')"><span class="nav-icon">✂</span>Agendar<span class="dot"></span></button>
           <button class="nav-item" data-target="plans" onclick="goTo('plans')"><span class="nav-icon">◆</span>Planos<span class="dot"></span></button>
+          <button class="nav-item" data-target="produtos" onclick="goTo('produtos')"><span class="nav-icon">🛍</span>Produtos<span class="dot"></span></button>
           <button class="nav-item" data-target="profile" onclick="goTo('profile')"><span class="nav-icon">☺</span>Perfil<span class="dot"></span></button>
         </div>
       </div>
@@ -873,6 +899,18 @@
         </div>
       </div>
 
+      <!-- 6b. PRODUTOS (aba própria) -->
+      <div class="screen" id="screen-produtos">
+        <div class="step-header">
+          <button class="back-btn" onclick="goTo(currentMode)">←</button>
+          <h2 class="step-title">Produtos</h2>
+        </div>
+        <div class="screen-body" style="padding-top:0;">
+          <p class="hint" style="text-align:left; margin-bottom:12px;">Separe o que quiser e pague tudo junto, pessoalmente, no dia do seu atendimento.</p>
+          <div class="produtos-grid" id="produtosGrid"></div>
+        </div>
+      </div>
+
       <!-- 7. PERFIL -->
       <div class="screen" id="screen-profile">
         <div class="step-header">
@@ -910,6 +948,22 @@
               <div class="summary-row" style="cursor:pointer; border-bottom:none;">
                 <span class="label">📲 WhatsApp</span>
                 <span class="val" style="color:var(--gold);">(19) 99390-0880</span>
+              </div>
+            </a>
+          </div>
+          <div class="summary-card" style="margin-bottom:14px;">
+            <a href="https://instagram.com/davidlucasdias" target="_blank" rel="noopener" style="text-decoration:none;">
+              <div class="summary-row" style="cursor:pointer; border-bottom:none;">
+                <span class="label">📸 Instagram</span>
+                <span class="val" style="color:var(--gold);">@davidlucasdias</span>
+              </div>
+            </a>
+          </div>
+          <div class="summary-card" style="margin-bottom:14px;">
+            <a href="https://share.google/zfVJVDrPgBTdu0j6u" target="_blank" rel="noopener" style="text-decoration:none;">
+              <div class="summary-row" style="cursor:pointer; border-bottom:none;">
+                <span class="label">⭐ Avalie no Google</span>
+                <span class="val" style="color:var(--gold);">Deixar avaliação →</span>
               </div>
             </a>
           </div>
@@ -1232,10 +1286,30 @@
       if(data.success){
         PRODUTOS_CACHE = data.produtos.map(p => ({ ...p, quantidade: 0 }));
         renderProdutosList();
+        renderProdutosGrid();
       }
     } catch(err){
       console.error('Erro ao carregar produtos:', err);
     }
+  }
+
+  function renderProdutosGrid(){
+    const grid = document.getElementById('produtosGrid');
+    if(!grid) return;
+    grid.innerHTML = PRODUTOS_CACHE.map(p => `
+      <div class="produto-card-grid">
+        <img src="/produtos/${p.imagem_url}" alt="${p.nome}" onerror="this.style.opacity=0">
+        <div class="body">
+          <div class="nome">${p.nome}</div>
+          <div class="preco">R$ ${Number(p.preco).toFixed(2).replace('.', ',')}</div>
+          <div class="produto-stepper">
+            <button onclick="changeProdutoQtd(${p.id}, -1)">−</button>
+            <span class="qtd" id="qtdgrid-${p.id}">0</span>
+            <button onclick="changeProdutoQtd(${p.id}, 1)">+</button>
+          </div>
+        </div>
+      </div>
+    `).join('');
   }
 
   function renderProdutosList(){
@@ -1261,7 +1335,10 @@
     const produto = PRODUTOS_CACHE.find(p => p.id === id);
     if(!produto) return;
     produto.quantidade = Math.max(0, produto.quantidade + delta);
-    document.getElementById(`qtd-${id}`).textContent = produto.quantidade;
+    const spanList = document.getElementById(`qtd-${id}`);
+    const spanGrid = document.getElementById(`qtdgrid-${id}`);
+    if(spanList) spanList.textContent = produto.quantidade;
+    if(spanGrid) spanGrid.textContent = produto.quantidade;
     updateProdutosSubtotal();
   }
 
@@ -1379,6 +1456,7 @@
     document.getElementById('inputTelefone').value = '';
     PRODUTOS_CACHE.forEach(p => p.quantidade = 0);
     renderProdutosList();
+    renderProdutosGrid();
     goTo('home');
   }
 
