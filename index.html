@@ -1053,6 +1053,13 @@
     }
   }
 
+  function prefillFromStorage(){
+    const nomeSalvo = localStorage.getItem('deeh_nome');
+    const telefoneSalvo = localStorage.getItem('deeh_telefone');
+    if(nomeSalvo) document.getElementById('inputNome').value = nomeSalvo;
+    if(telefoneSalvo) document.getElementById('inputTelefone').value = telefoneSalvo;
+  }
+
   function toggleService(el){
     el.classList.toggle('selected');
     let total = 0;
@@ -1340,6 +1347,9 @@
       document.getElementById('successMsg').textContent =
         `${payload.nome}, seu horário de ${payload.servico} no dia ${payload.data} às ${payload.horario} foi reservado na agenda da Barbearia do Deeh.`;
 
+      localStorage.setItem('deeh_nome', payload.nome);
+      localStorage.setItem('deeh_telefone', payload.telefone);
+
       goTo('success');
 
     } catch (err) {
@@ -1375,6 +1385,7 @@
   // ---- Init ----
   buildDateScroller();
   fetchProdutos();
+  prefillFromStorage();
   goTo('home');
 
   // ---- PWA: registra o service worker (permite instalar como app) ----
