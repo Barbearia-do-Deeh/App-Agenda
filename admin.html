@@ -797,6 +797,10 @@
               <option value="barba">Barbas</option>
             </select>
           </div>
+          <div class="form-group">
+            <label class="form-label">Valor do pacote (opcional)</label>
+            <input type="number" id="novoClienteValorPacote" class="form-input" placeholder="Deixe em branco pra usar o valor padrão" min="0" step="0.01">
+          </div>
           <div id="novoClienteError" class="error-banner" style="display:none;"></div>
           <button class="cta-primary" onclick="salvarNovoCliente()">Cadastrar</button>
         </div>
@@ -828,6 +832,11 @@
               <option value="true">Disponível</option>
               <option value="false">Já usada</option>
             </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Valor do pacote (R$)</label>
+            <input type="number" id="editValorPacote" class="form-input" placeholder="Deixe em branco pra usar o valor padrão do plano" min="0" step="0.01">
+            <p class="hint" style="text-align:left; margin-top:6px;">Em branco = usa o valor padrão do plano (R$160/260/340). Preenchido = vale só pra esse cliente, útil pra pacotes antigos com valor diferente.</p>
           </div>
           <div id="editarClienteError" class="error-banner" style="display:none;"></div>
           <button class="cta-primary" onclick="salvarEdicaoCliente()">Salvar alterações</button>
@@ -1001,8 +1010,9 @@
         const saldo = c.plano && c.plano !== 'nenhum'
           ? `${c.cortes_restantes ?? 0} cortes · ${c.barbas_restantes ?? 0} barbas · ${c.pezinhos_restantes ?? 0} pezinhos`
           : 'Sem pacote ativo';
+        const valorLabel = c.valor_pacote ? ` · R$ ${parseFloat(c.valor_pacote).toFixed(2)}` : '';
         return `<div class="summary-card" style="margin-bottom:10px;cursor:pointer;" onclick="abrirEditarCliente(${c.id})">
-          <div class="summary-row"><span class="label" style="font-size:14px;color:var(--cream);font-weight:700;">${c.nome}</span><span class="val" style="color:var(--gold);">${plano}</span></div>
+          <div class="summary-row"><span class="label" style="font-size:14px;color:var(--cream);font-weight:700;">${c.nome}</span><span class="val" style="color:var(--gold);">${plano}${valorLabel}</span></div>
           <div class="summary-row" style="border-bottom:none;"><span class="label">${c.telefone} · ${saldo}</span></div>
         </div>`;
       }).join('');
@@ -1015,6 +1025,7 @@
     document.getElementById('novoClienteNome').value = '';
     document.getElementById('novoClienteTelefone').value = '';
     document.getElementById('novoClientePlano').value = 'nenhum';
+    document.getElementById('novoClienteValorPacote').value = '';
     document.getElementById('subtipoEssencialGroup').style.display = 'none';
     document.getElementById('novoClienteError').style.display = 'none';
     goTo('cliente-novo');
@@ -1025,6 +1036,8 @@
     const telefone = document.getElementById('novoClienteTelefone').value.trim().replace(/\D/g, '');
     const plano = document.getElementById('novoClientePlano').value;
     const subtipo_essencial = plano === 'essencial' ? document.getElementById('novoClienteSubtipo').value : null;
+    const valorPacoteRaw = document.getElementById('novoClienteValorPacote').value;
+    const valor_pacote = valorPacoteRaw === '' ? null : parseFloat(valorPacoteRaw);
     const errorBox = document.getElementById('novoClienteError');
 
     if(!nome || !telefone){
@@ -1037,7 +1050,7 @@
       const resp = await fetch(API_CLIENTES_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nome, telefone, plano, subtipo_essencial })
+        body: JSON.stringify({ nome, telefone, plano, subtipo_essencial, valor_pacote })
       });
       const data = await resp.json();
       if(!resp.ok || !data.success) throw new Error(data.error || 'Falha ao cadastrar');
@@ -1059,6 +1072,7 @@
     document.getElementById('editBarbas').value = c.barbas_restantes ?? 0;
     document.getElementById('editPezinhos').value = c.pezinhos_restantes ?? 0;
     document.getElementById('editSobrancelha').value = String(!!c.sobrancelha_restante);
+    document.getElementById('editValorPacote').value = c.valor_pacote ?? '';
     document.getElementById('editarClienteError').style.display = 'none';
     const planoLabel = document.getElementById('planoAtualLabel');
     planoLabel.textContent = c.plano && c.plano !== 'nenhum'
@@ -1072,12 +1086,14 @@
   async function salvarEdicaoCliente(){
     if(!clienteEditandoId) return;
     const errorBox = document.getElementById('editarClienteError');
+    const valorPacoteRaw = document.getElementById('editValorPacote').value;
     const payload = {
       id: clienteEditandoId,
       cortes_restantes: parseInt(document.getElementById('editCortes').value, 10) || 0,
       barbas_restantes: parseInt(document.getElementById('editBarbas').value, 10) || 0,
       pezinhos_restantes: parseInt(document.getElementById('editPezinhos').value, 10) || 0,
-      sobrancelha_restante: document.getElementById('editSobrancelha').value === 'true'
+      sobrancelha_restante: document.getElementById('editSobrancelha').value === 'true',
+      valor_pacote: valorPacoteRaw === '' ? null : parseFloat(valorPacoteRaw)
     };
     try{
       const resp = await fetch(API_CLIENTES_URL, {
