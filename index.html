@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>App Barbearia do Deeh</title>
+<title id="pageTitle">App Barbearia</title>
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#0f0e0d">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Deeh App">
+<meta name="apple-mobile-web-app-title" content="App" id="metaAppleTitle">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
 <style>
@@ -692,59 +692,21 @@
       <!-- 1. HOME -->
       <div class="screen active" id="screen-home">
         <div class="brand-header">
-          <img class="logo-img" src="logo-v2.png" alt="Logo Barbearia do Deeh">
+          <img class="logo-img" id="logoCliente" src="" alt="Logo">
           <div class="brand-text">
-            <p class="eyebrow">Indaiatuba · SP</p>
-            <h1>BARBEARIA <span>DO DEEH</span></h1>
-            <p>Seu horário garantido, sem complicação.</p>
+            <p class="eyebrow" id="negocioCidade">—</p>
+            <h1 id="negocioNomeH1">—</h1>
+            <p id="negocioSlogan"></p>
           </div>
         </div>
         <div class="screen-body" style="padding-top:0;">
           <button class="cta-primary" onclick="goTo('services')">Agendar horário</button>
           <div class="gold-divider"></div>
           <p class="eyebrow" style="margin-bottom:10px;">Serviços rápidos</p>
-          <div class="quick-grid">
-            <div class="quick-card" onclick="goTo('services')">
-              <div class="name">Corte</div>
-              <div class="price">R$ 50</div>
-            </div>
-            <div class="quick-card" onclick="goTo('services')">
-              <div class="name">Barba</div>
-              <div class="price">R$ 50</div>
-            </div>
-            <div class="quick-card" onclick="goTo('services')">
-              <div class="name">Corte + Barba</div>
-              <div class="price">R$ 95</div>
-            </div>
-            <div class="quick-card" onclick="goTo('services')">
-              <div class="name">Corte Kids</div>
-              <div class="price">R$ 45</div>
-            </div>
-          </div>
+          <div class="quick-grid" id="quickGrid"></div>
           <p class="eyebrow" style="margin-top:20px;margin-bottom:10px;">Planos mensais</p>
-          <div class="plans-carousel" id="plansCarousel" onscroll="syncPlanDots()">
-            <div class="plan-card" onclick="goTo('plans')">
-              <div class="plan-name">Essencial</div>
-              <div class="plan-price">R$ 160/mês</div>
-              <div class="plan-desc">4 cortes ou 4 barbas por mês. Toque para ver os planos.</div>
-            </div>
-            <div class="plan-card featured" onclick="goTo('plans')">
-              <span class="plan-badge">MAIS ESCOLHIDO</span>
-              <div class="plan-name">Clássico</div>
-              <div class="plan-price">R$ 260/mês</div>
-              <div class="plan-desc">4 barbas + 2 cortes + 2 pezinhos de brinde. Toque para ver os planos.</div>
-            </div>
-            <div class="plan-card" onclick="goTo('plans')">
-              <div class="plan-name">Empresário</div>
-              <div class="plan-price">R$ 340/mês</div>
-              <div class="plan-desc">4 cortes + 4 barbas + sobrancelha de brinde. Toque para ver os planos.</div>
-            </div>
-          </div>
-          <div class="plans-dots" id="plansDots">
-            <span class="dot-ind active"></span>
-            <span class="dot-ind"></span>
-            <span class="dot-ind"></span>
-          </div>
+          <div class="plans-carousel" id="plansCarousel" onscroll="syncPlanDots()"></div>
+          <div class="plans-dots" id="plansDots"></div>
         </div>
         <div class="bottom-nav">
           <button class="nav-item" data-target="home" onclick="goTo('home')"><span class="nav-icon">⌂</span>Início<span class="dot"></span></button>
@@ -763,41 +725,7 @@
           <div class="step-dots"><span class="done"></span><span></span><span></span></div>
         </div>
         <div class="screen-body" style="padding-top:0;">
-          <div class="service-row" data-price="50" data-name="Corte" data-duration="60" onclick="toggleService(this)">
-            <div class="service-row-left">
-              <div class="checkbox"></div>
-              <div class="info"><div class="name">Corte</div><div class="dur">60 min</div></div>
-            </div>
-            <div class="price">R$ 50</div>
-          </div>
-          <div class="service-row" data-price="50" data-name="Barba" data-duration="60" onclick="toggleService(this)">
-            <div class="service-row-left">
-              <div class="checkbox"></div>
-              <div class="info"><div class="name">Barba</div><div class="dur">60 min</div></div>
-            </div>
-            <div class="price">R$ 50</div>
-          </div>
-          <div class="service-row" data-price="15" data-name="Sobrancelha" data-duration="0" onclick="toggleService(this)">
-            <div class="service-row-left">
-              <div class="checkbox"></div>
-              <div class="info"><div class="name">Sobrancelha</div><div class="dur">complemento</div></div>
-            </div>
-            <div class="price">R$ 15</div>
-          </div>
-          <div class="service-row" data-price="15" data-name="Pezinho" data-duration="15" onclick="toggleService(this)">
-            <div class="service-row-left">
-              <div class="checkbox"></div>
-              <div class="info"><div class="name">Pezinho</div><div class="dur">15 min</div></div>
-            </div>
-            <div class="price">R$ 15</div>
-          </div>
-          <div class="service-row" data-price="45" data-name="Corte Kids" data-duration="60" onclick="toggleService(this)">
-            <div class="service-row-left">
-              <div class="checkbox"></div>
-              <div class="info"><div class="name">Corte Kids</div><div class="dur">60 min</div></div>
-            </div>
-            <div class="price">R$ 45</div>
-          </div>
+          <div id="servicosList"></div>
         </div>
         <div class="sticky-footer">
           <div class="total-line"><span>Total</span><b id="totalPrice">R$ 0</b></div>
@@ -823,7 +751,7 @@
           <div class="gold-divider"></div>
           <p class="eyebrow" style="margin-bottom:10px;">Horários disponíveis</p>
           <div class="time-grid" id="timeGrid"></div>
-          <p class="hint" style="margin-top:12px; text-align:left; font-size:11px;">Horários sujeitos a disponibilidade — o Deeh confirma na hora.</p>
+          <p class="hint" style="margin-top:12px; text-align:left; font-size:11px;" id="hintHorarios">Horários sujeitos a disponibilidade — a confirmação é na hora.</p>
         </div>
         <div class="sticky-footer">
           <button class="cta-primary" id="btnToConfirm" onclick="goToConfirm()" disabled>Continuar</button>
@@ -850,7 +778,7 @@
             <div class="summary-row"><span class="label">Serviço</span><span class="val" id="sumServico">—</span></div>
             <div class="summary-row"><span class="label">Data</span><span class="val" id="sumData">—</span></div>
             <div class="summary-row"><span class="label">Horário</span><span class="val" id="sumHorario">—</span></div>
-            <div class="summary-row"><span class="label">Local</span><span class="val">Jd. Morada do Sol</span></div>
+            <div class="summary-row"><span class="label">Local</span><span class="val" id="sumLocal">—</span></div>
             <div class="summary-row"><span class="label">Total</span><span class="val" id="sumTotal" style="color:var(--gold); font-size:16px;">R$ 0</span></div>
           </div>
           <p class="eyebrow" style="margin-top:18px; margin-bottom:6px;">Quer levar algum produto?</p>
@@ -862,7 +790,7 @@
           <div id="confirmError" class="error-banner" style="display:none;"></div>
           <button class="cta-primary" id="btnConfirmar" style="margin-top:18px;" onclick="confirmarAgendamento()">Confirmar agendamento</button>
           <a id="whatsappFallback" class="whatsapp-btn" style="display:none; text-decoration:none;" target="_blank">📲 Confirmar via WhatsApp</a>
-          <p class="hint" style="margin-top:14px; text-align:left;">Ao confirmar, seu horário é reservado direto na agenda do Deeh.</p>
+          <p class="hint" style="margin-top:14px; text-align:left;">Ao confirmar, seu horário é reservado direto na agenda.</p>
         </div>
       </div>
 
@@ -871,7 +799,7 @@
         <div class="screen-body success-box">
           <div class="success-icon">✓</div>
           <h2>Agendamento confirmado!</h2>
-          <p id="successMsg">Seu horário foi reservado na agenda da Barbearia do Deeh.</p>
+          <p id="successMsg">Seu horário foi reservado na agenda.</p>
           <button class="cta-primary" style="margin-top:26px;" onclick="resetFlow()">Voltar ao início</button>
         </div>
       </div>
@@ -883,18 +811,7 @@
           <h2 class="step-title">Planos mensais</h2>
         </div>
         <div class="screen-body" style="padding-top:0;">
-          <div class="summary-card" style="margin-bottom:14px;">
-            <div class="summary-row"><span class="label" style="font-size:15px;color:var(--cream);font-weight:700;">Essencial</span><span class="val" style="color:var(--gold);">R$ 160/mês</span></div>
-            <div class="summary-row"><span class="label">4 cortes ou 4 barbas por mês</span></div>
-          </div>
-          <div class="summary-card" style="margin-bottom:14px;">
-            <div class="summary-row"><span class="label" style="font-size:15px;color:var(--cream);font-weight:700;">Clássico</span><span class="val" style="color:var(--gold);">R$ 260/mês</span></div>
-            <div class="summary-row"><span class="label">4 barbas + 2 cortes + 2 pezinhos de brinde</span></div>
-          </div>
-          <div class="summary-card" style="margin-bottom:14px;">
-            <div class="summary-row"><span class="label" style="font-size:15px;color:var(--cream);font-weight:700;">Empresário</span><span class="val" style="color:var(--gold);">R$ 340/mês</span></div>
-            <div class="summary-row"><span class="label">4 cortes + 4 barbas + sobrancelha de brinde</span></div>
-          </div>
+          <div id="planosLista"></div>
           <button class="whatsapp-btn" onclick="assinarPlano()">📲 Assinar via WhatsApp</button>
         </div>
       </div>
@@ -934,52 +851,14 @@
 
           <div class="gold-divider"></div>
           <p class="eyebrow" style="margin-bottom:10px;">Contato</p>
-          <div class="summary-card" style="margin-bottom:14px;">
-            <a href="https://www.google.com/maps/search/?api=1&query=Rua+Seraphin+Gilberto+Candelo%2C+2063+-+Jd.+Morada+do+Sol%2C+Indaiatuba+-+SP" target="_blank" rel="noopener" style="text-decoration:none;">
-              <div class="summary-row" style="cursor:pointer;">
-                <span class="label">📍 Endereço</span>
-                <span class="val" style="color:var(--gold);">Ver no mapa →</span>
-              </div>
-            </a>
-            <p class="hint" style="text-align:left; margin:6px 0 0; padding:0;">Rua Seraphin Gilberto Candelo, 2063 — Jd. Morada do Sol, Indaiatuba/SP</p>
-          </div>
-          <div class="summary-card" style="margin-bottom:14px;">
-            <a href="https://wa.me/5519993900880" target="_blank" rel="noopener" style="text-decoration:none;">
-              <div class="summary-row" style="cursor:pointer; border-bottom:none;">
-                <span class="label">📲 WhatsApp</span>
-                <span class="val" style="color:var(--gold);">(19) 99390-0880</span>
-              </div>
-            </a>
-          </div>
-          <div class="summary-card" style="margin-bottom:14px;">
-            <a href="https://instagram.com/barbeariadodeeh" target="_blank" rel="noopener" style="text-decoration:none;">
-              <div class="summary-row" style="cursor:pointer;">
-                <span class="label">📸 Instagram</span>
-                <span class="val" style="color:var(--gold);">@barbeariadodeeh</span>
-              </div>
-            </a>
-            <a href="https://instagram.com/davidlucasdias" target="_blank" rel="noopener" style="text-decoration:none;">
-              <div class="summary-row" style="cursor:pointer; border-bottom:none;">
-                <span class="label">👤 Pessoal</span>
-                <span class="val" style="color:var(--gold);">@davidlucasdias</span>
-              </div>
-            </a>
-          </div>
-          <div class="summary-card" style="margin-bottom:14px;">
-            <a href="https://share.google/zfVJVDrPgBTdu0j6u" target="_blank" rel="noopener" style="text-decoration:none;">
-              <div class="summary-row" style="cursor:pointer; border-bottom:none;">
-                <span class="label">⭐ Avalie no Google</span>
-                <span class="val" style="color:var(--gold);">Deixar avaliação →</span>
-              </div>
-            </a>
-          </div>
+          <div id="contatoCards"></div>
 
           <div class="gold-divider"></div>
           <p class="eyebrow" style="margin-bottom:10px;">Pagamentos</p>
           <div class="summary-card" style="margin-bottom:14px;">
             <div class="summary-row" style="border-bottom:none;">
               <span class="label">Chave Pix (telefone)</span>
-              <span class="val" id="pixKeyVal" style="color:var(--gold);">(19) 99390-0880</span>
+              <span class="val" id="pixKeyVal" style="color:var(--gold);">—</span>
             </div>
           </div>
           <button class="cta-primary" style="background:var(--surface); color:var(--gold); border:1px solid var(--gold);" onclick="copiarPix()">📋 Copiar chave Pix</button>
@@ -989,23 +868,17 @@
     </div>
   </div>
 
-  <p class="hint">Barbearia do Deeh — agende seu horário em segundos.</p>
+  <p class="hint" id="rodapeHint">Agende seu horário em segundos.</p>
 
+<script src="config-negocio.js"></script>
 <script>
-  // ====== CONFIG ======
-  const API_URL = 'https://backend-v2-five-topaz.vercel.app/api/agendar';
-  const API_DISPONIBILIDADE_URL = 'https://backend-v2-five-topaz.vercel.app/api/disponibilidade';
-  const API_ATENDIMENTOS_URL = 'https://backend-v2-five-topaz.vercel.app/api/atendimentos';
-  const WHATSAPP_NUMBER = '5519993900880';
-
-  // Horário de funcionamento: 0=Dom ... 6=Sáb
-  const BUSINESS_HOURS = {
-    2: { open: 9, close: 19 }, // Terça
-    3: { open: 9, close: 19 }, // Quarta
-    4: { open: 9, close: 19 }, // Quinta
-    5: { open: 9, close: 19 }, // Sexta
-    6: { open: 8, close: 17 }, // Sábado
-  };
+  // ====== CONFIG (derivado de config-negocio.js) ======
+  const API_URL = `${NEGOCIO.apiBase}/agendar`;
+  const API_DISPONIBILIDADE_URL = `${NEGOCIO.apiBase}/disponibilidade`;
+  const API_ATENDIMENTOS_URL = `${NEGOCIO.apiBase}/atendimentos`;
+  const API_CLIENTES_URL = `${NEGOCIO.apiBase}/clientes`;
+  const WHATSAPP_NUMBER = NEGOCIO.whatsapp;
+  const BUSINESS_HOURS = NEGOCIO.horarioFuncionamento;
 
   const DOW_LABELS = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
   const MONTH_LABELS = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
@@ -1016,6 +889,96 @@
   let selectedTime = null;   // "HH:MM"
 
   let currentMode = 'home';
+
+  // ====== Hidratação com dados do NEGOCIO ======
+  function hidratarNegocio(){
+    document.getElementById('logoCliente').src = NEGOCIO.logoCliente;
+    document.getElementById('negocioCidade').textContent = NEGOCIO.cidade;
+    document.getElementById('negocioNomeH1').innerHTML = `${NEGOCIO.nomePrefixo} <span>${NEGOCIO.nomeDestaque}</span>`;
+    document.getElementById('negocioSlogan').textContent = NEGOCIO.slogan;
+    document.getElementById('rodapeHint').textContent = `${NEGOCIO.nome} — agende seu horário em segundos.`;
+    document.getElementById('pageTitle').textContent = 'App ' + NEGOCIO.nome;
+    document.getElementById('metaAppleTitle').setAttribute('content', NEGOCIO.nome);
+    document.getElementById('sumLocal').textContent = NEGOCIO.enderecoResumo;
+    document.title = 'App ' + NEGOCIO.nome;
+
+    document.getElementById('quickGrid').innerHTML = NEGOCIO.servicosRapidosHome.map(s => `
+      <div class="quick-card" onclick="goTo('services')">
+        <div class="name">${s.name}</div>
+        <div class="price">R$ ${s.price}</div>
+      </div>
+    `).join('');
+
+    document.getElementById('plansCarousel').innerHTML = NEGOCIO.planos.map(p => `
+      <div class="plan-card${p.destaque ? ' featured' : ''}" onclick="goTo('plans')">
+        ${p.badge ? `<span class="plan-badge">${p.badge}</span>` : ''}
+        <div class="plan-name">${p.nome}</div>
+        <div class="plan-price">R$ ${p.preco}/mês</div>
+        <div class="plan-desc">${p.descricao} Toque para ver os planos.</div>
+      </div>
+    `).join('');
+    document.getElementById('plansDots').innerHTML = NEGOCIO.planos.map((_, i) =>
+      `<span class="dot-ind${i === 0 ? ' active' : ''}"></span>`).join('');
+
+    document.getElementById('servicosList').innerHTML = NEGOCIO.servicos.map(s => `
+      <div class="service-row" data-price="${s.price}" data-name="${s.name}" data-duration="${s.duration}" onclick="toggleService(this)">
+        <div class="service-row-left">
+          <div class="checkbox"></div>
+          <div class="info"><div class="name">${s.name}</div><div class="dur">${s.duration === 0 ? 'complemento' : s.duration + ' min'}</div></div>
+        </div>
+        <div class="price">R$ ${s.price}</div>
+      </div>
+    `).join('');
+
+    document.getElementById('planosLista').innerHTML = NEGOCIO.planos.map(p => `
+      <div class="summary-card" style="margin-bottom:14px;">
+        <div class="summary-row"><span class="label" style="font-size:15px;color:var(--cream);font-weight:700;">${p.nome}</span><span class="val" style="color:var(--gold);">R$ ${p.preco}/mês</span></div>
+        <div class="summary-row"><span class="label">${p.descricao}</span></div>
+      </div>
+    `).join('');
+
+    const enderecoCard = `
+      <div class="summary-card" style="margin-bottom:14px;">
+        <a href="https://www.google.com/maps/search/?api=1&query=${NEGOCIO.enderecoMapsQuery}" target="_blank" rel="noopener" style="text-decoration:none;">
+          <div class="summary-row" style="cursor:pointer;">
+            <span class="label">📍 Endereço</span>
+            <span class="val" style="color:var(--gold);">Ver no mapa →</span>
+          </div>
+        </a>
+        <p class="hint" style="text-align:left; margin:6px 0 0; padding:0;">${NEGOCIO.enderecoCompleto}</p>
+      </div>`;
+    const whatsappCard = `
+      <div class="summary-card" style="margin-bottom:14px;">
+        <a href="https://wa.me/${NEGOCIO.whatsapp}" target="_blank" rel="noopener" style="text-decoration:none;">
+          <div class="summary-row" style="cursor:pointer; border-bottom:none;">
+            <span class="label">📲 WhatsApp</span>
+            <span class="val" style="color:var(--gold);">${NEGOCIO.whatsappDisplay}</span>
+          </div>
+        </a>
+      </div>`;
+    const instagramCard = `
+      <div class="summary-card" style="margin-bottom:14px;">
+        ${NEGOCIO.instagram.map((ig, i) => `
+        <a href="${ig.url}" target="_blank" rel="noopener" style="text-decoration:none;">
+          <div class="summary-row" style="cursor:pointer;${i === NEGOCIO.instagram.length - 1 ? ' border-bottom:none;' : ''}">
+            <span class="label">${i === 0 ? '📸' : '👤'} ${ig.label}</span>
+            <span class="val" style="color:var(--gold);">${ig.handle}</span>
+          </div>
+        </a>`).join('')}
+      </div>`;
+    const googleReviewCard = NEGOCIO.googleReviewUrl ? `
+      <div class="summary-card" style="margin-bottom:14px;">
+        <a href="${NEGOCIO.googleReviewUrl}" target="_blank" rel="noopener" style="text-decoration:none;">
+          <div class="summary-row" style="cursor:pointer; border-bottom:none;">
+            <span class="label">⭐ Avalie no Google</span>
+            <span class="val" style="color:var(--gold);">Deixar avaliação →</span>
+          </div>
+        </a>
+      </div>` : '';
+    document.getElementById('contatoCards').innerHTML = enderecoCard + whatsappCard + instagramCard + googleReviewCard;
+
+    document.getElementById('pixKeyVal').textContent = NEGOCIO.pixKeyDisplay;
+  }
 
   function goTo(id){
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -1035,7 +998,7 @@
   }
 
   function copiarPix(){
-    const chave = '19993900880';
+    const chave = NEGOCIO.pixKey;
     navigator.clipboard.writeText(chave).then(()=>{
       alert('Chave Pix copiada!');
     }).catch(()=>{
@@ -1044,11 +1007,11 @@
   }
 
   function assinarPlano(){
-    const msg = encodeURIComponent('Olá! Quero assinar um plano mensal da Barbearia do Deeh.');
+    const msg = encodeURIComponent(`Olá! Quero assinar um plano mensal da ${NEGOCIO.nome}.`);
     window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${msg}`, '_blank');
   }
 
-  function salvarPerfil(){
+  async function salvarPerfil(){
     const nome = document.getElementById('profileNome').value.trim();
     const telefone = document.getElementById('profileTelefone').value.trim();
     if(nome) document.getElementById('inputNome').value = nome;
@@ -1058,6 +1021,19 @@
       localStorage.setItem('deeh_telefone', telefone);
       carregarHistorico(telefone);
     }
+
+    if(nome && telefone){
+      try{
+        await fetch(API_CLIENTES_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ nome, telefone: telefone.replace(/\D/g, ''), plano: 'nenhum' })
+        });
+      }catch(err){
+        console.error('Erro ao salvar cliente no perfil:', err);
+      }
+    }
+
     alert('Perfil salvo!');
   }
 
@@ -1428,7 +1404,7 @@
       }
 
       document.getElementById('successMsg').textContent =
-        `${payload.nome}, seu horário de ${payload.servico} no dia ${payload.data} às ${payload.horario} foi reservado na agenda da Barbearia do Deeh.`;
+        `${payload.nome}, seu horário de ${payload.servico} no dia ${payload.data} às ${payload.horario} foi reservado na agenda da ${NEGOCIO.nome}.`;
 
       localStorage.setItem('deeh_nome', payload.nome);
       localStorage.setItem('deeh_telefone', payload.telefone);
@@ -1436,7 +1412,7 @@
       goTo('success');
 
     } catch (err) {
-      errorBox.textContent = 'Não conseguimos confirmar automaticamente. Tente novamente ou fale direto com o Deeh no WhatsApp.';
+      errorBox.textContent = 'Não conseguimos confirmar automaticamente. Tente novamente ou fale direto no WhatsApp.';
       errorBox.style.display = 'block';
 
       const msg = encodeURIComponent(
@@ -1467,6 +1443,7 @@
   }
 
   // ---- Init ----
+  hidratarNegocio();
   buildDateScroller();
   fetchProdutos();
   prefillFromStorage();
