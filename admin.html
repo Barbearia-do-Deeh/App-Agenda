@@ -1105,10 +1105,12 @@
         body: JSON.stringify(payload)
       });
       const data = await resp.json();
-      if(!resp.ok || !data.success) throw new Error(data.error || 'Falha ao salvar');
+      if(!resp.ok || !data.success) throw new Error(data.details || data.error || 'Falha ao salvar');
       goTo('clientes');
     }catch(err){
-      errorBox.textContent = 'Erro ao salvar alterações. Tente novamente.';
+      // DEBUG TEMPORÁRIO: mostra o erro real do servidor (Postgres) pra diagnosticar.
+      // Depois de identificar e corrigir a causa, pode voltar essa linha pro texto genérico.
+      errorBox.textContent = 'Erro ao salvar alterações: ' + err.message;
       errorBox.style.display = 'block';
     }
   }
