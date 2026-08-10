@@ -813,6 +813,24 @@
           <h2 class="step-title" id="editarClienteNome">Cliente</h2>
         </div>
         <div class="screen-body" style="padding-top:0;">
+          <p class="eyebrow" style="margin-bottom:10px;">Plano do cliente</p>
+          <div class="form-group">
+            <label class="form-label">Plano</label>
+            <select id="editPlano" class="form-input">
+              <option value="nenhum">Sem plano</option>
+              <option value="essencial">Essencial</option>
+              <option value="classico">Clássico</option>
+              <option value="empresario">Empresário</option>
+            </select>
+          </div>
+          <div class="form-group" id="editSubtipoEssencialGroup" style="display:none;">
+            <label class="form-label">Essencial — tipo</label>
+            <select id="editSubtipoEssencial" class="form-input">
+              <option value="corte">Cortes</option>
+              <option value="barba">Barbas</option>
+            </select>
+          </div>
+
           <p class="eyebrow" style="margin-bottom:10px;">Saldo do pacote</p>
           <div class="form-group">
             <label class="form-label">Cortes restantes</label>
@@ -994,6 +1012,10 @@
       document.getElementById('subtipoEssencialGroup').style.display =
         e.target.value === 'essencial' ? '' : 'none';
     }
+    if(e.target && e.target.id === 'editPlano'){
+      document.getElementById('editSubtipoEssencialGroup').style.display =
+        e.target.value === 'essencial' ? '' : 'none';
+    }
   });
 
   async function carregarClientes(){
@@ -1071,6 +1093,9 @@
     if(!c) return;
     clienteEditandoId = id;
     document.getElementById('editarClienteNome').textContent = c.nome;
+    document.getElementById('editPlano').value = c.plano || 'nenhum';
+    document.getElementById('editSubtipoEssencialGroup').style.display = c.plano === 'essencial' ? '' : 'none';
+    document.getElementById('editSubtipoEssencial').value = c.subtipo_essencial || 'corte';
     document.getElementById('editCortes').value = c.cortes_restantes ?? 0;
     document.getElementById('editBarbas').value = c.barbas_restantes ?? 0;
     document.getElementById('editPezinhos').value = c.pezinhos_restantes ?? 0;
@@ -1079,7 +1104,7 @@
     document.getElementById('editarClienteError').style.display = 'none';
     const planoLabel = document.getElementById('planoAtualLabel');
     planoLabel.textContent = c.plano && c.plano !== 'nenhum'
-      ? `Plano atual: ${PLANO_LABELS[c.plano] || c.plano}`
+      ? `Plano salvo: ${PLANO_LABELS[c.plano] || c.plano}`
       : 'Cliente sem plano ativo.';
     document.getElementById('pagamentoPlanoError').style.display = 'none';
     document.getElementById('pagamentoPlanoSucesso').style.display = 'none';
@@ -1090,8 +1115,11 @@
     if(!clienteEditandoId) return;
     const errorBox = document.getElementById('editarClienteError');
     const valorPacoteRaw = document.getElementById('editValorPacote').value;
+    const planoSelecionado = document.getElementById('editPlano').value;
     const payload = {
       id: clienteEditandoId,
+      plano: planoSelecionado,
+      subtipo_essencial: planoSelecionado === 'essencial' ? document.getElementById('editSubtipoEssencial').value : null,
       cortes_restantes: parseInt(document.getElementById('editCortes').value, 10) || 0,
       barbas_restantes: parseInt(document.getElementById('editBarbas').value, 10) || 0,
       pezinhos_restantes: parseInt(document.getElementById('editPezinhos').value, 10) || 0,
