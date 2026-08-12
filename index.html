@@ -1015,7 +1015,9 @@
   const API_URL = 'https://backend-v2-five-topaz.vercel.app/api/agendar';
   const API_DISPONIBILIDADE_URL = 'https://backend-v2-five-topaz.vercel.app/api/disponibilidade';
   const API_ATENDIMENTOS_URL = 'https://backend-v2-five-topaz.vercel.app/api/atendimentos';
+  const API_PUSH_SUBSCRIBE_URL = 'https://backend-v2-five-topaz.vercel.app/api/push-subscribe';
   const WHATSAPP_NUMBER = '5519993900880';
+  const VAPID_PUBLIC_KEY = 'BMrLQ-xHvALzu301ihaunGo5vGJ6FYKaJzx7B-RqVbU7FAO4eEHu3MIQ7mDqQPWc7CwUSrfi49nBG7ahp2mlrZU';
 
   // Horário de funcionamento: 0=Dom ... 6=Sáb
   const BUSINESS_HOURS = {
@@ -1077,8 +1079,44 @@
       localStorage.setItem('deeh_telefone', telefone);
       carregarHistorico(telefone);
       carregarAgendamentosFuturos(telefone);
+      inscreverPushCliente(telefone, true);
     }
     alert('Perfil salvo!');
+  }
+
+  // ---- Push notifications: inscrição do cliente (avisos, pacotes, reajustes etc.) ----
+  function urlBase64ToUint8Array(base64String){
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+    const rawData = atob(base64);
+    return Uint8Array.from([...rawData].map(c => c.charCodeAt(0)));
+  }
+
+  async function inscreverPushCliente(telefone, pedirPermissao){
+    if(!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+    const telefoneLimpo = (telefone || '').replace(/\D/g, '');
+    if(!telefoneLimpo) return;
+    try{
+      const registration = await navigator.serviceWorker.ready;
+      let subscription = await registration.pushManager.getSubscription();
+      if(!subscription){
+        // Sem pedirPermissao explícito, só re-inscreve se o navegador já tiver permissão concedida antes
+        if(!pedirPermissao && Notification.permission !== 'granted') return;
+        const permissao = await Notification.requestPermission();
+        if(permissao !== 'granted') return;
+        subscription = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+        });
+      }
+      await fetch(API_PUSH_SUBSCRIBE_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ telefone: telefoneLimpo, subscription })
+      });
+    }catch(err){
+      console.error('Erro ao inscrever push do cliente:', err);
+    }
   }
 
   async function carregarAgendamentosFuturos(telefone){
@@ -1539,7 +1577,10 @@
   // ---- PWA: registra o service worker (permite instalar como app) ----
   if('serviceWorker' in navigator){
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/service-worker.js').catch(err => {
+      navigator.serviceWorker.register('/service-worker.js').then(() => {
+        const telefoneSalvo = localStorage.getItem('deeh_telefone');
+        if(telefoneSalvo) inscreverPushCliente(telefoneSalvo, false);
+      }).catch(err => {
         console.error('Erro ao registrar service worker:', err);
       });
     });
