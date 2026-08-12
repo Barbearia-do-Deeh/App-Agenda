@@ -1016,6 +1016,7 @@
   const API_DISPONIBILIDADE_URL = 'https://backend-v2-five-topaz.vercel.app/api/disponibilidade';
   const API_ATENDIMENTOS_URL = 'https://backend-v2-five-topaz.vercel.app/api/atendimentos';
   const API_PUSH_SUBSCRIBE_URL = 'https://backend-v2-five-topaz.vercel.app/api/push-subscribe';
+  const API_CLIENTES_URL = 'https://backend-v2-five-topaz.vercel.app/api/clientes';
   const WHATSAPP_NUMBER = '5519993900880';
   const VAPID_PUBLIC_KEY = 'BMrLQ-xHvALzu301ihaunGo5vGJ6FYKaJzx7B-RqVbU7FAO4eEHu3MIQ7mDqQPWc7CwUSrfi49nBG7ahp2mlrZU';
 
@@ -1081,7 +1082,23 @@
       carregarAgendamentosFuturos(telefone);
       inscreverPushCliente(telefone, true);
     }
+    if(nome && telefone) salvarClienteNoBanco(nome, telefone);
     alert('Perfil salvo!');
+  }
+
+  // Cria/atualiza o registro do cliente no banco ao salvar o Perfil.
+  // Best-effort: se falhar, não trava o "Perfil salvo!" (dado já está no localStorage).
+  // Em conflito de telefone, api/clientes.js só atualiza o nome — nunca mexe em plano/saldo existente.
+  async function salvarClienteNoBanco(nome, telefone){
+    try{
+      await fetch(API_CLIENTES_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nome, telefone: telefone.replace(/\D/g, '') })
+      });
+    }catch(err){
+      console.error('Erro ao salvar cliente no banco:', err);
+    }
   }
 
   // ---- Push notifications: inscrição do cliente (avisos, pacotes, reajustes etc.) ----
