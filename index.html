@@ -1390,7 +1390,10 @@
     }
 
     if(!grid.children.length){
-      grid.innerHTML = '<div style="color:var(--muted);font-size:12px;padding:8px 0;">Nenhum horário disponível neste dia.</div>';
+      grid.innerHTML = `
+        <div style="color:var(--muted);font-size:12px;padding:8px 0;">Nenhum horário disponível neste dia.</div>
+        <button class="cta-primary" style="margin-top:8px; background:var(--surface); color:var(--gold); border:1px solid var(--gold);" onclick="entrarNaFilaEspera('${dataStr}')">🔔 Avisar se abrir vaga nesse dia</button>
+      `;
     }
   }
 
@@ -1399,6 +1402,37 @@
     el.classList.add('selected');
     selectedTime = label;
     document.getElementById('btnToConfirm').disabled = false;
+  }
+
+  // ---- Fila de espera: cliente pede aviso se abrir vaga num dia lotado ----
+  async function entrarNaFilaEspera(dataStr){
+    let nome = localStorage.getItem('deeh_nome');
+    let telefone = localStorage.getItem('deeh_telefone');
+
+    if(!nome){
+      nome = prompt('Seu nome:');
+      if(!nome) return;
+    }
+    if(!telefone){
+      telefone = prompt('Seu WhatsApp:');
+      if(!telefone) return;
+    }
+
+    const servico = selectedServices.map(s => s.name).join(' + ') || null;
+
+    try{
+      const resp = await fetch(`${API_URL}?tipo=fila-espera`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nome, telefone, data: dataStr, servico })
+      });
+      const data = await resp.json();
+      if(!resp.ok || !data.success) throw new Error(data.error || 'Falha ao entrar na fila');
+      inscreverPushCliente(telefone, true);
+      alert(`Combinado! Se abrir vaga no dia ${dataStr}, te avisamos por notificação.`);
+    }catch(err){
+      alert('Não conseguimos te colocar na fila agora. Tente novamente ou fale com o Deeh no WhatsApp.');
+    }
   }
 
   // ---- Produtos (comanda opcional) ----
