@@ -727,6 +727,7 @@
           <button class="nav-item" data-target="dashboard" onclick="goTo('dashboard')"><span class="nav-icon">⌂</span>Painel<span class="dot"></span></button>
           <button class="nav-item" data-target="clientes" onclick="goTo('clientes')"><span class="nav-icon">👤</span>Clientes<span class="dot"></span></button>
           <button class="nav-item" data-target="financeiro" onclick="goTo('financeiro')"><span class="nav-icon">💰</span>Financeiro<span class="dot"></span></button>
+          <button class="nav-item" data-target="notificacoes" onclick="goTo('notificacoes')"><span class="nav-icon">🔔</span>Avisos<span class="dot"></span></button>
           <button class="nav-item" data-target="profile" onclick="goTo('profile')"><span class="nav-icon">☺</span>Perfil<span class="dot"></span></button>
         </div>
       </div>
@@ -933,6 +934,56 @@
         </div>
       </div>
 
+      <!-- 10. NOTIFICAÇÕES (admin) -->
+      <div class="screen" id="screen-notificacoes">
+        <div class="step-header">
+          <h2 class="step-title">Notificações</h2>
+        </div>
+        <div class="screen-body" style="padding-top:0;">
+          <p class="eyebrow" style="margin-bottom:10px;">Enviar para</p>
+          <div class="form-group">
+            <select id="notifFiltro" class="form-input">
+              <option value="todos">Todos os clientes inscritos</option>
+              <option value="plano">Clientes de um plano específico</option>
+              <option value="manual">Selecionar manualmente</option>
+            </select>
+          </div>
+
+          <div class="form-group" id="notifPlanoGroup" style="display:none;">
+            <label class="form-label">Plano</label>
+            <select id="notifPlano" class="form-input">
+              <option value="essencial">Essencial</option>
+              <option value="classico">Clássico</option>
+              <option value="empresario">Empresário</option>
+            </select>
+          </div>
+
+          <div id="notifManualGroup" style="display:none;">
+            <label class="form-label">Clientes</label>
+            <div id="notifClientesLista" style="max-height:240px; overflow-y:auto; margin:8px 0 6px;">
+              <p class="hint" style="text-align:left;">Carregando clientes...</p>
+            </div>
+          </div>
+
+          <div class="gold-divider"></div>
+
+          <div class="form-group">
+            <label class="form-label">Título</label>
+            <input type="text" id="notifTitulo" class="form-input" placeholder="Barbearia do Deeh" value="Barbearia do Deeh">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Mensagem</label>
+            <textarea id="notifMensagem" class="form-input" rows="4" placeholder="Escreva o aviso aqui..." style="resize:vertical;"></textarea>
+          </div>
+
+          <p class="hint" style="text-align:left; margin-bottom:14px;">Só chega pra quem já autorizou notificações no app. No iPhone, só recebe quem instalou o app na tela de início.</p>
+
+          <div id="notifError" class="error-banner" style="display:none;"></div>
+          <div id="notifSucesso" class="hint" style="display:none;text-align:left;color:var(--gold);"></div>
+          <button class="cta-primary" id="btnEnviarNotif" onclick="enviarNotificacao()">📢 Enviar notificação</button>
+        </div>
+      </div>
+
       <!-- 7. PERFIL -->
       <div class="screen" id="screen-profile">
         <div class="step-header">
@@ -970,6 +1021,8 @@
   const API_DESPESAS_URL = 'https://backend-v2-five-topaz.vercel.app/api/despesas';
   const API_PAGAMENTOS_PLANOS_URL = 'https://backend-v2-five-topaz.vercel.app/api/pagamentos-planos';
   const API_PUSH_SUBSCRIBE_URL = 'https://backend-v2-five-topaz.vercel.app/api/push-subscribe';
+  const API_ENVIAR_LEMBRETES_URL = 'https://backend-v2-five-topaz.vercel.app/api/enviar-lembretes';
+  const CRON_SECRET_CLIENT = 'deeh261210'; // autoriza o envio manual de notificações (mesmo secret do cron)
   const WHATSAPP_NUMBER = '5519993900880';
   const ADMIN_TELEFONE = '5519993900880'; // identifica a inscrição push do Deeh (dono do painel)
   const VAPID_PUBLIC_KEY = 'BMrLQ-xHvALzu301ihaunGo5vGJ6FYKaJzx7B-RqVbU7FAO4eEHu3MIQ7mDqQPWc7CwUSrfi49nBG7ahp2mlrZU';
@@ -1016,7 +1069,104 @@
       document.getElementById('editSubtipoEssencialGroup').style.display =
         e.target.value === 'essencial' ? '' : 'none';
     }
+    if(e.target && e.target.id === 'notifFiltro'){
+      const val = e.target.value;
+      document.getElementById('notifPlanoGroup').style.display = val === 'plano' ? '' : 'none';
+      document.getElementById('notifManualGroup').style.display = val === 'manual' ? '' : 'none';
+      if(val === 'manual') carregarClientesNotificacao();
+    }
   });
+
+  // ---- Notificações manuais (avisos, pacotes, reajustes) ----
+  let notifSelecionados = new Set();
+
+  async function carregarClientesNotificacao(){
+    const lista = document.getElementById('notifClientesLista');
+    if(!clientesCache.length){
+      lista.innerHTML = '<p class="hint" style="text-align:left;">Carregando clientes...</p>';
+      try{
+        const resp = await fetch(API_CLIENTES_URL);
+        const data = await resp.json();
+        if(data.success) clientesCache = data.clientes || [];
+      }catch(err){ /* segue com cache vazio, trata abaixo */ }
+    }
+    if(!clientesCache.length){
+      lista.innerHTML = '<p class="hint" style="text-align:left;">Nenhum cliente cadastrado.</p>';
+      return;
+    }
+    lista.innerHTML = clientesCache.map(c => `
+      <div class="service-row${notifSelecionados.has(c.telefone) ? ' selected' : ''}" style="margin-bottom:8px;" onclick="toggleNotifCliente(this, '${c.telefone}')">
+        <div class="service-row-left">
+          <div class="checkbox">${notifSelecionados.has(c.telefone) ? '✓' : ''}</div>
+          <div class="info"><div class="name">${c.nome}</div><div class="dur">${c.telefone}</div></div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function toggleNotifCliente(el, telefone){
+    if(notifSelecionados.has(telefone)){
+      notifSelecionados.delete(telefone);
+      el.classList.remove('selected');
+      el.querySelector('.checkbox').textContent = '';
+    } else {
+      notifSelecionados.add(telefone);
+      el.classList.add('selected');
+      el.querySelector('.checkbox').textContent = '✓';
+    }
+  }
+
+  async function enviarNotificacao(){
+    const errorBox = document.getElementById('notifError');
+    const sucessoBox = document.getElementById('notifSucesso');
+    errorBox.style.display = 'none';
+    sucessoBox.style.display = 'none';
+
+    const filtro = document.getElementById('notifFiltro').value;
+    const titulo = document.getElementById('notifTitulo').value.trim();
+    const mensagem = document.getElementById('notifMensagem').value.trim();
+
+    if(!mensagem){
+      errorBox.textContent = 'Escreva a mensagem.';
+      errorBox.style.display = 'block';
+      return;
+    }
+
+    let valor = null;
+    if(filtro === 'plano'){
+      valor = document.getElementById('notifPlano').value;
+    } else if(filtro === 'manual'){
+      if(!notifSelecionados.size){
+        errorBox.textContent = 'Selecione ao menos um cliente.';
+        errorBox.style.display = 'block';
+        return;
+      }
+      valor = Array.from(notifSelecionados);
+    }
+
+    const btn = document.getElementById('btnEnviarNotif');
+    btn.disabled = true;
+    btn.textContent = 'Enviando...';
+
+    try{
+      const resp = await fetch(`${API_ENVIAR_LEMBRETES_URL}?tipo=broadcast&secret=${CRON_SECRET_CLIENT}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ titulo, mensagem, filtro, valor })
+      });
+      const data = await resp.json();
+      if(!resp.ok || !data.success) throw new Error(data.error || 'Falha ao enviar');
+      sucessoBox.textContent = `Enviado para ${data.enviados} de ${data.inscritos_encontrados ?? 0} inscrito(s) (${data.selecionados} selecionado(s) no total).`;
+      sucessoBox.style.display = 'block';
+      document.getElementById('notifMensagem').value = '';
+    }catch(err){
+      errorBox.textContent = 'Erro ao enviar notificação: ' + err.message;
+      errorBox.style.display = 'block';
+    }finally{
+      btn.disabled = false;
+      btn.textContent = '📢 Enviar notificação';
+    }
+  }
 
   async function carregarClientes(){
     const lista = document.getElementById('clientesLista');
