@@ -933,6 +933,10 @@
           <div class="gold-divider"></div>
           <p class="eyebrow" style="margin-bottom:10px;">Despesas do mês</p>
           <div id="despesasLista"><p class="hint" style="text-align:left;">Carregando...</p></div>
+
+          <div class="gold-divider"></div>
+          <p class="eyebrow" style="margin-bottom:10px;">Retenção de clientes</p>
+          <div id="retencaoResumo"><p class="hint" style="text-align:left;">Carregando...</p></div>
         </div>
       </div>
 
@@ -1369,6 +1373,29 @@
     }catch(err){
       resumoBox.innerHTML = '<p class="hint" style="text-align:left;color:#e8a37f;">Erro ao carregar financeiro.</p>';
       listaBox.innerHTML = '';
+    }
+    carregarRetencao();
+  }
+
+  async function carregarRetencao(){
+    const box = document.getElementById('retencaoResumo');
+    box.innerHTML = '<p class="hint" style="text-align:left;">Carregando...</p>';
+    try{
+      const resp = await fetch(`${API_FINANCEIRO_URL}?tipo=retencao`);
+      const data = await resp.json();
+      if(!data.success) throw new Error(data.error || 'Falha ao buscar retenção');
+      const r = data.retencao;
+      box.innerHTML = `
+        <div class="stat-grid">
+          <div class="stat-card"><div class="val">${r.ativos_30}</div><div class="lbl">Ativos (≤30 dias)</div></div>
+          <div class="stat-card"><div class="val">${r.inativos_31_60}</div><div class="lbl">31–60 dias sem voltar</div></div>
+          <div class="stat-card"><div class="val">${r.inativos_61_90}</div><div class="lbl">61–90 dias sem voltar</div></div>
+          <div class="stat-card"><div class="val">${r.inativos_90_mais}</div><div class="lbl">90+ dias sem voltar</div></div>
+        </div>
+        <p class="hint" style="text-align:left; margin-top:8px;">${r.nunca_visitou} de ${r.total_clientes} cliente(s) cadastrado(s) nunca tiveram atendimento registrado.</p>
+      `;
+    }catch(err){
+      box.innerHTML = '<p class="hint" style="text-align:left;color:#e8a37f;">Erro ao carregar retenção.</p>';
     }
   }
 
