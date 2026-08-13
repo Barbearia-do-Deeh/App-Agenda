@@ -8,7 +8,1673 @@
 <meta name="theme-color" content="#0f0e0d">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>App Barbearia do Deeh</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#0f0e0d">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Deeh App">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Exo:wght@400;500;600;700;800&display=swap');
+
+  :root{
+    --black: #0f0e0d;
+    --surface: #1a1613;
+    --surface-2: #221c17;
+    --brown: #261801;
+    --gold: #F6B70C;
+    --gold-light: #FBDB5C;
+    --cream: #f5f1e8;
+    --muted: #9c9488;
+    --danger: #b6522f;
+  }
+
+  *{margin:0;padding:0;box-sizing:border-box;}
+
+  body{
+    background: #05050580;
+    background-color: #050505;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:24px;
+    padding:40px 16px 80px;
+    font-family:'Exo',sans-serif;
+    color:var(--cream);
+  }
+
+  /* ---- Mode switcher ---- */
+  .mode-switch{
+    display:flex;
+    background:var(--surface);
+    border:1px solid var(--brown);
+    border-radius:999px;
+    padding:4px;
+    gap:4px;
+  }
+  .mode-switch button{
+    border:none;
+    background:transparent;
+    color:var(--muted);
+    font-family:'Exo',sans-serif;
+    font-weight:600;
+    font-size:13px;
+    letter-spacing:0.04em;
+    padding:9px 22px;
+    border-radius:999px;
+    cursor:pointer;
+    transition:all .25s ease;
+  }
+  .mode-switch button.active{
+    background:var(--gold);
+    color:var(--black);
+  }
+
+  /* ---- Phone frame ---- */
+  .phone{
+    width:375px;
+    height:790px;
+    background:var(--black);
+    border-radius:44px;
+    border:10px solid #000;
+    box-shadow:0 0 0 1.5px var(--brown), 0 40px 80px -20px rgba(0,0,0,.8);
+    position:relative;
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+  }
+  .notch{
+    position:absolute;
+    top:10px;left:50%;
+    transform:translateX(-50%);
+    width:120px;height:22px;
+    background:#000;
+    border-radius:0 0 16px 16px;
+    z-index:50;
+  }
+  .statusbar{
+    height:46px;
+    display:flex;
+    align-items:flex-end;
+    justify-content:space-between;
+    padding:0 24px 8px;
+    font-size:13px;
+    font-weight:600;
+    color:var(--cream);
+    flex-shrink:0;
+  }
+
+  .screens{
+    flex:1;
+    position:relative;
+    overflow:hidden;
+  }
+  .screen{
+    position:absolute;
+    inset:0;
+    display:flex;
+    flex-direction:column;
+    opacity:0;
+    pointer-events:none;
+    transform:translateX(16px);
+    transition:opacity .28s ease, transform .28s ease;
+    overflow:hidden;
+  }
+  .screen.active{
+    opacity:1;
+    pointer-events:auto;
+    transform:translateX(0);
+  }
+
+  .screen-body{
+    padding:20px 20px 24px;
+    flex:1;
+    overflow-y:auto;
+    min-height:0;
+  }
+
+  /* ---- Shared typography ---- */
+  h1,h2,h3{font-family:'Exo',sans-serif; letter-spacing:0.02em; font-weight:800;}
+  .eyebrow{
+    font-size:11px;
+    letter-spacing:0.16em;
+    text-transform:uppercase;
+    color:var(--gold);
+    font-weight:600;
+  }
+
+  .gold-divider{
+    height:1px;
+    background:linear-gradient(90deg, transparent, var(--gold), transparent);
+    margin:14px 0;
+    position:relative;
+  }
+  .gold-divider::after{
+    content:'✂';
+    position:absolute;
+    left:50%; top:50%;
+    transform:translate(-50%,-50%);
+    background:var(--black);
+    color:var(--gold);
+    font-size:12px;
+    padding:0 8px;
+  }
+
+  /* ---- Header w/ logo ---- */
+  .brand-header{
+    padding:6px 20px 18px;
+    flex-shrink:0;
+    display:flex;
+    align-items:center;
+    gap:12px;
+  }
+  .brand-header .logo-img{
+    width:48px;
+    height:48px;
+    flex-shrink:0;
+    filter:drop-shadow(0 2px 6px rgba(0,0,0,.5));
+  }
+  .brand-header .brand-text{flex:1;min-width:0;}
+  .brand-header h1{
+    font-size:30px;
+    color:var(--cream);
+    line-height:1;
+  }
+  .brand-header h1 span{color:var(--gold);}
+  .brand-header p{
+    font-size:12px;
+    color:var(--muted);
+    margin-top:4px;
+  }
+
+  /* ---- Home screen ---- */
+  .cta-primary{
+    background:var(--gold);
+    color:var(--black);
+    border:none;
+    width:100%;
+    padding:16px;
+    border-radius:14px;
+    font-family:'Exo',sans-serif;
+    font-weight:700;
+    font-size:15px;
+    cursor:pointer;
+    letter-spacing:0.01em;
+    transition:transform .15s ease, background .2s ease;
+  }
+  .cta-primary:active{transform:scale(0.98);}
+  .cta-primary:hover{background:var(--gold-light);}
+
+  .quick-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+    margin-top:18px;
+  }
+  .quick-card{
+    background:var(--surface);
+    border:1px solid var(--brown);
+    border-radius:12px;
+    padding:14px;
+    cursor:pointer;
+    transition:border-color .2s ease, background .2s ease;
+  }
+  .quick-card:hover{border-color:var(--gold);}
+  .quick-card .name{font-weight:600; font-size:13.5px; color:var(--cream);}
+  .quick-card .price{font-size:12px; color:var(--gold); margin-top:4px; font-weight:600;}
+
+  .plan-banner{
+    margin-top:20px;
+    background:linear-gradient(135deg, var(--brown), var(--surface-2));
+    border:1px solid var(--gold);
+    border-radius:14px;
+    padding:16px;
+    cursor:pointer;
+  }
+  .plan-banner .eyebrow{margin-bottom:4px;}
+  .plan-banner h3{font-size:19px; color:var(--cream);}
+  .plan-banner p{font-size:12px; color:var(--muted); margin-top:3px;}
+
+  /* ---- Bottom nav ---- */
+  .bottom-nav{
+    display:flex;
+    justify-content:space-around;
+    align-items:center;
+    padding:12px 0 calc(18px + env(safe-area-inset-bottom));
+    background:var(--surface);
+    border-top:1px solid var(--brown);
+    flex-shrink:0;
+  }
+  .nav-item{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:4px;
+    color:var(--muted);
+    font-size:10px;
+    font-weight:600;
+    cursor:pointer;
+    background:none;border:none;
+    font-family:'Exo',sans-serif;
+  }
+  .nav-item .dot{width:6px;height:6px;border-radius:50%;background:transparent;}
+  .nav-item.active{color:var(--gold);}
+  .nav-item.active .dot{background:var(--gold);}
+  .nav-icon{font-size:18px;}
+
+  /* ---- Step header (booking flow) ---- */
+  .step-header{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:14px 18px;
+    flex-shrink:0;
+  }
+  .back-btn{
+    width:34px;height:34px;
+    border-radius:10px;
+    background:var(--surface);
+    border:1px solid var(--brown);
+    color:var(--cream);
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;
+    font-size:16px;
+  }
+  .step-title{font-size:22px; color:var(--cream);}
+  .step-dots{display:flex; gap:5px; margin-left:auto;}
+  .step-dots span{width:6px;height:6px;border-radius:50%;background:var(--brown);}
+  .step-dots span.done{background:var(--gold);}
+
+  /* ---- Service list ---- */
+  .service-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    background:var(--surface);
+    border:1px solid var(--brown);
+    border-radius:12px;
+    padding:14px 16px;
+    margin-bottom:10px;
+    cursor:pointer;
+    transition:border-color .2s ease;
+  }
+  .service-row.selected{border-color:var(--gold); background:var(--surface-2);}
+  .service-row .info .name{font-weight:600; font-size:14px;}
+  .service-row .info .dur{font-size:11.5px; color:var(--muted); margin-top:2px;}
+  .service-row .price{font-weight:700; color:var(--gold); font-size:14px;}
+  .checkbox{
+    width:20px;height:20px;
+    border-radius:6px;
+    border:1.5px solid var(--muted);
+    margin-right:12px;
+    flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;
+    font-size:12px;
+    color:var(--black);
+  }
+  .service-row.selected .checkbox{background:var(--gold); border-color:var(--gold);}
+  .service-row-left{display:flex; align-items:center;}
+
+  .sticky-footer{
+    padding:14px 20px 20px;
+    background:linear-gradient(180deg, transparent, var(--black) 30%);
+    flex-shrink:0;
+  }
+  .total-line{
+    display:flex; justify-content:space-between;
+    font-size:13px; color:var(--muted);
+    margin-bottom:10px;
+  }
+  .total-line b{color:var(--cream); font-size:15px;}
+
+  /* ---- Calendar ---- */
+  .cal-nav{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:10px;
+  }
+  .cal-nav-btn{
+    width:30px;height:30px;
+    border-radius:8px;
+    border:1px solid var(--brown);
+    background:var(--surface);
+    color:var(--cream);
+    font-size:15px;
+    cursor:pointer;
+  }
+  .cal-nav-btn:disabled{opacity:.3; cursor:default;}
+  .cal-dow-row{
+    display:grid;
+    grid-template-columns:repeat(7,1fr);
+    gap:4px;
+    margin-bottom:4px;
+  }
+  .cal-dow-row span{
+    text-align:center;
+    font-size:10px;
+    color:var(--muted);
+    text-transform:uppercase;
+  }
+  .cal-grid{
+    display:grid;
+    grid-template-columns:repeat(7,1fr);
+    gap:4px;
+  }
+  .cal-day{
+    aspect-ratio:1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:10px;
+    background:var(--surface);
+    border:1px solid var(--brown);
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+  }
+  .cal-day.empty{background:transparent; border-color:transparent; cursor:default;}
+  .cal-day.disabled{opacity:.25; cursor:default; pointer-events:none;}
+  .cal-day.selected{background:var(--gold); border-color:var(--gold); color:var(--black);}
+
+  .produtos-list{
+    display:flex;
+    gap:10px;
+    overflow-x:auto;
+    padding-bottom:6px;
+    margin-top:10px;
+  }
+  .produto-row{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:6px;
+    background:var(--surface);
+    border:1px solid var(--brown);
+    border-radius:12px;
+    padding:10px 8px;
+    min-width:92px;
+    flex-shrink:0;
+    text-align:center;
+  }
+  .produto-row img{
+    width:56px;height:56px;
+    border-radius:8px;
+    object-fit:cover;
+    flex-shrink:0;
+    background:var(--surface-2);
+  }
+  .produto-info{width:100%;}
+  .produto-info .nome{font-size:11px; font-weight:600; line-height:1.2; height:26px; overflow:hidden;}
+  .produto-info .preco{font-size:11px; color:var(--gold); margin-top:2px;}
+  .produto-stepper{display:flex; align-items:center; justify-content:center; gap:6px;}
+  .produto-stepper button{
+    width:22px;height:22px;
+    border-radius:7px;
+    border:1px solid var(--brown);
+    background:var(--surface-2);
+    color:var(--cream);
+    font-size:13px;
+    cursor:pointer;
+  }
+  .produto-stepper .qtd{min-width:12px; text-align:center; font-size:12px; font-weight:600;}
+  .produtos-subtotal{
+    display:flex; justify-content:space-between;
+    margin-top:10px; font-size:13px; color:var(--muted);
+  }
+  .produtos-subtotal b{color:var(--gold);}
+
+  .produtos-grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:12px;
+  }
+  .produto-card-grid{
+    background:var(--surface);
+    border:1px solid var(--brown);
+    border-radius:14px;
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+  }
+  .produto-card-grid img{
+    width:100%;
+    aspect-ratio:1;
+    object-fit:cover;
+    display:block;
+    background:var(--surface-2);
+  }
+  .produto-card-grid .body{padding:10px;}
+  .produto-card-grid .nome{font-size:13px; font-weight:600; line-height:1.25; height:33px; overflow:hidden;}
+  .produto-card-grid .preco{font-size:13px; color:var(--gold); font-weight:700; margin-top:2px;}
+  .produto-card-grid .produto-stepper{margin-top:8px; justify-content:space-between;}
+
+  .time-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:10px;
+    margin-top:16px;
+  }
+  .time-slot{
+    background:var(--surface);
+    border:1px solid var(--brown);
+    border-radius:10px;
+    padding:11px 0;
+    text-align:center;
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+  }
+  .time-slot.selected{background:var(--gold); color:var(--black); border-color:var(--gold);}
+  .time-slot.taken{color:var(--muted); text-decoration:line-through; cursor:not-allowed; opacity:.5;}
+
+  /* ---- Confirm screen ---- */
+  .summary-card{
+    background:var(--surface);
+    border:1px solid var(--brown);
+    border-radius:16px;
+    padding:18px;
+    margin-top:8px;
+  }
+  .summary-row{
+    display:flex; justify-content:space-between;
+    padding:9px 0;
+    font-size:13.5px;
+    border-bottom:1px solid var(--brown);
+  }
+  .summary-row:last-child{border-bottom:none;}
+  .summary-row .label{color:var(--muted);}
+  .summary-row .val{color:var(--cream); font-weight:600;}
+
+  /* ---- Plans carousel ---- */
+  .plans-carousel{
+    display:flex;
+    overflow-x:auto;
+    scroll-snap-type:x mandatory;
+    gap:14px;
+    padding:4px 4px 18px;
+    margin:0 -4px;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
+  }
+  .plans-carousel::-webkit-scrollbar{display:none;}
+  .plan-card{
+    scroll-snap-align:center;
+    flex:0 0 84%;
+    background:var(--surface);
+    border:1px solid var(--brown);
+    border-radius:16px;
+    padding:20px 18px;
+  }
+  .plan-card.featured{border-color:var(--gold); background:linear-gradient(160deg, var(--brown), var(--surface-2));}
+  .plan-card .plan-name{font-size:19px; color:var(--cream); font-weight:700;}
+  .plan-card .plan-price{color:var(--gold); font-size:15px; font-weight:700; margin-top:2px;}
+  .plan-card .plan-desc{color:var(--muted); font-size:13px; margin-top:10px; line-height:1.5;}
+  .plan-card .plan-badge{
+    display:inline-block;
+    background:var(--gold);
+    color:var(--black);
+    font-size:10.5px;
+    font-weight:700;
+    letter-spacing:0.04em;
+    padding:3px 9px;
+    border-radius:20px;
+    margin-bottom:10px;
+  }
+  .plans-dots{
+    display:flex;
+    justify-content:center;
+    gap:7px;
+    margin-bottom:16px;
+  }
+  .plans-dots .dot-ind{
+    width:7px; height:7px;
+    border-radius:50%;
+    background:var(--brown);
+    transition:background .2s, transform .2s;
+  }
+  .plans-dots .dot-ind.active{background:var(--gold); transform:scale(1.2);}
+
+  .whatsapp-btn{
+    background:#25D366;
+    color:#04220f;
+    border:none;
+    width:100%;
+    padding:16px;
+    border-radius:14px;
+    font-weight:700;
+    font-size:15px;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    margin-top:12px;
+  }
+
+  /* ---- Form inputs (confirm screen) ---- */
+  .form-group{margin-bottom:12px;}
+  .form-label{
+    display:block;
+    font-size:11px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--muted);
+    margin-bottom:6px;
+    font-weight:600;
+  }
+  .form-input{
+    width:100%;
+    background:var(--surface);
+    border:1px solid var(--brown);
+    border-radius:12px;
+    padding:13px 14px;
+    color:var(--cream);
+    font-family:'Exo',sans-serif;
+    font-size:14px;
+    outline:none;
+    transition:border-color .2s ease;
+  }
+  .form-input:focus{border-color:var(--gold);}
+  .form-input::placeholder{color:var(--muted);}
+
+  .error-banner{
+    background:rgba(182,82,47,0.15);
+    border:1px solid var(--danger);
+    color:#e8a37f;
+    border-radius:12px;
+    padding:12px 14px;
+    font-size:12.5px;
+    margin-top:14px;
+    line-height:1.4;
+  }
+
+  .cta-primary.loading{opacity:0.7; cursor:wait;}
+  .cta-primary:disabled{opacity:0.4; cursor:not-allowed;}
+
+  .cancel-btn{
+    background:transparent;
+    color:var(--danger);
+    border:1px solid var(--danger);
+    border-radius:8px;
+    padding:6px 12px;
+    font-family:'Exo',sans-serif;
+    font-weight:600;
+    font-size:11.5px;
+    cursor:pointer;
+  }
+  .cancel-btn:active{transform:scale(0.97);}
+
+  .success-box{
+    text-align:center;
+    padding:40px 20px;
+  }
+  .success-icon{
+    width:64px;height:64px;
+    border-radius:50%;
+    background:var(--gold);
+    color:var(--black);
+    display:flex;align-items:center;justify-content:center;
+    font-size:30px;
+    margin:0 auto 18px;
+  }
+  .success-box h2{font-size:24px; color:var(--cream);}
+  .success-box p{font-size:13px; color:var(--muted); margin-top:8px; line-height:1.5;}
+
+  /* ---- Dashboard (Deeh) ---- */
+  .stat-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+    margin-bottom:18px;
+  }
+  .stat-card{
+    background:var(--surface);
+    border:1px solid var(--brown);
+    border-radius:12px;
+    padding:14px;
+  }
+  .stat-card .val{font-family:'Exo',sans-serif; font-weight:800; font-size:26px; color:var(--gold);}
+  .stat-card .lbl{font-size:11px; color:var(--muted); margin-top:2px;}
+
+  .agenda-item{
+    display:flex;
+    gap:12px;
+    padding:12px 0;
+    border-bottom:1px solid var(--brown);
+    align-items:center;
+  }
+  .agenda-time{
+    font-family:'Exo',sans-serif;
+    font-weight:800;
+    font-size:17px;
+    color:var(--gold);
+    width:52px;
+    flex-shrink:0;
+  }
+  .agenda-info .cli{font-weight:600; font-size:13.5px;}
+  .agenda-info .srv{font-size:11.5px; color:var(--muted); margin-top:2px;}
+
+  .hint{
+    text-align:center;
+    font-size:12px;
+    color:var(--muted);
+    max-width:375px;
+    line-height:1.5;
+  }
+  .hint b{color:var(--gold);}
+
+  /* ---- Responsivo: em celular de verdade, a moldura vira a tela inteira ---- */
+  @media (max-width: 480px){
+    body{
+      padding:0;
+      gap:0;
+      height:100dvh;
+      min-height:100dvh;
+    }
+    .mode-switch{
+      margin:8px 0;
+      flex-shrink:0;
+    }
+    .phone{
+      width:100%;
+      max-width:100%;
+      height:auto;
+      min-height:0;
+      flex:1;
+      border:none;
+      border-radius:0;
+      box-shadow:none;
+      padding-top:env(safe-area-inset-top);
+    }
+    .notch{ display:none; }
+    .statusbar{ display:none; }
+    .hint{ display:none; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="statusbar">
+      <span>9:41</span>
+      <span>●●●●</span>
+    </div>
+
+    <div class="screens">
+
+      <!-- 1. HOME -->
+      <div class="screen active" id="screen-home">
+        <div class="brand-header">
+          <img class="logo-img" src="logo-v2.png" alt="Logo Barbearia do Deeh">
+          <div class="brand-text">
+            <p class="eyebrow">Indaiatuba · SP</p>
+            <h1>BARBEARIA <span>DO DEEH</span></h1>
+            <p>Seu horário garantido, sem complicação.</p>
+          </div>
+        </div>
+        <div class="screen-body" style="padding-top:0;">
+          <button class="cta-primary" onclick="goTo('services')">Agendar horário</button>
+          <div class="gold-divider"></div>
+          <p class="eyebrow" style="margin-bottom:10px;">Serviços rápidos</p>
+          <div class="quick-grid">
+            <div class="quick-card" onclick="goTo('services')">
+              <div class="name">Corte</div>
+              <div class="price">R$ 50</div>
+            </div>
+            <div class="quick-card" onclick="goTo('services')">
+              <div class="name">Barba</div>
+              <div class="price">R$ 50</div>
+            </div>
+            <div class="quick-card" onclick="goTo('services')">
+              <div class="name">Corte + Barba</div>
+              <div class="price">R$ 95</div>
+            </div>
+            <div class="quick-card" onclick="goTo('services')">
+              <div class="name">Corte Kids</div>
+              <div class="price">R$ 45</div>
+            </div>
+          </div>
+          <p class="eyebrow" style="margin-top:20px;margin-bottom:10px;">Planos mensais</p>
+          <div class="plans-carousel" id="plansCarousel" onscroll="syncPlanDots()">
+            <div class="plan-card" onclick="goTo('plans')">
+              <div class="plan-name">Essencial</div>
+              <div class="plan-price">R$ 160/mês</div>
+              <div class="plan-desc">4 cortes ou 4 barbas por mês. Toque para ver os planos.</div>
+            </div>
+            <div class="plan-card featured" onclick="goTo('plans')">
+              <span class="plan-badge">MAIS ESCOLHIDO</span>
+              <div class="plan-name">Clássico</div>
+              <div class="plan-price">R$ 260/mês</div>
+              <div class="plan-desc">4 barbas + 2 cortes + 2 pezinhos de brinde. Toque para ver os planos.</div>
+            </div>
+            <div class="plan-card" onclick="goTo('plans')">
+              <div class="plan-name">Empresário</div>
+              <div class="plan-price">R$ 340/mês</div>
+              <div class="plan-desc">4 cortes + 4 barbas + sobrancelha de brinde. Toque para ver os planos.</div>
+            </div>
+          </div>
+          <div class="plans-dots" id="plansDots">
+            <span class="dot-ind active"></span>
+            <span class="dot-ind"></span>
+            <span class="dot-ind"></span>
+          </div>
+        </div>
+        <div class="bottom-nav">
+          <button class="nav-item" data-target="home" onclick="goTo('home')"><span class="nav-icon">⌂</span>Início<span class="dot"></span></button>
+          <button class="nav-item" data-target="services" onclick="goTo('services')"><span class="nav-icon">✂</span>Agendar<span class="dot"></span></button>
+          <button class="nav-item" data-target="plans" onclick="goTo('plans')"><span class="nav-icon">◆</span>Planos<span class="dot"></span></button>
+          <button class="nav-item" data-target="produtos" onclick="goTo('produtos')"><span class="nav-icon">🛍</span>Produtos<span class="dot"></span></button>
+          <button class="nav-item" data-target="profile" onclick="goTo('profile')"><span class="nav-icon">☺</span>Perfil<span class="dot"></span></button>
+        </div>
+      </div>
+
+      <!-- 2. SERVICES -->
+      <div class="screen" id="screen-services">
+        <div class="step-header">
+          <button class="back-btn" onclick="goTo('home')">←</button>
+          <h2 class="step-title">Serviços</h2>
+          <div class="step-dots"><span class="done"></span><span></span><span></span></div>
+        </div>
+        <div class="screen-body" style="padding-top:0;">
+          <div class="service-row" data-price="50" data-name="Corte" data-duration="60" onclick="toggleService(this)">
+            <div class="service-row-left">
+              <div class="checkbox"></div>
+              <div class="info"><div class="name">Corte</div><div class="dur">60 min</div></div>
+            </div>
+            <div class="price">R$ 50</div>
+          </div>
+          <div class="service-row" data-price="50" data-name="Barba" data-duration="60" onclick="toggleService(this)">
+            <div class="service-row-left">
+              <div class="checkbox"></div>
+              <div class="info"><div class="name">Barba</div><div class="dur">60 min</div></div>
+            </div>
+            <div class="price">R$ 50</div>
+          </div>
+          <div class="service-row" data-price="15" data-name="Sobrancelha" data-duration="0" onclick="toggleService(this)">
+            <div class="service-row-left">
+              <div class="checkbox"></div>
+              <div class="info"><div class="name">Sobrancelha</div><div class="dur">complemento</div></div>
+            </div>
+            <div class="price">R$ 15</div>
+          </div>
+          <div class="service-row" data-price="15" data-name="Pezinho" data-duration="15" onclick="toggleService(this)">
+            <div class="service-row-left">
+              <div class="checkbox"></div>
+              <div class="info"><div class="name">Pezinho</div><div class="dur">15 min</div></div>
+            </div>
+            <div class="price">R$ 15</div>
+          </div>
+          <div class="service-row" data-price="45" data-name="Corte Kids" data-duration="60" onclick="toggleService(this)">
+            <div class="service-row-left">
+              <div class="checkbox"></div>
+              <div class="info"><div class="name">Corte Kids</div><div class="dur">60 min</div></div>
+            </div>
+            <div class="price">R$ 45</div>
+          </div>
+        </div>
+        <div class="sticky-footer">
+          <div class="total-line"><span>Total</span><b id="totalPrice">R$ 0</b></div>
+          <button class="cta-primary" onclick="goTo('calendar')">Continuar</button>
+        </div>
+      </div>
+
+      <!-- 3. CALENDAR -->
+      <div class="screen" id="screen-calendar">
+        <div class="step-header">
+          <button class="back-btn" onclick="goTo('services')">←</button>
+          <h2 class="step-title">Data e hora</h2>
+          <div class="step-dots"><span class="done"></span><span class="done"></span><span></span></div>
+        </div>
+        <div class="screen-body" style="padding-top:0;">
+          <div class="cal-nav">
+            <button class="cal-nav-btn" id="calPrev" onclick="calNav(-1)">‹</button>
+            <p class="eyebrow" id="monthLabel" style="margin:0;">—</p>
+            <button class="cal-nav-btn" id="calNext" onclick="calNav(1)">›</button>
+          </div>
+          <div class="cal-dow-row" id="calDowRow"></div>
+          <div class="cal-grid" id="calGrid"></div>
+          <div class="gold-divider"></div>
+          <p class="eyebrow" style="margin-bottom:10px;">Horários disponíveis</p>
+          <div class="time-grid" id="timeGrid"></div>
+          <p class="hint" style="margin-top:12px; text-align:left; font-size:11px;">Horários sujeitos a disponibilidade — o Deeh confirma na hora.</p>
+        </div>
+        <div class="sticky-footer">
+          <button class="cta-primary" id="btnToConfirm" onclick="goToConfirm()" disabled>Continuar</button>
+        </div>
+      </div>
+
+      <!-- 4. CONFIRM -->
+      <div class="screen" id="screen-confirm">
+        <div class="step-header">
+          <button class="back-btn" onclick="goTo('calendar')">←</button>
+          <h2 class="step-title">Confirmar</h2>
+          <div class="step-dots"><span class="done"></span><span class="done"></span><span class="done"></span></div>
+        </div>
+        <div class="screen-body" style="padding-top:0;">
+          <div class="form-group">
+            <label class="form-label">Seu nome</label>
+            <input type="text" id="inputNome" class="form-input" placeholder="Nome completo">
+          </div>
+          <div class="form-group">
+            <label class="form-label">WhatsApp</label>
+            <input type="tel" id="inputTelefone" class="form-input" placeholder="(19) 99999-9999">
+          </div>
+          <div class="summary-card">
+            <div class="summary-row"><span class="label">Serviço</span><span class="val" id="sumServico">—</span></div>
+            <div class="summary-row"><span class="label">Data</span><span class="val" id="sumData">—</span></div>
+            <div class="summary-row"><span class="label">Horário</span><span class="val" id="sumHorario">—</span></div>
+            <div class="summary-row"><span class="label">Local</span><span class="val">Jd. Morada do Sol</span></div>
+            <div class="summary-row"><span class="label">Total</span><span class="val" id="sumTotal" style="color:var(--gold); font-size:16px;">R$ 0</span></div>
+          </div>
+          <p class="eyebrow" style="margin-top:18px; margin-bottom:6px;">Quer levar algum produto?</p>
+          <p class="hint" style="text-align:left; margin-bottom:4px;">Separa pra você e paga tudo junto, pessoalmente, na hora do atendimento.</p>
+          <div class="produtos-list" id="produtosList"></div>
+          <div class="produtos-subtotal" id="produtosSubtotal" style="display:none;">
+            <span>Produtos (pago na hora)</span><b id="produtosSubtotalValor">R$ 0</b>
+          </div>
+          <div id="confirmError" class="error-banner" style="display:none;"></div>
+          <button class="cta-primary" id="btnConfirmar" style="margin-top:18px;" onclick="confirmarAgendamento()">Confirmar agendamento</button>
+          <a id="whatsappFallback" class="whatsapp-btn" style="display:none; text-decoration:none;" target="_blank">📲 Confirmar via WhatsApp</a>
+          <p class="hint" style="margin-top:14px; text-align:left;">Ao confirmar, seu horário é reservado direto na agenda do Deeh.</p>
+        </div>
+      </div>
+
+      <!-- 4b. SUCCESS -->
+      <div class="screen" id="screen-success">
+        <div class="screen-body success-box">
+          <div class="success-icon">✓</div>
+          <h2>Agendamento confirmado!</h2>
+          <p id="successMsg">Seu horário foi reservado na agenda da Barbearia do Deeh.</p>
+          <button class="cta-primary" style="margin-top:26px;" onclick="resetFlow()">Voltar ao início</button>
+        </div>
+      </div>
+
+      <!-- 6. PLANOS -->
+      <div class="screen" id="screen-plans">
+        <div class="step-header">
+          <button class="back-btn" onclick="goTo(currentMode)">←</button>
+          <h2 class="step-title">Planos mensais</h2>
+        </div>
+        <div class="screen-body" style="padding-top:0;">
+          <div class="summary-card" style="margin-bottom:14px;">
+            <div class="summary-row"><span class="label" style="font-size:15px;color:var(--cream);font-weight:700;">Essencial</span><span class="val" style="color:var(--gold);">R$ 160/mês</span></div>
+            <div class="summary-row"><span class="label">4 cortes ou 4 barbas por mês</span></div>
+          </div>
+          <div class="summary-card" style="margin-bottom:14px;">
+            <div class="summary-row"><span class="label" style="font-size:15px;color:var(--cream);font-weight:700;">Clássico</span><span class="val" style="color:var(--gold);">R$ 260/mês</span></div>
+            <div class="summary-row"><span class="label">4 barbas + 2 cortes + 2 pezinhos de brinde</span></div>
+          </div>
+          <div class="summary-card" style="margin-bottom:14px;">
+            <div class="summary-row"><span class="label" style="font-size:15px;color:var(--cream);font-weight:700;">Empresário</span><span class="val" style="color:var(--gold);">R$ 340/mês</span></div>
+            <div class="summary-row"><span class="label">4 cortes + 4 barbas + sobrancelha de brinde</span></div>
+          </div>
+          <button class="whatsapp-btn" onclick="assinarPlano()">📲 Assinar via WhatsApp</button>
+        </div>
+      </div>
+
+      <!-- 6b. PRODUTOS (aba própria) -->
+      <div class="screen" id="screen-produtos">
+        <div class="step-header">
+          <button class="back-btn" onclick="goTo(currentMode)">←</button>
+          <h2 class="step-title">Produtos</h2>
+        </div>
+        <div class="screen-body" style="padding-top:0;">
+          <p class="hint" style="text-align:left; margin-bottom:12px;">Separe o que quiser e pague tudo junto, pessoalmente, no dia do seu atendimento.</p>
+          <div class="produtos-grid" id="produtosGrid"></div>
+        </div>
+      </div>
+
+      <!-- 7. PERFIL -->
+      <div class="screen" id="screen-profile">
+        <div class="step-header">
+          <button class="back-btn" onclick="goTo(currentMode)">←</button>
+          <h2 class="step-title">Perfil</h2>
+        </div>
+        <div class="screen-body" style="padding-top:0;">
+          <div class="form-group">
+            <label class="form-label">Nome</label>
+            <input type="text" id="profileNome" class="form-input" placeholder="Seu nome">
+          </div>
+          <div class="form-group">
+            <label class="form-label">WhatsApp</label>
+            <input type="tel" id="profileTelefone" class="form-input" placeholder="(19) 99999-9999">
+          </div>
+          <label style="display:flex; align-items:flex-start; gap:10px; margin-bottom:16px; cursor:pointer;">
+            <input type="checkbox" id="lgpdConsent" style="margin-top:3px; width:16px; height:16px; accent-color:var(--gold); flex-shrink:0;">
+            <span class="hint" style="text-align:left; margin:0;">Li e aceito os <a href="#" onclick="event.preventDefault(); toggleTermosTexto();" style="color:var(--gold); text-decoration:underline;">Termos de Uso e a Política de Privacidade</a>, e autorizo o uso dos meus dados (nome, WhatsApp e histórico de atendimentos) pela Barbearia do Deeh para agendamentos e contato.</span>
+          </label>
+          <div id="termosTexto" class="summary-card" style="display:none; margin-bottom:14px;">
+            <p class="hint" style="text-align:left; line-height:1.6;">
+              Seus dados (nome, WhatsApp e histórico de atendimentos) são usados apenas para viabilizar seu agendamento, lembretes, avisos e atendimento na Barbearia do Deeh, em conformidade com a LGPD (Lei 13.709/2018). Não compartilhamos seus dados com terceiros. Você pode pedir a remoção dos seus dados a qualquer momento falando direto com o Deeh no WhatsApp.
+            </p>
+          </div>
+          <button class="cta-primary" onclick="salvarPerfil()">Salvar</button>
+          <div class="gold-divider"></div>
+          <p class="eyebrow" style="margin-bottom:10px;">Meus agendamentos</p>
+          <div id="proximoAgendamento"></div>
+
+          <p class="eyebrow" style="margin-bottom:10px; margin-top:14px;">Próximos horários</p>
+          <div id="agendamentosFuturos"><p class="hint" style="text-align:left;">Salve seu WhatsApp acima para ver seus horários.</p></div>
+
+          <div class="gold-divider"></div>
+          <p class="eyebrow" style="margin-bottom:10px;">Histórico</p>
+          <div id="historicoLista"><p class="hint" style="text-align:left;">Salve seu WhatsApp acima para ver seu histórico.</p></div>
+
+          <div class="gold-divider"></div>
+          <p class="eyebrow" style="margin-bottom:10px;">Contato</p>
+          <div class="summary-card" style="margin-bottom:14px;">
+            <a href="https://www.google.com/maps/search/?api=1&query=Rua+Seraphin+Gilberto+Candelo%2C+2063+-+Jd.+Morada+do+Sol%2C+Indaiatuba+-+SP" target="_blank" rel="noopener" style="text-decoration:none;">
+              <div class="summary-row" style="cursor:pointer;">
+                <span class="label">📍 Endereço</span>
+                <span class="val" style="color:var(--gold);">Ver no mapa →</span>
+              </div>
+            </a>
+            <p class="hint" style="text-align:left; margin:6px 0 0; padding:0;">Rua Seraphin Gilberto Candelo, 2063 — Jd. Morada do Sol, Indaiatuba/SP</p>
+          </div>
+          <div class="summary-card" style="margin-bottom:14px;">
+            <a href="https://wa.me/5519993900880" target="_blank" rel="noopener" style="text-decoration:none;">
+              <div class="summary-row" style="cursor:pointer; border-bottom:none;">
+                <span class="label">📲 WhatsApp</span>
+                <span class="val" style="color:var(--gold);">(19) 99390-0880</span>
+              </div>
+            </a>
+          </div>
+          <div class="summary-card" style="margin-bottom:14px;">
+            <a href="https://instagram.com/barbeariadodeeh" target="_blank" rel="noopener" style="text-decoration:none;">
+              <div class="summary-row" style="cursor:pointer;">
+                <span class="label">📸 Instagram</span>
+                <span class="val" style="color:var(--gold);">@barbeariadodeeh</span>
+              </div>
+            </a>
+            <a href="https://instagram.com/davidlucasdias" target="_blank" rel="noopener" style="text-decoration:none;">
+              <div class="summary-row" style="cursor:pointer; border-bottom:none;">
+                <span class="label">👤 Pessoal</span>
+                <span class="val" style="color:var(--gold);">@davidlucasdias</span>
+              </div>
+            </a>
+          </div>
+          <div class="summary-card" style="margin-bottom:14px;">
+            <a href="https://share.google/zfVJVDrPgBTdu0j6u" target="_blank" rel="noopener" style="text-decoration:none;">
+              <div class="summary-row" style="cursor:pointer; border-bottom:none;">
+                <span class="label">⭐ Avalie no Google</span>
+                <span class="val" style="color:var(--gold);">Deixar avaliação →</span>
+              </div>
+            </a>
+          </div>
+
+          <div class="gold-divider"></div>
+          <p class="eyebrow" style="margin-bottom:10px;">Pagamentos</p>
+          <div class="summary-card" style="margin-bottom:14px;">
+            <div class="summary-row" style="border-bottom:none;">
+              <span class="label">Chave Pix (telefone)</span>
+              <span class="val" id="pixKeyVal" style="color:var(--gold);">(19) 99390-0880</span>
+            </div>
+          </div>
+          <button class="cta-primary" style="background:var(--surface); color:var(--gold); border:1px solid var(--gold);" onclick="copiarPix()">📋 Copiar chave Pix</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <p class="hint">Barbearia do Deeh — agende seu horário em segundos.</p>
+
+<script>
+  // ====== CONFIG ======
+  const API_URL = 'https://backend-v2-five-topaz.vercel.app/api/agendar';
+  const API_DISPONIBILIDADE_URL = 'https://backend-v2-five-topaz.vercel.app/api/disponibilidade';
+  const API_ATENDIMENTOS_URL = 'https://backend-v2-five-topaz.vercel.app/api/atendimentos';
+  const API_PUSH_SUBSCRIBE_URL = 'https://backend-v2-five-topaz.vercel.app/api/push-subscribe';
+  const API_CLIENTES_URL = 'https://backend-v2-five-topaz.vercel.app/api/clientes';
+  const WHATSAPP_NUMBER = '5519993900880';
+  const VAPID_PUBLIC_KEY = 'BMrLQ-xHvALzu301ihaunGo5vGJ6FYKaJzx7B-RqVbU7FAO4eEHu3MIQ7mDqQPWc7CwUSrfi49nBG7ahp2mlrZU';
+
+  // Horário de funcionamento: 0=Dom ... 6=Sáb
+  const BUSINESS_HOURS = {
+    2: { open: 9, close: 19 }, // Terça
+    3: { open: 9, close: 19 }, // Quarta
+    4: { open: 9, close: 19 }, // Quinta
+    5: { open: 9, close: 19 }, // Sexta
+    6: { open: 8, close: 17 }, // Sábado
+  };
+
+  const DOW_LABELS = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+  const MONTH_LABELS = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
+  // ====== STATE ======
+  let selectedServices = []; // [{name, price, duration}]
+  let selectedDate = null;   // Date object (00:00 local)
+  let selectedTime = null;   // "HH:MM"
+
+  let currentMode = 'home';
+
+  function goTo(id){
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('screen-' + id).classList.add('active');
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.target === id));
+    if(id === 'home'){ currentMode = id; }
+    if(id === 'profile'){ initPerfil(); }
+  }
+
+  function syncPlanDots(){
+    const carousel = document.getElementById('plansCarousel');
+    const dots = document.querySelectorAll('#plansDots .dot-ind');
+    if(!carousel || !dots.length) return;
+    const cardWidth = carousel.firstElementChild.offsetWidth + 14;
+    const index = Math.round(carousel.scrollLeft / cardWidth);
+    dots.forEach((d,i)=> d.classList.toggle('active', i === index));
+  }
+
+  function copiarPix(){
+    const chave = '19993900880';
+    navigator.clipboard.writeText(chave).then(()=>{
+      alert('Chave Pix copiada!');
+    }).catch(()=>{
+      alert('Não foi possível copiar. Chave Pix: ' + chave);
+    });
+  }
+
+  function assinarPlano(){
+    const msg = encodeURIComponent('Olá! Quero assinar um plano mensal da Barbearia do Deeh.');
+    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${msg}`, '_blank');
+  }
+
+  function toggleTermosTexto(){
+    const box = document.getElementById('termosTexto');
+    box.style.display = box.style.display === 'none' ? '' : 'none';
+  }
+
+  function salvarPerfil(){
+    const nome = document.getElementById('profileNome').value.trim();
+    const telefone = document.getElementById('profileTelefone').value.trim();
+    const aceitouTermos = document.getElementById('lgpdConsent').checked;
+
+    if(!aceitouTermos){
+      alert('Para salvar seu perfil, é preciso aceitar os Termos de Uso e a Política de Privacidade.');
+      return;
+    }
+
+    if(nome) document.getElementById('inputNome').value = nome;
+    if(telefone) document.getElementById('inputTelefone').value = telefone;
+    if(nome) localStorage.setItem('deeh_nome', nome);
+    localStorage.setItem('deeh_lgpd_consent', '1');
+    if(telefone){
+      localStorage.setItem('deeh_telefone', telefone);
+      carregarHistorico(telefone);
+      carregarAgendamentosFuturos(telefone);
+      inscreverPushCliente(telefone, true);
+    }
+    if(nome && telefone) salvarClienteNoBanco(nome, telefone);
+    alert('Perfil salvo!');
+  }
+
+  // Cria/atualiza o registro do cliente no banco ao salvar o Perfil.
+  // Best-effort: se falhar, não trava o "Perfil salvo!" (dado já está no localStorage).
+  // Em conflito de telefone, api/clientes.js só atualiza o nome — nunca mexe em plano/saldo existente.
+  async function salvarClienteNoBanco(nome, telefone){
+    try{
+      await fetch(API_CLIENTES_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nome, telefone: telefone.replace(/\D/g, '') })
+      });
+    }catch(err){
+      console.error('Erro ao salvar cliente no banco:', err);
+    }
+  }
+
+  // ---- Push notifications: inscrição do cliente (avisos, pacotes, reajustes etc.) ----
+  function urlBase64ToUint8Array(base64String){
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+    const rawData = atob(base64);
+    return Uint8Array.from([...rawData].map(c => c.charCodeAt(0)));
+  }
+
+  async function inscreverPushCliente(telefone, pedirPermissao){
+    if(!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+    const telefoneLimpo = (telefone || '').replace(/\D/g, '');
+    if(!telefoneLimpo) return;
+    try{
+      const registration = await navigator.serviceWorker.ready;
+      let subscription = await registration.pushManager.getSubscription();
+      if(!subscription){
+        // Sem pedirPermissao explícito, só re-inscreve se o navegador já tiver permissão concedida antes
+        if(!pedirPermissao && Notification.permission !== 'granted') return;
+        const permissao = await Notification.requestPermission();
+        if(permissao !== 'granted') return;
+        subscription = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+        });
+      }
+      await fetch(API_PUSH_SUBSCRIBE_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ telefone: telefoneLimpo, subscription })
+      });
+    }catch(err){
+      console.error('Erro ao inscrever push do cliente:', err);
+    }
+  }
+
+  async function carregarAgendamentosFuturos(telefone){
+    const container = document.getElementById('agendamentosFuturos');
+    container.innerHTML = '<p class="hint" style="text-align:left;">Carregando...</p>';
+    try{
+      const telefoneLimpo = telefone.replace(/\D/g, '');
+      const resp = await fetch(`${API_URL}?tipo=meus-agendamentos&telefone=${encodeURIComponent(telefoneLimpo)}`);
+      const data = await resp.json();
+      if(!data.success || !data.agendamentos || !data.agendamentos.length){
+        container.innerHTML = '<p class="hint" style="text-align:left;">Nenhum horário marcado no momento.</p>';
+        return;
+      }
+      container.innerHTML = data.agendamentos.map(a => `
+        <div class="summary-card" style="margin-bottom:10px; border:1px solid var(--gold);">
+          <div class="summary-row"><span class="label">${a.servico}</span><span class="val" style="color:var(--gold);">${a.preco || ''}</span></div>
+          <div class="summary-row" style="border-bottom:none; align-items:center;">
+            <span class="label">${a.data} às ${a.horario}</span>
+            <button class="cancel-btn" onclick="cancelarMeuAgendamento('${a.eventId}')">Cancelar</button>
+          </div>
+        </div>
+      `).join('');
+    }catch(err){
+      container.innerHTML = '<p class="hint" style="text-align:left;">Erro ao carregar seus horários.</p>';
+    }
+  }
+
+  async function cancelarMeuAgendamento(eventId){
+    if(!confirm('Tem certeza que quer cancelar esse horário?')) return;
+    const telefone = localStorage.getItem('deeh_telefone');
+    if(!telefone) return;
+    try{
+      const resp = await fetch(`${API_URL}?tipo=cancelar`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ eventId, telefone })
+      });
+      const data = await resp.json();
+      if(!resp.ok || !data.success) throw new Error(data.error || 'Falha ao cancelar');
+      carregarAgendamentosFuturos(telefone);
+    }catch(err){
+      alert('Não foi possível cancelar. Tente novamente ou fale com o Deeh no WhatsApp.');
+    }
+  }
+
+  async function carregarHistorico(telefone){
+    const container = document.getElementById('historicoLista');
+    const proximoContainer = document.getElementById('proximoAgendamento');
+    container.innerHTML = '<p class="hint" style="text-align:left;">Carregando...</p>';
+    try{
+      const telefoneLimpo = telefone.replace(/\D/g, '');
+      const resp = await fetch(`${API_ATENDIMENTOS_URL}?telefone=${encodeURIComponent(telefoneLimpo)}`);
+      const data = await resp.json();
+
+      if(data.proximo_agendamento){
+        const p = data.proximo_agendamento;
+        const dataHora = new Date(p.data_hora);
+        const dataFmt = dataHora.toLocaleDateString('pt-BR');
+        const horaFmt = dataHora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        proximoContainer.innerHTML = `<div class="summary-card" style="margin-bottom:14px; border:1px solid var(--gold);">
+          <div class="summary-row" style="border-bottom:none;">
+            <span class="label">📅 Próximo horário</span>
+            <span class="val" style="color:var(--gold);">${p.servico} — ${dataFmt} às ${horaFmt}</span>
+          </div>
+        </div>`;
+      } else {
+        proximoContainer.innerHTML = '';
+      }
+
+      if(!data.success || !data.atendimentos || data.atendimentos.length === 0){
+        container.innerHTML = '<p class="hint" style="text-align:left;">Nenhum atendimento encontrado ainda.</p>';
+        return;
+      }
+      container.innerHTML = data.atendimentos.map(a => {
+        const data_hora = new Date(a.data_hora);
+        const dataFmt = data_hora.toLocaleDateString('pt-BR');
+        const servicos = Array.isArray(a.servicos) ? a.servicos.join(', ') : (JSON.parse(a.servicos || '[]').join(', '));
+        return `<div class="summary-card" style="margin-bottom:10px;">
+          <div class="summary-row"><span class="label">${dataFmt}</span><span class="val" style="color:var(--gold);">R$ ${a.valor_cobrado}</span></div>
+          <div class="summary-row" style="border-bottom:none;"><span class="label">${servicos}</span></div>
+        </div>`;
+      }).join('');
+    }catch(err){
+      container.innerHTML = '<p class="hint" style="text-align:left;">Erro ao carregar histórico.</p>';
+    }
+  }
+
+  function initPerfil(){
+    const nomeSalvo = localStorage.getItem('deeh_nome');
+    const telefoneSalvo = localStorage.getItem('deeh_telefone');
+    if(nomeSalvo) document.getElementById('profileNome').value = nomeSalvo;
+    if(telefoneSalvo){
+      document.getElementById('profileTelefone').value = telefoneSalvo;
+      carregarHistorico(telefoneSalvo);
+      carregarAgendamentosFuturos(telefoneSalvo);
+    }
+    document.getElementById('lgpdConsent').checked = localStorage.getItem('deeh_lgpd_consent') === '1';
+  }
+
+  function prefillFromStorage(){
+    const nomeSalvo = localStorage.getItem('deeh_nome');
+    const telefoneSalvo = localStorage.getItem('deeh_telefone');
+    if(nomeSalvo) document.getElementById('inputNome').value = nomeSalvo;
+    if(telefoneSalvo) document.getElementById('inputTelefone').value = telefoneSalvo;
+  }
+
+  function toggleService(el){
+    el.classList.toggle('selected');
+    let total = 0;
+    selectedServices = [];
+    document.querySelectorAll('.service-row.selected').forEach(row => {
+      const price = parseInt(row.dataset.price, 10);
+      total += price;
+      selectedServices.push({
+        name: row.dataset.name,
+        price,
+        duration: parseInt(row.dataset.duration, 10)
+      });
+    });
+    document.getElementById('totalPrice').textContent = 'R$ ' + total;
+  }
+
+  // ---- Calendar: month grid, limited to 30 days ahead ----
+  const LIMITE_DIAS = 30;
+  const CAL_TODAY = new Date();
+  CAL_TODAY.setHours(0,0,0,0);
+  const CAL_LIMITE = new Date(CAL_TODAY);
+  CAL_LIMITE.setDate(CAL_LIMITE.getDate() + LIMITE_DIAS);
+  let viewMonth = new Date(CAL_TODAY.getFullYear(), CAL_TODAY.getMonth(), 1);
+
+  function buildDateScroller(){
+    const dowRow = document.getElementById('calDowRow');
+    dowRow.innerHTML = ['D','S','T','Q','Q','S','S'].map(l => `<span>${l}</span>`).join('');
+
+    const grid = document.getElementById('calGrid');
+    grid.innerHTML = '';
+
+    const firstDow = viewMonth.getDay();
+    const daysInMonth = new Date(viewMonth.getFullYear(), viewMonth.getMonth()+1, 0).getDate();
+
+    for(let i=0; i<firstDow; i++){
+      grid.appendChild(Object.assign(document.createElement('div'), {className:'cal-day empty'}));
+    }
+
+    let firstEnabled = null;
+    for(let dayNum=1; dayNum<=daysInMonth; dayNum++){
+      const d = new Date(viewMonth.getFullYear(), viewMonth.getMonth(), dayNum);
+      const cell = document.createElement('div');
+      cell.className = 'cal-day';
+      cell.textContent = String(dayNum).padStart(2,'0');
+
+      const foraDoAlcance = d < CAL_TODAY || d > CAL_LIMITE;
+      const fechado = !BUSINESS_HOURS[d.getDay()];
+      if(foraDoAlcance || fechado){
+        cell.classList.add('disabled');
+      } else {
+        if(!firstEnabled) firstEnabled = {cell, date: d};
+        cell.onclick = () => selectDate(cell, d);
+      }
+      if(selectedDate && d.getTime() === selectedDate.getTime()){
+        cell.classList.add('selected');
+      }
+      grid.appendChild(cell);
+    }
+
+    updateMonthLabel(viewMonth);
+    document.getElementById('calPrev').disabled = viewMonth <= new Date(CAL_TODAY.getFullYear(), CAL_TODAY.getMonth(), 1);
+    const nextMonthStart = new Date(viewMonth.getFullYear(), viewMonth.getMonth()+1, 1);
+    document.getElementById('calNext').disabled = nextMonthStart > CAL_LIMITE;
+
+    if(!selectedDate && firstEnabled){
+      selectDate(firstEnabled.cell, firstEnabled.date);
+    }
+  }
+
+  function calNav(delta){
+    viewMonth = new Date(viewMonth.getFullYear(), viewMonth.getMonth()+delta, 1);
+    buildDateScroller();
+  }
+
+  function updateMonthLabel(d){
+    document.getElementById('monthLabel').textContent = `${MONTH_LABELS[d.getMonth()]} ${d.getFullYear()}`;
+  }
+
+  function selectDate(el, dateObj){
+    document.querySelectorAll('.cal-day').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedDate = dateObj;
+    buildTimeGrid(dateObj);
+  }
+
+  async function buscarHorariosOcupados(dataDDMMAAAA){
+    try {
+      const resp = await fetch(`${API_DISPONIBILIDADE_URL}?data=${encodeURIComponent(dataDDMMAAAA)}`);
+      const json = await resp.json();
+      if(!json.success) return [];
+      return json.ocupados; // [{ inicio: "10:00", fim: "11:00" }]
+    } catch(e){
+      console.error('Erro ao buscar disponibilidade:', e);
+      return []; // falha segura: se a API cair, não bloqueia nenhum horário
+    }
+  }
+
+  function horarioConflita(horarioInicio, duracaoMin, ocupados){
+    const [h, m] = horarioInicio.split(':').map(Number);
+    const inicioMin = h * 60 + m;
+    const fimMin = inicioMin + duracaoMin;
+
+    return ocupados.some(periodo => {
+      const [hi, mi] = periodo.inicio.split(':').map(Number);
+      const [hf, mf] = periodo.fim.split(':').map(Number);
+      const ocupInicio = hi * 60 + mi;
+      const ocupFim = hf * 60 + mf;
+      return inicioMin < ocupFim && fimMin > ocupInicio;
+    });
+  }
+
+  async function buildTimeGrid(dateObj){
+    const grid = document.getElementById('timeGrid');
+    grid.innerHTML = '<div style="color:var(--muted);font-size:12px;padding:8px 0;">Carregando horários...</div>';
+    selectedTime = null;
+    document.getElementById('btnToConfirm').disabled = true;
+
+    const hours = BUSINESS_HOURS[dateObj.getDay()];
+    if(!hours){ grid.innerHTML = ''; return; }
+
+    const now = new Date();
+    const isToday = dateObj.toDateString() === now.toDateString();
+
+    const dia = String(dateObj.getDate()).padStart(2,'0');
+    const mes = String(dateObj.getMonth() + 1).padStart(2,'0');
+    const ano = dateObj.getFullYear();
+    const dataStr = `${dia}/${mes}/${ano}`;
+
+    const hasFullService = selectedServices.some(x => x.duration >= 60);
+    const duracaoMin = selectedServices.length ? (hasFullService ? 60 : 15) : 60;
+
+    const ocupados = await buscarHorariosOcupados(dataStr);
+
+    grid.innerHTML = '';
+
+    for(let h = hours.open; h < hours.close; h++){
+      // esconde horários que já passaram, se for hoje
+      if(isToday && h <= now.getHours()) continue;
+
+      const label = String(h).padStart(2,'0') + ':00';
+      // esconde horários já ocupados no Google Calendar
+      if(horarioConflita(label, duracaoMin, ocupados)) continue;
+
+      const slot = document.createElement('div');
+      slot.className = 'time-slot';
+      slot.textContent = label;
+      slot.onclick = () => selectTime(slot, label);
+      grid.appendChild(slot);
+    }
+
+    if(!grid.children.length){
+      grid.innerHTML = `
+        <div style="color:var(--muted);font-size:12px;padding:8px 0;">Nenhum horário disponível neste dia.</div>
+        <button class="cta-primary" style="margin-top:8px; background:var(--surface); color:var(--gold); border:1px solid var(--gold);" onclick="entrarNaFilaEspera('${dataStr}')">🔔 Avisar se abrir vaga nesse dia</button>
+      `;
+    }
+  }
+
+  function selectTime(el, label){
+    document.querySelectorAll('.time-slot').forEach(t => t.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedTime = label;
+    document.getElementById('btnToConfirm').disabled = false;
+  }
+
+  // ---- Fila de espera: cliente pede aviso se abrir vaga num dia lotado ----
+  async function entrarNaFilaEspera(dataStr){
+    let nome = localStorage.getItem('deeh_nome');
+    let telefone = localStorage.getItem('deeh_telefone');
+
+    if(!nome){
+      nome = prompt('Seu nome:');
+      if(!nome) return;
+    }
+    if(!telefone){
+      telefone = prompt('Seu WhatsApp:');
+      if(!telefone) return;
+    }
+
+    const servico = selectedServices.map(s => s.name).join(' + ') || null;
+
+    try{
+      const resp = await fetch(`${API_URL}?tipo=fila-espera`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nome, telefone, data: dataStr, servico })
+      });
+      const data = await resp.json();
+      if(!resp.ok || !data.success) throw new Error(data.error || 'Falha ao entrar na fila');
+      inscreverPushCliente(telefone, true);
+      alert(`Combinado! Se abrir vaga no dia ${dataStr}, te avisamos por notificação.`);
+    }catch(err){
+      alert('Não conseguimos te colocar na fila agora. Tente novamente ou fale com o Deeh no WhatsApp.');
+    }
+  }
+
+  // ---- Produtos (comanda opcional) ----
+  let PRODUTOS_CACHE = [];
+
+  async function fetchProdutos(){
+    try {
+      const res = await fetch(`${API_ATENDIMENTOS_URL}?tipo=produtos`);
+      const data = await res.json();
+      if(data.success){
+        PRODUTOS_CACHE = data.produtos.map(p => ({ ...p, quantidade: 0 }));
+        renderProdutosList();
+        renderProdutosGrid();
+      }
+    } catch(err){
+      console.error('Erro ao carregar produtos:', err);
+    }
+  }
+
+  function renderProdutosGrid(){
+    const grid = document.getElementById('produtosGrid');
+    if(!grid) return;
+    grid.innerHTML = PRODUTOS_CACHE.map(p => `
+      <div class="produto-card-grid">
+        <img src="/produtos/${p.imagem_url}" alt="${p.nome}" onerror="this.style.opacity=0">
+        <div class="body">
+          <div class="nome">${p.nome}</div>
+          <div class="preco">R$ ${Number(p.preco).toFixed(2).replace('.', ',')}</div>
+          <div class="produto-stepper">
+            <button onclick="changeProdutoQtd(${p.id}, -1)">−</button>
+            <span class="qtd" id="qtdgrid-${p.id}">0</span>
+            <button onclick="changeProdutoQtd(${p.id}, 1)">+</button>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function renderProdutosList(){
+    const list = document.getElementById('produtosList');
+    list.innerHTML = PRODUTOS_CACHE.map(p => `
+      <div class="produto-row">
+        <img src="/produtos/${p.imagem_url}" alt="${p.nome}" onerror="this.style.opacity=0">
+        <div class="produto-info">
+          <div class="nome">${p.nome}</div>
+          <div class="preco">R$ ${Number(p.preco).toFixed(2).replace('.', ',')}</div>
+        </div>
+        <div class="produto-stepper">
+          <button onclick="changeProdutoQtd(${p.id}, -1)">−</button>
+          <span class="qtd" id="qtd-${p.id}">0</span>
+          <button onclick="changeProdutoQtd(${p.id}, 1)">+</button>
+        </div>
+      </div>
+    `).join('');
+    updateProdutosSubtotal();
+  }
+
+  function changeProdutoQtd(id, delta){
+    const produto = PRODUTOS_CACHE.find(p => p.id === id);
+    if(!produto) return;
+    produto.quantidade = Math.max(0, produto.quantidade + delta);
+    const spanList = document.getElementById(`qtd-${id}`);
+    const spanGrid = document.getElementById(`qtdgrid-${id}`);
+    if(spanList) spanList.textContent = produto.quantidade;
+    if(spanGrid) spanGrid.textContent = produto.quantidade;
+    updateProdutosSubtotal();
+  }
+
+  function updateProdutosSubtotal(){
+    const selecionados = PRODUTOS_CACHE.filter(p => p.quantidade > 0);
+    const total = selecionados.reduce((s, p) => s + Number(p.preco) * p.quantidade, 0);
+    const box = document.getElementById('produtosSubtotal');
+    box.style.display = selecionados.length ? 'flex' : 'none';
+    document.getElementById('produtosSubtotalValor').textContent = 'R$ ' + total.toFixed(2).replace('.', ',');
+  }
+
+  // ---- Confirm screen ----
+  function goToConfirm(){
+    if(!selectedServices.length || !selectedDate || !selectedTime) return;
+
+    const total = selectedServices.reduce((s, x) => s + x.price, 0);
+    const names = selectedServices.map(x => x.name).join(' + ');
+
+    document.getElementById('sumServico').textContent = names;
+    document.getElementById('sumData').textContent = `${DOW_LABELS[selectedDate.getDay()]}, ${String(selectedDate.getDate()).padStart(2,'0')} de ${MONTH_LABELS[selectedDate.getMonth()].toLowerCase()}`;
+    document.getElementById('sumHorario').textContent = selectedTime;
+    document.getElementById('sumTotal').textContent = 'R$ ' + total;
+
+    document.getElementById('confirmError').style.display = 'none';
+    document.getElementById('whatsappFallback').style.display = 'none';
+
+    goTo('confirm');
+  }
+
+  function getBookingPayload(){
+    const nome = document.getElementById('inputNome').value.trim();
+    const telefone = document.getElementById('inputTelefone').value.trim();
+    const total = selectedServices.reduce((s, x) => s + x.price, 0);
+    const names = selectedServices.map(x => x.name).join(' + ');
+    const hasFullService = selectedServices.some(x => x.duration >= 60);
+    const duracaoMin = hasFullService ? 60 : 15;
+    const dia = String(selectedDate.getDate()).padStart(2,'0');
+    const mes = String(selectedDate.getMonth() + 1).padStart(2,'0');
+    const ano = selectedDate.getFullYear();
+
+    return {
+      nome, telefone,
+      servico: names,
+      data: `${dia}/${mes}/${ano}`,
+      horario: selectedTime,
+      duracao: duracaoMin === 15 ? '15 min' : '60 min',
+      preco: 'R$' + total,
+      produtos: PRODUTOS_CACHE.filter(p => p.quantidade > 0).map(p => ({ id: p.id, quantidade: p.quantidade }))
+    };
+  }
+
+  async function confirmarAgendamento(){
+    const payload = getBookingPayload();
+    const errorBox = document.getElementById('confirmError');
+    const whatsappLink = document.getElementById('whatsappFallback');
+    const btn = document.getElementById('btnConfirmar');
+
+    if(!payload.nome || !payload.telefone){
+      errorBox.textContent = 'Preencha seu nome e WhatsApp para confirmar.';
+      errorBox.style.display = 'block';
+      whatsappLink.style.display = 'none';
+      return;
+    }
+
+    errorBox.style.display = 'none';
+    whatsappLink.style.display = 'none';
+    btn.disabled = true;
+    btn.classList.add('loading');
+    btn.textContent = 'Confirmando...';
+
+    try {
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+
+      if(!res.ok || !data.success){
+        throw new Error(data.error || 'Não foi possível confirmar o agendamento.');
+      }
+
+      document.getElementById('successMsg').textContent =
+        `${payload.nome}, seu horário de ${payload.servico} no dia ${payload.data} às ${payload.horario} foi reservado na agenda da Barbearia do Deeh.`;
+
+      localStorage.setItem('deeh_nome', payload.nome);
+      localStorage.setItem('deeh_telefone', payload.telefone);
+
+      goTo('success');
+
+    } catch (err) {
+      errorBox.textContent = 'Não conseguimos confirmar automaticamente. Tente novamente ou fale direto com o Deeh no WhatsApp.';
+      errorBox.style.display = 'block';
+
+      const msg = encodeURIComponent(
+        `Olá! Quero agendar: ${payload.servico}, dia ${payload.data} às ${payload.horario}. Nome: ${payload.nome}`
+      );
+      whatsappLink.href = `https://wa.me/${WHATSAPP_NUMBER}?text=${msg}`;
+      whatsappLink.style.display = 'flex';
+
+    } finally {
+      btn.disabled = false;
+      btn.classList.remove('loading');
+      btn.textContent = 'Confirmar agendamento';
+    }
+  }
+
+  function resetFlow(){
+    selectedServices = [];
+    selectedDate = null;
+    selectedTime = null;
+    document.querySelectorAll('.service-row.selected').forEach(r => r.classList.remove('selected'));
+    document.getElementById('totalPrice').textContent = 'R$ 0';
+    document.getElementById('inputNome').value = '';
+    document.getElementById('inputTelefone').value = '';
+    PRODUTOS_CACHE.forEach(p => p.quantidade = 0);
+    renderProdutosList();
+    renderProdutosGrid();
+    goTo('home');
+  }
+
+  // ---- Init ----
+  buildDateScroller();
+  fetchProdutos();
+  prefillFromStorage();
+  goTo('home');
+
+  // ---- PWA: registra o service worker (permite instalar como app) ----
+  if('serviceWorker' in navigator){
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/service-worker.js').then(() => {
+        const telefoneSalvo = localStorage.getItem('deeh_telefone');
+        if(telefoneSalvo) inscreverPushCliente(telefoneSalvo, false);
+      }).catch(err => {
+        console.error('Erro ao registrar service worker:', err);
+      });
+    });
+  }
+</script>
+
+</body>
+</html>
+
 <meta name="apple-mobile-web-app-title" content="Deeh App">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
