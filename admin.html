@@ -499,13 +499,13 @@
 <body>
 
   <div class="mode-switch">
-    <button class="active" style="cursor:default;">Painel Deeh (admin)</button>
+    <button class="active" id="modeSwitchLabel" style="cursor:default;">Painel (admin)</button>
     <button onclick="logoutAdmin()">Sair</button>
   </div>
 
   <!-- Tela de login -->
   <div id="loginGate" style="max-width:375px;margin:60px auto;text-align:center;color:var(--cream);">
-    <img class="logo-img" src="logo.png" alt="Logo Barbearia do Deeh" style="width:64px;margin-bottom:16px;">
+    <img class="logo-img" src="" alt="" style="width:64px;margin-bottom:16px;">
     <h2 style="margin-bottom:16px;">Acesso restrito</h2>
     <input type="password" id="adminPassword" class="form-input" placeholder="Senha" style="max-width:260px;margin:0 auto 12px;" onkeydown="if(event.key==='Enter')tentarLogin()">
     <br>
@@ -522,169 +522,13 @@
 
     <div class="screens">
 
-      <!-- 1. HOME -->
-      <div class="screen active" id="screen-home">
-        <div class="brand-header">
-          <img class="logo-img" src="logo.png" alt="Logo Barbearia do Deeh">
-          <div class="brand-text">
-            <p class="eyebrow">Indaiatuba · SP</p>
-            <h1>BARBEARIA <span>DO DEEH</span></h1>
-            <p>Seu horário garantido, sem complicação.</p>
-          </div>
-        </div>
-        <div class="screen-body" style="padding-top:0;">
-          <button class="cta-primary" onclick="goTo('services')">Agendar horário</button>
-          <div class="gold-divider"></div>
-          <p class="eyebrow" style="margin-bottom:10px;">Serviços rápidos</p>
-          <div class="quick-grid">
-            <div class="quick-card" onclick="goTo('services')">
-              <div class="name">Corte</div>
-              <div class="price">R$ 50</div>
-            </div>
-            <div class="quick-card" onclick="goTo('services')">
-              <div class="name">Barba</div>
-              <div class="price">R$ 50</div>
-            </div>
-            <div class="quick-card" onclick="goTo('services')">
-              <div class="name">Corte + Barba</div>
-              <div class="price">R$ 95</div>
-            </div>
-            <div class="quick-card" onclick="goTo('services')">
-              <div class="name">Corte Kids</div>
-              <div class="price">R$ 45</div>
-            </div>
-          </div>
-          <div class="plan-banner">
-            <p class="eyebrow">Planos mensais</p>
-            <h3>O Clássico</h3>
-            <p>Cortes ilimitados + barba todo mês. Toque para ver os planos.</p>
-          </div>
-        </div>
-        <div class="bottom-nav">
-          <button class="nav-item" data-target="home" onclick="goTo('home')"><span class="nav-icon">⌂</span>Início<span class="dot"></span></button>
-          <button class="nav-item" data-target="services" onclick="goTo('services')"><span class="nav-icon">✂</span>Agendar<span class="dot"></span></button>
-          <button class="nav-item" data-target="plans" onclick="goTo('plans')"><span class="nav-icon">◆</span>Planos<span class="dot"></span></button>
-          <button class="nav-item" data-target="profile" onclick="goTo('profile')"><span class="nav-icon">☺</span>Perfil<span class="dot"></span></button>
-        </div>
-      </div>
-
-      <!-- 2. SERVICES -->
-      <div class="screen" id="screen-services">
-        <div class="step-header">
-          <button class="back-btn" onclick="goTo('home')">←</button>
-          <h2 class="step-title">Serviços</h2>
-          <div class="step-dots"><span class="done"></span><span></span><span></span></div>
-        </div>
-        <div class="screen-body" style="padding-top:0;">
-          <div class="service-row" data-price="50" data-name="Corte" data-duration="60" onclick="toggleService(this)">
-            <div class="service-row-left">
-              <div class="checkbox"></div>
-              <div class="info"><div class="name">Corte</div><div class="dur">60 min</div></div>
-            </div>
-            <div class="price">R$ 50</div>
-          </div>
-          <div class="service-row" data-price="50" data-name="Barba" data-duration="60" onclick="toggleService(this)">
-            <div class="service-row-left">
-              <div class="checkbox"></div>
-              <div class="info"><div class="name">Barba</div><div class="dur">60 min</div></div>
-            </div>
-            <div class="price">R$ 50</div>
-          </div>
-          <div class="service-row" data-price="15" data-name="Sobrancelha" data-duration="0" onclick="toggleService(this)">
-            <div class="service-row-left">
-              <div class="checkbox"></div>
-              <div class="info"><div class="name">Sobrancelha</div><div class="dur">complemento</div></div>
-            </div>
-            <div class="price">R$ 15</div>
-          </div>
-          <div class="service-row" data-price="15" data-name="Pezinho" data-duration="15" onclick="toggleService(this)">
-            <div class="service-row-left">
-              <div class="checkbox"></div>
-              <div class="info"><div class="name">Pezinho</div><div class="dur">15 min</div></div>
-            </div>
-            <div class="price">R$ 15</div>
-          </div>
-          <div class="service-row" data-price="45" data-name="Corte Kids" data-duration="60" onclick="toggleService(this)">
-            <div class="service-row-left">
-              <div class="checkbox"></div>
-              <div class="info"><div class="name">Corte Kids</div><div class="dur">60 min</div></div>
-            </div>
-            <div class="price">R$ 45</div>
-          </div>
-        </div>
-        <div class="sticky-footer">
-          <div class="total-line"><span>Total</span><b id="totalPrice">R$ 0</b></div>
-          <button class="cta-primary" onclick="goTo('calendar')">Continuar</button>
-        </div>
-      </div>
-
-      <!-- 3. CALENDAR -->
-      <div class="screen" id="screen-calendar">
-        <div class="step-header">
-          <button class="back-btn" onclick="goTo('services')">←</button>
-          <h2 class="step-title">Data e hora</h2>
-          <div class="step-dots"><span class="done"></span><span class="done"></span><span></span></div>
-        </div>
-        <div class="screen-body" style="padding-top:0;">
-          <p class="eyebrow" id="monthLabel" style="margin-bottom:10px;">—</p>
-          <div class="date-scroller" id="dateScroller"></div>
-          <div class="gold-divider"></div>
-          <p class="eyebrow" style="margin-bottom:10px;">Horários disponíveis</p>
-          <div class="time-grid" id="timeGrid"></div>
-          <p class="hint" style="margin-top:12px; text-align:left; font-size:11px;">Horários sujeitos a disponibilidade — o Deeh confirma na hora.</p>
-        </div>
-        <div class="sticky-footer">
-          <button class="cta-primary" id="btnToConfirm" onclick="goToConfirm()" disabled>Continuar</button>
-        </div>
-      </div>
-
-      <!-- 4. CONFIRM -->
-      <div class="screen" id="screen-confirm">
-        <div class="step-header">
-          <button class="back-btn" onclick="goTo('calendar')">←</button>
-          <h2 class="step-title">Confirmar</h2>
-          <div class="step-dots"><span class="done"></span><span class="done"></span><span class="done"></span></div>
-        </div>
-        <div class="screen-body" style="padding-top:0;">
-          <div class="form-group">
-            <label class="form-label">Seu nome</label>
-            <input type="text" id="inputNome" class="form-input" placeholder="Nome completo">
-          </div>
-          <div class="form-group">
-            <label class="form-label">WhatsApp</label>
-            <input type="tel" id="inputTelefone" class="form-input" placeholder="(19) 99999-9999">
-          </div>
-          <div class="summary-card">
-            <div class="summary-row"><span class="label">Serviço</span><span class="val" id="sumServico">—</span></div>
-            <div class="summary-row"><span class="label">Data</span><span class="val" id="sumData">—</span></div>
-            <div class="summary-row"><span class="label">Horário</span><span class="val" id="sumHorario">—</span></div>
-            <div class="summary-row"><span class="label">Local</span><span class="val">Jd. Morada do Sol</span></div>
-            <div class="summary-row"><span class="label">Total</span><span class="val" id="sumTotal" style="color:var(--gold); font-size:16px;">R$ 0</span></div>
-          </div>
-          <div id="confirmError" class="error-banner" style="display:none;"></div>
-          <button class="cta-primary" id="btnConfirmar" style="margin-top:18px;" onclick="confirmarAgendamento()">Confirmar agendamento</button>
-          <a id="whatsappFallback" class="whatsapp-btn" style="display:none; text-decoration:none;" target="_blank">📲 Confirmar via WhatsApp</a>
-          <p class="hint" style="margin-top:14px; text-align:left;">Ao confirmar, seu horário é reservado direto na agenda do Deeh.</p>
-        </div>
-      </div>
-
-      <!-- 4b. SUCCESS -->
-      <div class="screen" id="screen-success">
-        <div class="screen-body success-box">
-          <div class="success-icon">✓</div>
-          <h2>Agendamento confirmado!</h2>
-          <p id="successMsg">Seu horário foi reservado na agenda da Barbearia do Deeh.</p>
-          <button class="cta-primary" style="margin-top:26px;" onclick="resetFlow()">Voltar ao início</button>
-        </div>
-      </div>
-
       <!-- 5. DASHBOARD (DEEH) -->
       <div class="screen" id="screen-dashboard">
         <div class="brand-header">
-          <img class="logo-img" src="logo.png" alt="Logo Barbearia do Deeh">
+          <img class="logo-img" src="" alt="">
           <div class="brand-text">
             <p class="eyebrow" id="dashDataHoje">—</p>
-            <h1 style="font-size:26px;">Olá, <span>Deeh</span></h1>
+            <h1 style="font-size:26px;" id="dashGreeting">Olá!</h1>
           </div>
         </div>
         <div class="screen-body" style="padding-top:0;">
@@ -733,29 +577,6 @@
         </div>
       </div>
 
-      <!-- 6. PLANOS -->
-      <div class="screen" id="screen-plans">
-        <div class="step-header">
-          <button class="back-btn" onclick="goTo(currentMode)">←</button>
-          <h2 class="step-title">Planos mensais</h2>
-        </div>
-        <div class="screen-body" style="padding-top:0;">
-          <div class="summary-card" style="margin-bottom:14px;">
-            <div class="summary-row"><span class="label" style="font-size:15px;color:var(--cream);font-weight:700;">Essencial</span><span class="val" style="color:var(--gold);">R$ 160/mês</span></div>
-            <div class="summary-row"><span class="label">4 cortes ou 4 barbas por mês</span></div>
-          </div>
-          <div class="summary-card" style="margin-bottom:14px;">
-            <div class="summary-row"><span class="label" style="font-size:15px;color:var(--cream);font-weight:700;">Clássico</span><span class="val" style="color:var(--gold);">R$ 260/mês</span></div>
-            <div class="summary-row"><span class="label">4 barbas + 2 cortes + 2 pezinhos de brinde</span></div>
-          </div>
-          <div class="summary-card" style="margin-bottom:14px;">
-            <div class="summary-row"><span class="label" style="font-size:15px;color:var(--cream);font-weight:700;">Empresário</span><span class="val" style="color:var(--gold);">R$ 340/mês</span></div>
-            <div class="summary-row"><span class="label">4 cortes + 4 barbas + sobrancelha de brinde</span></div>
-          </div>
-          <button class="whatsapp-btn" onclick="assinarPlano()">📲 Assinar via WhatsApp</button>
-        </div>
-      </div>
-
       <!-- 8. CLIENTES (admin) -->
       <div class="screen" id="screen-clientes">
         <div class="step-header">
@@ -786,12 +607,7 @@
           </div>
           <div class="form-group">
             <label class="form-label">Plano</label>
-            <select id="novoClientePlano" class="form-input">
-              <option value="nenhum">Sem plano</option>
-              <option value="essencial">Essencial</option>
-              <option value="classico">Clássico</option>
-              <option value="empresario">Empresário</option>
-            </select>
+            <select id="novoClientePlano" class="form-input plano-select" data-nenhum="1"></select>
           </div>
           <div class="form-group" id="subtipoEssencialGroup" style="display:none;">
             <label class="form-label">Essencial — tipo</label>
@@ -819,12 +635,7 @@
           <p class="eyebrow" style="margin-bottom:10px;">Plano do cliente</p>
           <div class="form-group">
             <label class="form-label">Plano</label>
-            <select id="editPlano" class="form-input">
-              <option value="nenhum">Sem plano</option>
-              <option value="essencial">Essencial</option>
-              <option value="classico">Clássico</option>
-              <option value="empresario">Empresário</option>
-            </select>
+            <select id="editPlano" class="form-input plano-select" data-nenhum="1"></select>
           </div>
           <div class="form-group" id="editSubtipoEssencialGroup" style="display:none;">
             <label class="form-label">Essencial — tipo</label>
@@ -866,12 +677,7 @@
           <p class="eyebrow" style="margin-bottom:10px;">Horário fixo semanal</p>
           <div class="form-group">
             <label class="form-label">Serviço</label>
-            <select id="fixoServico" class="form-input">
-              <option value="Corte">Corte</option>
-              <option value="Barba">Barba</option>
-              <option value="Corte + Barba">Corte + Barba</option>
-              <option value="Corte Kids">Corte Kids</option>
-            </select>
+            <select id="fixoServico" class="form-input"></select>
           </div>
           <div class="form-group">
             <label class="form-label">Primeira data (DD/MM/AAAA)</label>
@@ -959,11 +765,7 @@
 
           <div class="form-group" id="notifPlanoGroup" style="display:none;">
             <label class="form-label">Plano</label>
-            <select id="notifPlano" class="form-input">
-              <option value="essencial">Essencial</option>
-              <option value="classico">Clássico</option>
-              <option value="empresario">Empresário</option>
-            </select>
+            <select id="notifPlano" class="form-input plano-select"></select>
           </div>
 
           <div id="notifManualGroup" style="display:none;">
@@ -977,7 +779,7 @@
 
           <div class="form-group">
             <label class="form-label">Título</label>
-            <input type="text" id="notifTitulo" class="form-input" placeholder="Barbearia do Deeh" value="Barbearia do Deeh">
+            <input type="text" id="notifTitulo" class="form-input">
           </div>
           <div class="form-group">
             <label class="form-label">Mensagem</label>
@@ -1017,56 +819,77 @@
     </div>
   </div>
 
+<script src="config-negocio.js"></script>
 <script>
-  // ====== CONFIG ======
-  const API_URL = 'https://backend-v2-five-topaz.vercel.app/api/agendar';
-  const API_DISPONIBILIDADE_URL = 'https://backend-v2-five-topaz.vercel.app/api/disponibilidade';
-  const API_AGENDA_HOJE_URL = 'https://backend-v2-five-topaz.vercel.app/api/agenda-hoje';
-  const API_CLIENTES_URL = 'https://backend-v2-five-topaz.vercel.app/api/clientes';
-  const API_AGENDAR_FIXO_URL = 'https://backend-v2-five-topaz.vercel.app/api/agendar-fixo';
-  const API_BLOQUEAR_URL = 'https://backend-v2-five-topaz.vercel.app/api/bloquear-horario';
-  const API_FINANCEIRO_URL = 'https://backend-v2-five-topaz.vercel.app/api/financeiro';
-  const API_DESPESAS_URL = 'https://backend-v2-five-topaz.vercel.app/api/despesas';
-  const API_PAGAMENTOS_PLANOS_URL = 'https://backend-v2-five-topaz.vercel.app/api/pagamentos-planos';
-  const API_PUSH_SUBSCRIBE_URL = 'https://backend-v2-five-topaz.vercel.app/api/push-subscribe';
-  const API_ENVIAR_LEMBRETES_URL = 'https://backend-v2-five-topaz.vercel.app/api/enviar-lembretes';
+  // ====== CONFIG (hidratado a partir de NEGOCIO, ver config-negocio.js) ======
+  const API_AGENDA_HOJE_URL = `${NEGOCIO.apiBase}/agenda-hoje`;
+  const API_CLIENTES_URL = `${NEGOCIO.apiBase}/clientes`;
+  const API_AGENDAR_FIXO_URL = `${NEGOCIO.apiBase}/agendar-fixo`;
+  const API_BLOQUEAR_URL = `${NEGOCIO.apiBase}/bloquear-horario`;
+  const API_FINANCEIRO_URL = `${NEGOCIO.apiBase}/financeiro`;
+  const API_DESPESAS_URL = `${NEGOCIO.apiBase}/despesas`;
+  const API_PAGAMENTOS_PLANOS_URL = `${NEGOCIO.apiBase}/pagamentos-planos`;
+  const API_PUSH_SUBSCRIBE_URL = `${NEGOCIO.apiBase}/push-subscribe`;
+  const API_ENVIAR_LEMBRETES_URL = `${NEGOCIO.apiBase}/enviar-lembretes`;
   const CRON_SECRET_CLIENT = 'deeh261210'; // autoriza o envio manual de notificações (mesmo secret do cron)
-  const WHATSAPP_NUMBER = '5519993900880';
-  const ADMIN_TELEFONE = '5519993900880'; // identifica a inscrição push do Deeh (dono do painel)
+  const WHATSAPP_NUMBER = NEGOCIO.whatsapp;
+  const ADMIN_TELEFONE = NEGOCIO.whatsapp; // identifica a inscrição push do dono do painel
   const VAPID_PUBLIC_KEY = 'BMrLQ-xHvALzu301ihaunGo5vGJ6FYKaJzx7B-RqVbU7FAO4eEHu3MIQ7mDqQPWc7CwUSrfi49nBG7ahp2mlrZU';
 
   // Horário de funcionamento: 0=Dom ... 6=Sáb
-  const BUSINESS_HOURS = {
-    2: { open: 9, close: 19 }, // Terça
-    3: { open: 9, close: 19 }, // Quarta
-    4: { open: 9, close: 19 }, // Quinta
-    5: { open: 9, close: 19 }, // Sexta
-    6: { open: 8, close: 17 }, // Sábado
-  };
+  const BUSINESS_HOURS = NEGOCIO.horarioFuncionamento;
 
   const DOW_LABELS = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
   const DOW_LABELS_LONGO = ['Domingo','Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado'];
   const MONTH_LABELS = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 
-  // ====== STATE ======
-  let selectedServices = []; // [{name, price, duration}]
-  let selectedDate = null;   // Date object (00:00 local)
-  let selectedTime = null;   // "HH:MM"
+  const PLANO_LABELS = { nenhum: 'Sem plano' };
+  NEGOCIO.planos.forEach(p => { PLANO_LABELS[p.id] = p.nome; });
 
-  let currentMode = 'home';
+  // ====== STATE ======
+  let currentMode = 'dashboard';
 
   function goTo(id){
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById('screen-' + id).classList.add('active');
     document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.target === id));
-    if(id === 'home' || id === 'dashboard'){ currentMode = id; }
-    if(id === 'dashboard'){ carregarDashboard(); }
+    if(id === 'dashboard'){ currentMode = id; carregarDashboard(); }
     if(id === 'clientes'){ carregarClientes(); }
     if(id === 'financeiro'){ carregarFinanceiro(); }
   }
 
-  const PLANO_LABELS = { nenhum: 'Sem plano', essencial: 'Essencial', classico: 'Clássico', empresario: 'Empresário' };
   let clientesCache = [];
+
+  // ====== Hidratação a partir de NEGOCIO (config-negocio.js) ======
+  function hidratarNegocio(){
+    document.title = `Painel ${NEGOCIO.nome.split(' ').pop()} - Admin`;
+    document.querySelectorAll('.logo-img').forEach(img => {
+      img.src = NEGOCIO.logoAdmin;
+      img.alt = `Logo ${NEGOCIO.nome}`;
+    });
+    document.getElementById('modeSwitchLabel').textContent = `Painel · ${NEGOCIO.nome} (admin)`;
+    const greeting = document.getElementById('dashGreeting');
+    if(greeting) greeting.innerHTML = NEGOCIO.donoNome ? `Olá, <span>${NEGOCIO.donoNome}</span>` : 'Olá!';
+    const notifTitulo = document.getElementById('notifTitulo');
+    if(notifTitulo){ notifTitulo.placeholder = NEGOCIO.nome; notifTitulo.value = NEGOCIO.nome; }
+    hidratarSelectsPlano();
+    hidratarSelectFixoServico();
+  }
+
+  function hidratarSelectsPlano(){
+    document.querySelectorAll('select.plano-select').forEach(sel => {
+      const incluirNenhum = sel.dataset.nenhum === '1';
+      let html = incluirNenhum ? '<option value="nenhum">Sem plano</option>' : '';
+      html += NEGOCIO.planos.map(p => `<option value="${p.id}">${p.nome}</option>`).join('');
+      sel.innerHTML = html;
+    });
+  }
+
+  function hidratarSelectFixoServico(){
+    const sel = document.getElementById('fixoServico');
+    if(!sel) return;
+    sel.innerHTML = NEGOCIO.servicosRapidosHome.map(s => `<option value="${s.name}">${s.name}</option>`).join('');
+  }
 
   document.addEventListener('change', (e) => {
     if(e.target && e.target.id === 'novoClientePlano'){
@@ -1525,7 +1348,6 @@
   function abrirPainel(){
     document.getElementById('loginGate').style.display = 'none';
     document.getElementById('appShell').style.display = '';
-    buildDateScroller();
     goTo('dashboard');
     inscreverPushAdmin();
   }
@@ -1566,84 +1388,8 @@
     location.reload();
   }
 
-  function assinarPlano(){
-    const msg = encodeURIComponent('Olá! Quero assinar um plano mensal da Barbearia do Deeh.');
-    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${msg}`, '_blank');
-  }
-
   function salvarPerfil(){
-    const nome = document.getElementById('profileNome').value.trim();
-    const telefone = document.getElementById('profileTelefone').value.trim();
-    if(nome) document.getElementById('inputNome').value = nome;
-    if(telefone) document.getElementById('inputTelefone').value = telefone;
     alert('Perfil salvo!');
-  }
-
-  function toggleService(el){
-    el.classList.toggle('selected');
-    let total = 0;
-    selectedServices = [];
-    document.querySelectorAll('.service-row.selected').forEach(row => {
-      const price = parseInt(row.dataset.price, 10);
-      total += price;
-      selectedServices.push({
-        name: row.dataset.name,
-        price,
-        duration: parseInt(row.dataset.duration, 10)
-      });
-    });
-    document.getElementById('totalPrice').textContent = 'R$ ' + total;
-  }
-
-  // ---- Calendar: build next available days dynamically ----
-  function buildDateScroller(){
-    const scroller = document.getElementById('dateScroller');
-    scroller.innerHTML = '';
-    const today = new Date();
-    today.setHours(0,0,0,0);
-
-    const days = [];
-    let cursor = new Date(today);
-    while(days.length < 7){
-      if(BUSINESS_HOURS[cursor.getDay()]){
-        days.push(new Date(cursor));
-      }
-      cursor.setDate(cursor.getDate() + 1);
-    }
-
-    days.forEach((d, idx) => {
-      const chip = document.createElement('div');
-      chip.className = 'date-chip' + (idx === 0 ? ' selected' : '');
-      chip.innerHTML = `<div class="dow">${DOW_LABELS[d.getDay()]}</div><div class="num">${String(d.getDate()).padStart(2,'0')}</div>`;
-      chip.onclick = () => selectDate(chip, d);
-      scroller.appendChild(chip);
-    });
-
-    selectDate(scroller.children[0], days[0]);
-  }
-
-  function updateMonthLabel(d){
-    document.getElementById('monthLabel').textContent = `${MONTH_LABELS[d.getMonth()]} ${d.getFullYear()}`;
-  }
-
-  function selectDate(el, dateObj){
-    document.querySelectorAll('.date-chip').forEach(c => c.classList.remove('selected'));
-    el.classList.add('selected');
-    selectedDate = dateObj;
-    updateMonthLabel(dateObj);
-    buildTimeGrid(dateObj);
-  }
-
-  async function buscarHorariosOcupados(dataDDMMAAAA){
-    try {
-      const resp = await fetch(`${API_DISPONIBILIDADE_URL}?data=${encodeURIComponent(dataDDMMAAAA)}`);
-      const json = await resp.json();
-      if(!json.success) return [];
-      return json.ocupados; // [{ inicio: "10:00", fim: "11:00" }]
-    } catch(e){
-      console.error('Erro ao buscar disponibilidade:', e);
-      return []; // falha segura: se a API cair, não bloqueia nenhum horário
-    }
   }
 
   function horarioConflita(horarioInicio, duracaoMin, ocupados){
@@ -1660,58 +1406,7 @@
     });
   }
 
-  async function buildTimeGrid(dateObj){
-    const grid = document.getElementById('timeGrid');
-    grid.innerHTML = '<div style="color:var(--muted);font-size:12px;padding:8px 0;">Carregando horários...</div>';
-    selectedTime = null;
-    document.getElementById('btnToConfirm').disabled = true;
-
-    const hours = BUSINESS_HOURS[dateObj.getDay()];
-    if(!hours){ grid.innerHTML = ''; return; }
-
-    const now = new Date();
-    const isToday = dateObj.toDateString() === now.toDateString();
-
-    const dia = String(dateObj.getDate()).padStart(2,'0');
-    const mes = String(dateObj.getMonth() + 1).padStart(2,'0');
-    const ano = dateObj.getFullYear();
-    const dataStr = `${dia}/${mes}/${ano}`;
-
-    const hasFullService = selectedServices.some(x => x.duration >= 60);
-    const duracaoMin = selectedServices.length ? (hasFullService ? 60 : 15) : 60;
-
-    const ocupados = await buscarHorariosOcupados(dataStr);
-
-    grid.innerHTML = '';
-
-    for(let h = hours.open; h < hours.close; h++){
-      // esconde horários que já passaram, se for hoje
-      if(isToday && h <= now.getHours()) continue;
-
-      const label = String(h).padStart(2,'0') + ':00';
-      // esconde horários já ocupados no Google Calendar
-      if(horarioConflita(label, duracaoMin, ocupados)) continue;
-
-      const slot = document.createElement('div');
-      slot.className = 'time-slot';
-      slot.textContent = label;
-      slot.onclick = () => selectTime(slot, label);
-      grid.appendChild(slot);
-    }
-
-    if(!grid.children.length){
-      grid.innerHTML = '<div style="color:var(--muted);font-size:12px;padding:8px 0;">Nenhum horário disponível neste dia.</div>';
-    }
-  }
-
-  function selectTime(el, label){
-    document.querySelectorAll('.time-slot').forEach(t => t.classList.remove('selected'));
-    el.classList.add('selected');
-    selectedTime = label;
-    document.getElementById('btnToConfirm').disabled = false;
-  }
-
-  // ---- Dashboard (Deeh): dados reais ----
+  // ---- Dashboard: dados reais ----
   function formatarDataHojeExtenso(){
     const hoje = new Date();
     return `${DOW_LABELS_LONGO[hoje.getDay()]}, ${String(hoje.getDate()).padStart(2,'0')} de ${MONTH_LABELS[hoje.getMonth()].toLowerCase()}`;
@@ -1790,109 +1485,8 @@
     }
   }
 
-  // ---- Confirm screen ----
-  function goToConfirm(){
-    if(!selectedServices.length || !selectedDate || !selectedTime) return;
-
-    const total = selectedServices.reduce((s, x) => s + x.price, 0);
-    const names = selectedServices.map(x => x.name).join(' + ');
-
-    document.getElementById('sumServico').textContent = names;
-    document.getElementById('sumData').textContent = `${DOW_LABELS[selectedDate.getDay()]}, ${String(selectedDate.getDate()).padStart(2,'0')} de ${MONTH_LABELS[selectedDate.getMonth()].toLowerCase()}`;
-    document.getElementById('sumHorario').textContent = selectedTime;
-    document.getElementById('sumTotal').textContent = 'R$ ' + total;
-
-    document.getElementById('confirmError').style.display = 'none';
-    document.getElementById('whatsappFallback').style.display = 'none';
-
-    goTo('confirm');
-  }
-
-  function getBookingPayload(){
-    const nome = document.getElementById('inputNome').value.trim();
-    const telefone = document.getElementById('inputTelefone').value.trim();
-    const total = selectedServices.reduce((s, x) => s + x.price, 0);
-    const names = selectedServices.map(x => x.name).join(' + ');
-    const hasFullService = selectedServices.some(x => x.duration >= 60);
-    const duracaoMin = hasFullService ? 60 : 15;
-    const dia = String(selectedDate.getDate()).padStart(2,'0');
-    const mes = String(selectedDate.getMonth() + 1).padStart(2,'0');
-    const ano = selectedDate.getFullYear();
-
-    return {
-      nome, telefone,
-      servico: names,
-      data: `${dia}/${mes}/${ano}`,
-      horario: selectedTime,
-      duracao: duracaoMin === 15 ? '15 min' : '60 min',
-      preco: 'R$' + total
-    };
-  }
-
-  async function confirmarAgendamento(){
-    const payload = getBookingPayload();
-    const errorBox = document.getElementById('confirmError');
-    const whatsappLink = document.getElementById('whatsappFallback');
-    const btn = document.getElementById('btnConfirmar');
-
-    if(!payload.nome || !payload.telefone){
-      errorBox.textContent = 'Preencha seu nome e WhatsApp para confirmar.';
-      errorBox.style.display = 'block';
-      whatsappLink.style.display = 'none';
-      return;
-    }
-
-    errorBox.style.display = 'none';
-    whatsappLink.style.display = 'none';
-    btn.disabled = true;
-    btn.classList.add('loading');
-    btn.textContent = 'Confirmando...';
-
-    try {
-      const res = await fetch(API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      const data = await res.json();
-
-      if(!res.ok || !data.success){
-        throw new Error(data.error || 'Não foi possível confirmar o agendamento.');
-      }
-
-      document.getElementById('successMsg').textContent =
-        `${payload.nome}, seu horário de ${payload.servico} no dia ${payload.data} às ${payload.horario} foi reservado na agenda da Barbearia do Deeh.`;
-      goTo('success');
-
-    } catch (err) {
-      errorBox.textContent = 'Não conseguimos confirmar automaticamente. Tente novamente ou fale direto com o Deeh no WhatsApp.';
-      errorBox.style.display = 'block';
-
-      const msg = encodeURIComponent(
-        `Olá! Quero agendar: ${payload.servico}, dia ${payload.data} às ${payload.horario}. Nome: ${payload.nome}`
-      );
-      whatsappLink.href = `https://wa.me/${WHATSAPP_NUMBER}?text=${msg}`;
-      whatsappLink.style.display = 'flex';
-
-    } finally {
-      btn.disabled = false;
-      btn.classList.remove('loading');
-      btn.textContent = 'Confirmar agendamento';
-    }
-  }
-
-  function resetFlow(){
-    selectedServices = [];
-    selectedDate = null;
-    selectedTime = null;
-    document.querySelectorAll('.service-row.selected').forEach(r => r.classList.remove('selected'));
-    document.getElementById('totalPrice').textContent = 'R$ 0';
-    document.getElementById('inputNome').value = '';
-    document.getElementById('inputTelefone').value = '';
-    goTo('home');
-  }
-
   // ---- Init ----
+  hidratarNegocio();
   if(sessionStorage.getItem('deehAdminAuth') === '1'){
     abrirPainel();
   }
