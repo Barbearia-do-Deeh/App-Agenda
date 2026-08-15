@@ -663,6 +663,48 @@
   }
   .hint b{color:var(--gold);}
 
+  /* ---- Banner de instalação iOS (Safari não expõe botão de instalar) ---- */
+  #iosInstallBanner{
+    display:none;
+    position:fixed;
+    left:0; right:0; bottom:0;
+    z-index:999;
+    background:var(--surface);
+    border-top:1px solid var(--gold);
+    padding:16px 20px calc(16px + env(safe-area-inset-bottom));
+    box-shadow:0 -8px 24px rgba(0,0,0,.45);
+  }
+  #iosInstallBanner .install-banner-row{
+    display:flex;
+    align-items:flex-start;
+    gap:12px;
+    max-width:375px;
+    margin:0 auto;
+  }
+  #iosInstallBanner .install-banner-title{
+    font-weight:700;
+    font-size:14px;
+    color:var(--cream);
+    margin-bottom:4px;
+  }
+  #iosInstallBanner .install-banner-text{
+    font-size:12.5px;
+    color:var(--muted);
+    line-height:1.5;
+    text-align:left;
+  }
+  #iosInstallBanner .install-banner-text b{color:var(--gold);}
+  #iosInstallBanner .install-banner-close{
+    background:none;
+    border:none;
+    color:var(--muted);
+    font-size:20px;
+    cursor:pointer;
+    line-height:1;
+    padding:0 2px;
+    flex-shrink:0;
+  }
+
   /* ---- Responsivo: em celular de verdade, a moldura vira a tela inteira ---- */
   @media (max-width: 480px){
     body{
@@ -1019,6 +1061,19 @@
   </div>
 
   <p class="hint">Barbearia do Deeh — agende seu horário em segundos.</p>
+
+  <!-- Banner de instalação iOS: só aparece se detectar iPhone/iPad fora do modo app -->
+  <div id="iosInstallBanner">
+    <div class="install-banner-row">
+      <div style="flex:1;">
+        <p class="install-banner-title">Instale o app na tela de início</p>
+        <p class="install-banner-text" id="iosInstallBannerText">
+          Toque em <b>Compartilhar</b> ⬆️ na barra do Safari e depois em <b>"Adicionar à Tela de Início"</b>.
+        </p>
+      </div>
+      <button class="install-banner-close" onclick="fecharIosInstallBanner()" aria-label="Fechar">×</button>
+    </div>
+  </div>
 
 <script>
   // ====== CONFIG ======
@@ -1648,6 +1703,44 @@
   fetchProdutos();
   prefillFromStorage();
   goTo('home');
+  detectarIOSInstall();
+
+  // ---- Banner de instalação iOS ----
+  // O iOS não expõe evento/botão nativo de "instalar" como o Android (beforeinstallprompt).
+  // A única forma de instalar é manual: Safari > Compartilhar > Adicionar à Tela de Início.
+  // Como nada avisa isso, o cliente só desiste. Este banner detecta iPhone/iPad fora do
+  // modo instalado e mostra o passo a passo — com aviso à parte se estiver no Chrome do
+  // iPhone, que não expõe essa opção (precisa abrir no Safari).
+  function detectarIOSInstall(){
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    if(!isIOS) return;
+
+    const jaInstalado = window.navigator.standalone === true ||
+      window.matchMedia('(display-mode: standalone)').matches;
+    if(jaInstalado) return;
+
+    // Detecta Safari real (exclui Chrome/Firefox/Edge no iOS, que usam o motor do Safari
+    // mas identificam CriOS/FxiOS/EdgiOS no user-agent e não oferecem "Adicionar à Tela de Início")
+    const isSafari = /^((?!chrome|crios|fxios|edgios|android).)*safari/i.test(navigator.userAgent);
+
+    const fechouEm = localStorage.getItem('deeh_ios_banner_fechado');
+    if(fechouEm){
+      const diasDesde = (Date.now() - parseInt(fechouEm, 10)) / (1000 * 60 * 60 * 24);
+      if(diasDesde < 7) return; // não insiste toda visita, mas volta a lembrar depois de uma semana
+    }
+
+    if(!isSafari){
+      document.getElementById('iosInstallBannerText').innerHTML =
+        'Esse navegador não permite instalar o app. Toque em <b>⋯</b> (ou no menu do navegador) e escolha <b>"Abrir no Safari"</b> pra instalar.';
+    }
+
+    document.getElementById('iosInstallBanner').style.display = 'block';
+  }
+
+  function fecharIosInstallBanner(){
+    document.getElementById('iosInstallBanner').style.display = 'none';
+    localStorage.setItem('deeh_ios_banner_fechado', String(Date.now()));
+  }
 
   // ---- PWA: registra o service worker (permite instalar como app) ----
   if('serviceWorker' in navigator){
