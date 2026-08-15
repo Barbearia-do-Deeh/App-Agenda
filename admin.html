@@ -494,6 +494,27 @@
     line-height:1.5;
   }
   .hint b{color:var(--gold);}
+
+  /* ---- Gráfico de faturamento (barras SVG simples) ---- */
+  .grafico-container{
+    background:var(--surface);
+    border:1px solid var(--brown);
+    border-radius:14px;
+    padding:16px 12px 10px;
+  }
+  .grafico-bar-label{
+    font-size:9.5px;
+    fill:var(--muted);
+    text-anchor:middle;
+    font-family:'Exo',sans-serif;
+  }
+  .grafico-bar-valor{
+    font-size:10px;
+    fill:var(--cream);
+    text-anchor:middle;
+    font-weight:700;
+    font-family:'Exo',sans-serif;
+  }
 </style>
 </head>
 <body>
@@ -620,6 +641,10 @@
             <label class="form-label">Valor do pacote (opcional)</label>
             <input type="number" id="novoClienteValorPacote" class="form-input" placeholder="Deixe em branco pra usar o valor padrão" min="0" step="0.01">
           </div>
+          <div class="form-group">
+            <label class="form-label">Data de nascimento (opcional)</label>
+            <input type="date" id="novoClienteDataNascimento" class="form-input">
+          </div>
           <div id="novoClienteError" class="error-banner" style="display:none;"></div>
           <button class="cta-primary" onclick="salvarNovoCliente()">Cadastrar</button>
         </div>
@@ -670,6 +695,10 @@
             <input type="number" id="editValorPacote" class="form-input" placeholder="Deixe em branco pra usar o valor padrão do plano" min="0" step="0.01">
             <p class="hint" style="text-align:left; margin-top:6px;">Em branco = usa o valor padrão do plano (R$160/260/340). Preenchido = vale só pra esse cliente, útil pra pacotes antigos com valor diferente.</p>
           </div>
+          <div class="form-group">
+            <label class="form-label">Data de nascimento</label>
+            <input type="date" id="editDataNascimento" class="form-input">
+          </div>
           <div id="editarClienteError" class="error-banner" style="display:none;"></div>
           <button class="cta-primary" onclick="salvarEdicaoCliente()">Salvar alterações</button>
 
@@ -712,6 +741,10 @@
         </div>
         <div class="screen-body" style="padding-top:0;">
           <div id="financeiroResumo"><p class="hint" style="text-align:left;">Carregando...</p></div>
+
+          <div class="gold-divider"></div>
+          <p class="eyebrow" style="margin-bottom:10px;">Faturamento — últimos 6 meses</p>
+          <div id="graficoFaturamento"><p class="hint" style="text-align:left;">Carregando...</p></div>
 
           <div class="gold-divider"></div>
           <p class="eyebrow" style="margin-bottom:10px;">Nova despesa</p>
@@ -759,6 +792,8 @@
             <select id="notifFiltro" class="form-input">
               <option value="todos">Todos os clientes inscritos</option>
               <option value="plano">Clientes de um plano específico</option>
+              <option value="aniversariantes_hoje">Aniversariantes de hoje</option>
+              <option value="aniversariantes_mes">Aniversariantes do mês</option>
               <option value="manual">Selecionar manualmente</option>
             </select>
           </div>
@@ -1032,6 +1067,7 @@
     document.getElementById('novoClienteTelefone').value = '';
     document.getElementById('novoClientePlano').value = 'nenhum';
     document.getElementById('novoClienteValorPacote').value = '';
+    document.getElementById('novoClienteDataNascimento').value = '';
     document.getElementById('subtipoEssencialGroup').style.display = 'none';
     document.getElementById('novoClienteError').style.display = 'none';
     goTo('cliente-novo');
@@ -1044,6 +1080,7 @@
     const subtipo_essencial = plano === 'essencial' ? document.getElementById('novoClienteSubtipo').value : null;
     const valorPacoteRaw = document.getElementById('novoClienteValorPacote').value;
     const valor_pacote = valorPacoteRaw === '' ? null : parseFloat(valorPacoteRaw);
+    const data_nascimento = document.getElementById('novoClienteDataNascimento').value || null;
     const errorBox = document.getElementById('novoClienteError');
 
     if(!nome || !telefone){
@@ -1056,7 +1093,7 @@
       const resp = await fetch(API_CLIENTES_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nome, telefone, plano, subtipo_essencial, valor_pacote })
+        body: JSON.stringify({ nome, telefone, plano, subtipo_essencial, valor_pacote, data_nascimento })
       });
       const data = await resp.json();
       if(!resp.ok || !data.success) throw new Error(data.error || 'Falha ao cadastrar');
@@ -1082,6 +1119,7 @@
     document.getElementById('editPezinhos').value = c.pezinhos_restantes ?? 0;
     document.getElementById('editSobrancelha').value = String(!!c.sobrancelha_restante);
     document.getElementById('editValorPacote').value = c.valor_pacote ?? '';
+    document.getElementById('editDataNascimento').value = c.data_nascimento ? c.data_nascimento.slice(0, 10) : '';
     document.getElementById('editarClienteError').style.display = 'none';
     const planoLabel = document.getElementById('planoAtualLabel');
     planoLabel.textContent = c.plano && c.plano !== 'nenhum'
@@ -1105,7 +1143,8 @@
       barbas_restantes: parseInt(document.getElementById('editBarbas').value, 10) || 0,
       pezinhos_restantes: parseInt(document.getElementById('editPezinhos').value, 10) || 0,
       sobrancelha_restante: document.getElementById('editSobrancelha').value === 'true',
-      valor_pacote: valorPacoteRaw === '' ? null : parseFloat(valorPacoteRaw)
+      valor_pacote: valorPacoteRaw === '' ? null : parseFloat(valorPacoteRaw),
+      data_nascimento: document.getElementById('editDataNascimento').value || null
     };
     try{
       const resp = await fetch(API_CLIENTES_URL, {
@@ -1199,6 +1238,61 @@
       listaBox.innerHTML = '';
     }
     carregarRetencao();
+    carregarGraficoFaturamento();
+  }
+
+  async function carregarGraficoFaturamento(){
+    const box = document.getElementById('graficoFaturamento');
+    box.innerHTML = '<p class="hint" style="text-align:left;">Carregando...</p>';
+    try{
+      const resp = await fetch(`${API_FINANCEIRO_URL}?tipo=historico&meses=6`);
+      const data = await resp.json();
+      if(!data.success) throw new Error(data.error || 'Falha ao buscar histórico');
+      box.innerHTML = renderizarGraficoFaturamento(data.historico);
+    }catch(err){
+      box.innerHTML = '<p class="hint" style="text-align:left;color:#e8a37f;">Erro ao carregar gráfico.</p>';
+    }
+  }
+
+  function renderizarGraficoFaturamento(historico){
+    if(!historico || !historico.length){
+      return '<p class="hint" style="text-align:left;">Sem dados suficientes ainda.</p>';
+    }
+
+    const MESES_ABREV = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+    const largura = 335;
+    const altura = 150;
+    const alturaBarraMax = 90;
+    const baseY = 112;
+    const n = historico.length;
+    const larguraBarra = Math.min(38, (largura - 20) / n - 10);
+    const espacamento = (largura - 20) / n;
+
+    const maiorReceita = Math.max(...historico.map(h => h.receita_total), 1);
+
+    const barras = historico.map((h, i) => {
+      const alturaBarra = Math.max(2, (h.receita_total / maiorReceita) * alturaBarraMax);
+      const x = 10 + i * espacamento + (espacamento - larguraBarra) / 2;
+      const y = baseY - alturaBarra;
+      const label = `${MESES_ABREV[h.mes - 1]}`;
+      const valorFmt = h.receita_total >= 1000
+        ? `${(h.receita_total / 1000).toFixed(1)}k`
+        : `${Math.round(h.receita_total)}`;
+      return `
+        <rect x="${x}" y="${y}" width="${larguraBarra}" height="${alturaBarra}" rx="4" fill="var(--gold)"></rect>
+        <text x="${x + larguraBarra / 2}" y="${y - 6}" class="grafico-bar-valor">${valorFmt}</text>
+        <text x="${x + larguraBarra / 2}" y="${baseY + 16}" class="grafico-bar-label">${label}</text>
+      `;
+    }).join('');
+
+    return `
+      <div class="grafico-container">
+        <svg viewBox="0 0 ${largura} ${altura}" style="width:100%; height:auto; display:block;">
+          <line x1="10" y1="${baseY}" x2="${largura - 10}" y2="${baseY}" stroke="var(--brown)" stroke-width="1"></line>
+          ${barras}
+        </svg>
+      </div>
+    `;
   }
 
   async function carregarRetencao(){
