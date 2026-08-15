@@ -982,6 +982,10 @@
             <label class="form-label">WhatsApp</label>
             <input type="tel" id="profileTelefone" class="form-input" placeholder="(19) 99999-9999">
           </div>
+          <div class="form-group">
+            <label class="form-label">Data de nascimento (opcional)</label>
+            <input type="date" id="profileDataNascimento" class="form-input">
+          </div>
           <label style="display:flex; align-items:flex-start; gap:10px; margin-bottom:16px; cursor:pointer;">
             <input type="checkbox" id="lgpdConsent" style="margin-top:3px; width:16px; height:16px; accent-color:var(--gold); flex-shrink:0;">
             <span class="hint" style="text-align:left; margin:0;">Li e aceito os <a href="#" onclick="event.preventDefault(); toggleTermosTexto();" style="color:var(--gold); text-decoration:underline;">Termos de Uso e a Política de Privacidade</a>, e autorizo o uso dos meus dados (nome, WhatsApp e histórico de atendimentos) pela Barbearia do Deeh para agendamentos e contato.</span>
@@ -1143,6 +1147,7 @@
   function salvarPerfil(){
     const nome = document.getElementById('profileNome').value.trim();
     const telefone = document.getElementById('profileTelefone').value.trim();
+    const dataNascimento = document.getElementById('profileDataNascimento').value; // '' se vazio
     const aceitouTermos = document.getElementById('lgpdConsent').checked;
 
     if(!aceitouTermos){
@@ -1153,6 +1158,7 @@
     if(nome) document.getElementById('inputNome').value = nome;
     if(telefone) document.getElementById('inputTelefone').value = telefone;
     if(nome) localStorage.setItem('deeh_nome', nome);
+    if(dataNascimento) localStorage.setItem('deeh_data_nascimento', dataNascimento);
     localStorage.setItem('deeh_lgpd_consent', '1');
     if(telefone){
       localStorage.setItem('deeh_telefone', telefone);
@@ -1160,19 +1166,20 @@
       carregarAgendamentosFuturos(telefone);
       inscreverPushCliente(telefone, true);
     }
-    if(nome && telefone) salvarClienteNoBanco(nome, telefone);
+    if(nome && telefone) salvarClienteNoBanco(nome, telefone, dataNascimento);
     alert('Perfil salvo!');
   }
 
   // Cria/atualiza o registro do cliente no banco ao salvar o Perfil.
   // Best-effort: se falhar, não trava o "Perfil salvo!" (dado já está no localStorage).
-  // Em conflito de telefone, api/clientes.js só atualiza o nome — nunca mexe em plano/saldo existente.
-  async function salvarClienteNoBanco(nome, telefone){
+  // Em conflito de telefone, api/clientes.js só atualiza nome e data_nascimento —
+  // nunca mexe em plano/saldo existente.
+  async function salvarClienteNoBanco(nome, telefone, dataNascimento){
     try{
       await fetch(API_CLIENTES_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nome, telefone: telefone.replace(/\D/g, '') })
+        body: JSON.stringify({ nome, telefone: telefone.replace(/\D/g, ''), data_nascimento: dataNascimento || null })
       });
     }catch(err){
       console.error('Erro ao salvar cliente no banco:', err);
@@ -1302,7 +1309,9 @@
   function initPerfil(){
     const nomeSalvo = localStorage.getItem('deeh_nome');
     const telefoneSalvo = localStorage.getItem('deeh_telefone');
+    const dataNascimentoSalva = localStorage.getItem('deeh_data_nascimento');
     if(nomeSalvo) document.getElementById('profileNome').value = nomeSalvo;
+    if(dataNascimentoSalva) document.getElementById('profileDataNascimento').value = dataNascimentoSalva;
     if(telefoneSalvo){
       document.getElementById('profileTelefone').value = telefoneSalvo;
       carregarHistorico(telefoneSalvo);
