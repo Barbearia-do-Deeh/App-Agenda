@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Painel Deeh - Admin</title>
 <link rel="manifest" href="/manifest-admin.json">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -24,6 +24,21 @@
   }
 
   *{margin:0;padding:0;box-sizing:border-box;}
+
+  /* ---- Trava zoom por pinça/duplo-toque e o "arrasto" que baguncava a tela ---- */
+  html, body{
+    touch-action: manipulation; /* bloqueia pinch-zoom e double-tap-zoom */
+    overscroll-behavior: none;  /* bloqueia o "puxão" de borda que revela fundo/scroll fantasma */
+  }
+  *{
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none; /* tira o menu de "copiar/compartilhar" no toque longo */
+  }
+  input, textarea{
+    -webkit-user-select: text;
+    user-select: text; /* mantém copiar/colar normal dentro dos campos */
+  }
 
   body{
     background: #05050580;
@@ -1580,6 +1595,9 @@
   }
 
   // ---- Init ----
+  // Reforço em JS pro pinch-zoom (Safari às vezes ignora viewport/CSS sozinhos)
+  document.addEventListener('gesturestart', (e) => e.preventDefault());
+  document.addEventListener('touchmove', (e) => { if (e.touches.length > 1) e.preventDefault(); }, { passive: false });
   hidratarNegocio();
   if(sessionStorage.getItem('deehAdminAuth') === '1'){
     abrirPainel();
