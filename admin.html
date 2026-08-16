@@ -607,6 +607,7 @@
         <div class="bottom-nav">
           <button class="nav-item" data-target="dashboard" onclick="goTo('dashboard')"><span class="nav-icon">⌂</span>Painel<span class="dot"></span></button>
           <button class="nav-item" data-target="clientes" onclick="goTo('clientes')"><span class="nav-icon">👤</span>Clientes<span class="dot"></span></button>
+          <button class="nav-item" data-target="barbeiros" onclick="goTo('barbeiros')"><span class="nav-icon">✂</span>Equipe<span class="dot"></span></button>
           <button class="nav-item" data-target="financeiro" onclick="goTo('financeiro')"><span class="nav-icon">💰</span>Financeiro<span class="dot"></span></button>
           <button class="nav-item" data-target="notificacoes" onclick="goTo('notificacoes')"><span class="nav-icon">🔔</span>Avisos<span class="dot"></span></button>
           <button class="nav-item" data-target="profile" onclick="goTo('profile')"><span class="nav-icon">☺</span>Perfil<span class="dot"></span></button>
@@ -745,6 +746,97 @@
           <div id="pagamentoPlanoError" class="error-banner" style="display:none;"></div>
           <div id="pagamentoPlanoSucesso" class="hint" style="display:none;text-align:left;color:var(--gold);"></div>
           <button class="whatsapp-btn" onclick="registrarPagamentoPlano()">💰 Registrar pagamento recebido</button>
+        </div>
+      </div>
+
+      <!-- 8d. BARBEIROS (admin) -->
+      <div class="screen" id="screen-barbeiros">
+        <div class="step-header">
+          <button class="back-btn" onclick="goTo('dashboard')">←</button>
+          <h2 class="step-title">Barbeiros</h2>
+        </div>
+        <div class="screen-body" style="padding-top:0;">
+          <button class="cta-primary" onclick="abrirNovoBarbeiro()">+ Novo barbeiro</button>
+          <div class="gold-divider"></div>
+          <div id="barbeirosLista"><p class="hint" style="text-align:left;">Carregando...</p></div>
+        </div>
+      </div>
+
+      <!-- 8e. NOVO BARBEIRO (admin) -->
+      <div class="screen" id="screen-barbeiro-novo">
+        <div class="step-header">
+          <button class="back-btn" onclick="goTo('barbeiros')">←</button>
+          <h2 class="step-title">Novo barbeiro</h2>
+        </div>
+        <div class="screen-body" style="padding-top:0;">
+          <div class="form-group">
+            <label class="form-label">Nome</label>
+            <input type="text" id="novoBarbeiroNome" class="form-input" placeholder="Nome completo">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Regime</label>
+            <select id="novoBarbeiroRegime" class="form-input">
+              <option value="comissao">Comissão sobre serviço</option>
+              <option value="aluguel">Aluguel de cadeira (valor fixo)</option>
+            </select>
+          </div>
+          <div class="form-group" id="novoBarbeiroComissaoGroup">
+            <label class="form-label">Comissão sobre serviço (%)</label>
+            <input type="number" id="novoBarbeiroComissaoServico" class="form-input" placeholder="Ex: 50" min="0" max="100" step="0.1">
+          </div>
+          <div class="form-group" id="novoBarbeiroAluguelGroup" style="display:none;">
+            <label class="form-label">Aluguel fixo mensal (R$)</label>
+            <input type="number" id="novoBarbeiroAluguel" class="form-input" placeholder="Ex: 800" min="0" step="0.01">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Comissão sobre produtos vendidos (%)</label>
+            <input type="number" id="novoBarbeiroComissaoProdutos" class="form-input" placeholder="Ex: 10" min="0" max="100" step="0.1" value="0">
+            <p class="hint" style="text-align:left; margin-top:6px;">Existe nos dois regimes — é sobre produto vendido na comanda, separado do serviço.</p>
+          </div>
+          <div id="novoBarbeiroError" class="error-banner" style="display:none;"></div>
+          <button class="cta-primary" onclick="salvarNovoBarbeiro()">Cadastrar</button>
+        </div>
+      </div>
+
+      <!-- 8f. EDITAR BARBEIRO (admin) -->
+      <div class="screen" id="screen-barbeiro-editar">
+        <div class="step-header">
+          <button class="back-btn" onclick="goTo('barbeiros')">←</button>
+          <h2 class="step-title" id="editarBarbeiroNome">Barbeiro</h2>
+        </div>
+        <div class="screen-body" style="padding-top:0;">
+          <div class="form-group">
+            <label class="form-label">Nome</label>
+            <input type="text" id="editBarbeiroNome" class="form-input">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Regime</label>
+            <select id="editBarbeiroRegime" class="form-input">
+              <option value="comissao">Comissão sobre serviço</option>
+              <option value="aluguel">Aluguel de cadeira (valor fixo)</option>
+            </select>
+          </div>
+          <div class="form-group" id="editBarbeiroComissaoGroup">
+            <label class="form-label">Comissão sobre serviço (%)</label>
+            <input type="number" id="editBarbeiroComissaoServico" class="form-input" min="0" max="100" step="0.1">
+          </div>
+          <div class="form-group" id="editBarbeiroAluguelGroup" style="display:none;">
+            <label class="form-label">Aluguel fixo mensal (R$)</label>
+            <input type="number" id="editBarbeiroAluguel" class="form-input" min="0" step="0.01">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Comissão sobre produtos vendidos (%)</label>
+            <input type="number" id="editBarbeiroComissaoProdutos" class="form-input" min="0" max="100" step="0.1">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Status</label>
+            <select id="editBarbeiroAtivo" class="form-input">
+              <option value="true">Ativo</option>
+              <option value="false">Inativo (não aparece pro cliente)</option>
+            </select>
+          </div>
+          <div id="editBarbeiroError" class="error-banner" style="display:none;"></div>
+          <button class="cta-primary" onclick="salvarEdicaoBarbeiro()">Salvar alterações</button>
         </div>
       </div>
 
@@ -905,6 +997,7 @@
     document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.target === id));
     if(id === 'dashboard'){ currentMode = id; carregarDashboard(); }
     if(id === 'clientes'){ carregarClientes(); }
+    if(id === 'barbeiros'){ carregarBarbeiros(); }
     if(id === 'financeiro'){ carregarFinanceiro(); }
   }
 
@@ -955,6 +1048,16 @@
       document.getElementById('notifPlanoGroup').style.display = val === 'plano' ? '' : 'none';
       document.getElementById('notifManualGroup').style.display = val === 'manual' ? '' : 'none';
       if(val === 'manual') carregarClientesNotificacao();
+    }
+    if(e.target && e.target.id === 'novoBarbeiroRegime'){
+      const isComissao = e.target.value === 'comissao';
+      document.getElementById('novoBarbeiroComissaoGroup').style.display = isComissao ? '' : 'none';
+      document.getElementById('novoBarbeiroAluguelGroup').style.display = isComissao ? 'none' : '';
+    }
+    if(e.target && e.target.id === 'editBarbeiroRegime'){
+      const isComissao = e.target.value === 'comissao';
+      document.getElementById('editBarbeiroComissaoGroup').style.display = isComissao ? '' : 'none';
+      document.getElementById('editBarbeiroAluguelGroup').style.display = isComissao ? 'none' : '';
     }
   });
 
@@ -1173,6 +1276,125 @@
     }catch(err){
       // DEBUG TEMPORÁRIO: mostra o erro real do servidor (Postgres) pra diagnosticar.
       // Depois de identificar e corrigir a causa, pode voltar essa linha pro texto genérico.
+      errorBox.textContent = 'Erro ao salvar alterações: ' + err.message;
+      errorBox.style.display = 'block';
+    }
+  }
+
+  // ---- Barbeiros ----
+  const REGIME_LABELS = { comissao: 'Comissão', aluguel: 'Aluguel fixo' };
+  let barbeirosCache = [];
+
+  async function carregarBarbeiros(){
+    const lista = document.getElementById('barbeirosLista');
+    lista.innerHTML = '<p class="hint" style="text-align:left;">Carregando...</p>';
+    try{
+      const resp = await fetch(`${API_CLIENTES_URL}?recurso=barbeiros`);
+      const data = await resp.json();
+      if(!data.success) throw new Error(data.error || 'Falha ao buscar barbeiros');
+      barbeirosCache = data.barbeiros || [];
+      if(!barbeirosCache.length){
+        lista.innerHTML = '<p class="hint" style="text-align:left;">Nenhum barbeiro cadastrado ainda.</p>';
+        return;
+      }
+      lista.innerHTML = barbeirosCache.map(b => {
+        const regimeLabel = REGIME_LABELS[b.regime] || b.regime;
+        const valorLabel = b.regime === 'comissao'
+          ? `${b.comissao_servico_pct ?? 0}% sobre serviço`
+          : `R$ ${parseFloat(b.aluguel_fixo_valor ?? 0).toFixed(2)} fixo/mês`;
+        const statusLabel = b.ativo ? '' : ' · inativo';
+        return `<div class="summary-card" style="margin-bottom:10px;cursor:pointer;" onclick="abrirEditarBarbeiro(${b.id})">
+          <div class="summary-row"><span class="label" style="font-size:14px;color:var(--cream);font-weight:700;">${b.nome}</span><span class="val" style="color:var(--gold);">${regimeLabel}</span></div>
+          <div class="summary-row" style="border-bottom:none;"><span class="label">${valorLabel} · ${b.comissao_produtos_pct ?? 0}% produtos${statusLabel}</span></div>
+        </div>`;
+      }).join('');
+    }catch(err){
+      lista.innerHTML = '<p class="hint" style="text-align:left;color:#e8a37f;">Erro ao carregar barbeiros.</p>';
+    }
+  }
+
+  function abrirNovoBarbeiro(){
+    document.getElementById('novoBarbeiroNome').value = '';
+    document.getElementById('novoBarbeiroRegime').value = 'comissao';
+    document.getElementById('novoBarbeiroComissaoServico').value = '';
+    document.getElementById('novoBarbeiroAluguel').value = '';
+    document.getElementById('novoBarbeiroComissaoProdutos').value = '0';
+    document.getElementById('novoBarbeiroComissaoGroup').style.display = '';
+    document.getElementById('novoBarbeiroAluguelGroup').style.display = 'none';
+    document.getElementById('novoBarbeiroError').style.display = 'none';
+    goTo('barbeiro-novo');
+  }
+
+  async function salvarNovoBarbeiro(){
+    const nome = document.getElementById('novoBarbeiroNome').value.trim();
+    const regime = document.getElementById('novoBarbeiroRegime').value;
+    const comissao_servico_pct = document.getElementById('novoBarbeiroComissaoServico').value;
+    const aluguel_fixo_valor = document.getElementById('novoBarbeiroAluguel').value;
+    const comissao_produtos_pct = document.getElementById('novoBarbeiroComissaoProdutos').value;
+    const errorBox = document.getElementById('novoBarbeiroError');
+
+    if(!nome){
+      errorBox.textContent = 'Preencha o nome.';
+      errorBox.style.display = 'block';
+      return;
+    }
+
+    try{
+      const resp = await fetch(`${API_CLIENTES_URL}?recurso=barbeiros`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nome, regime, comissao_servico_pct, aluguel_fixo_valor, comissao_produtos_pct })
+      });
+      const data = await resp.json();
+      if(!resp.ok || !data.success) throw new Error(data.error || 'Falha ao cadastrar');
+      goTo('barbeiros');
+    }catch(err){
+      errorBox.textContent = 'Erro ao cadastrar barbeiro. Tente novamente.';
+      errorBox.style.display = 'block';
+    }
+  }
+
+  let barbeiroEditandoId = null;
+
+  function abrirEditarBarbeiro(id){
+    const b = barbeirosCache.find(x => x.id === id);
+    if(!b) return;
+    barbeiroEditandoId = id;
+    document.getElementById('editarBarbeiroNome').textContent = b.nome;
+    document.getElementById('editBarbeiroNome').value = b.nome;
+    document.getElementById('editBarbeiroRegime').value = b.regime;
+    document.getElementById('editBarbeiroComissaoServico').value = b.comissao_servico_pct ?? '';
+    document.getElementById('editBarbeiroAluguel').value = b.aluguel_fixo_valor ?? '';
+    document.getElementById('editBarbeiroComissaoProdutos').value = b.comissao_produtos_pct ?? 0;
+    document.getElementById('editBarbeiroAtivo').value = String(!!b.ativo);
+    document.getElementById('editBarbeiroComissaoGroup').style.display = b.regime === 'comissao' ? '' : 'none';
+    document.getElementById('editBarbeiroAluguelGroup').style.display = b.regime === 'aluguel' ? '' : 'none';
+    document.getElementById('editBarbeiroError').style.display = 'none';
+    goTo('barbeiro-editar');
+  }
+
+  async function salvarEdicaoBarbeiro(){
+    if(!barbeiroEditandoId) return;
+    const errorBox = document.getElementById('editBarbeiroError');
+    const payload = {
+      id: barbeiroEditandoId,
+      nome: document.getElementById('editBarbeiroNome').value.trim(),
+      regime: document.getElementById('editBarbeiroRegime').value,
+      comissao_servico_pct: document.getElementById('editBarbeiroComissaoServico').value,
+      aluguel_fixo_valor: document.getElementById('editBarbeiroAluguel').value,
+      comissao_produtos_pct: document.getElementById('editBarbeiroComissaoProdutos').value,
+      ativo: document.getElementById('editBarbeiroAtivo').value === 'true'
+    };
+    try{
+      const resp = await fetch(`${API_CLIENTES_URL}?recurso=barbeiros`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await resp.json();
+      if(!resp.ok || !data.success) throw new Error(data.error || 'Falha ao salvar');
+      goTo('barbeiros');
+    }catch(err){
       errorBox.textContent = 'Erro ao salvar alterações: ' + err.message;
       errorBox.style.display = 'block';
     }
