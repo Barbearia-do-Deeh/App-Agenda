@@ -490,7 +490,39 @@
     gap:12px;
     padding:12px 0;
     border-bottom:1px solid var(--brown);
-    align-items:center;
+    align-items:flex-start;
+  }
+  .presenca-actions{
+    margin-top:8px;
+    display:flex;
+    gap:6px;
+    flex-wrap:wrap;
+  }
+  .presenca-btn{
+    background:var(--surface-2);
+    border:1px solid var(--brown);
+    color:var(--muted);
+    border-radius:8px;
+    padding:5px 10px;
+    font-family:'Exo',sans-serif;
+    font-weight:600;
+    font-size:11px;
+    cursor:pointer;
+  }
+  .presenca-btn.ativo-compareceu{
+    background:rgba(246,183,12,0.15);
+    border-color:var(--gold);
+    color:var(--gold);
+  }
+  .presenca-btn.ativo-faltou{
+    background:rgba(182,82,47,0.15);
+    border-color:var(--danger);
+    color:#e8a37f;
+  }
+  .presenca-btn.cobrar-btn{
+    background:var(--gold);
+    border-color:var(--gold);
+    color:var(--black);
   }
   .agenda-time{
     font-family:'Exo',sans-serif;
@@ -1853,12 +1885,26 @@
       if(!eventos.length){
         agendaList.innerHTML = '<p class="hint" style="text-align:left;">Nenhum agendamento para hoje.</p>';
       } else {
-        agendaList.innerHTML = eventos.map(e => `
+        agendaList.innerHTML = eventos.map(e => {
+          const nomeEscapado = (e.nome || '').replace(/'/g, "\\'");
+          const cobrarBtn = (e.status === 'faltou' && e.telefone)
+            ? `<button class="presenca-btn cobrar-btn" onclick="cobrarFalta('${e.telefone}', '${nomeEscapado}', ${e.valor || 0})">💰 Cobrar</button>`
+            : '';
+          return `
           <div class="agenda-item">
             <div class="agenda-time">${e.horaInicio}</div>
-            <div class="agenda-info"><div class="cli">${e.nome}</div><div class="srv">${e.servico}${e.valor ? ' · R$ ' + e.valor : ''}</div></div>
+            <div class="agenda-info" style="flex:1;">
+              <div class="cli">${e.nome}</div>
+              <div class="srv">${e.servico}${e.valor ? ' · R$ ' + e.valor : ''}</div>
+              <div class="presenca-actions">
+                <button class="presenca-btn${e.status === 'compareceu' ? ' ativo-compareceu' : ''}" onclick="marcarPresenca('${e.id}','compareceu')">✓ Compareceu</button>
+                <button class="presenca-btn${e.status === 'faltou' ? ' ativo-faltou' : ''}" onclick="marcarPresenca('${e.id}','faltou')">✗ Faltou</button>
+                ${cobrarBtn}
+              </div>
+            </div>
           </div>
-        `).join('');
+        `;
+        }).join('');
       }
     } catch(err){
       console.error('Erro ao carregar agenda do dia:', err);
@@ -1880,6 +1926,37 @@
       console.error('Erro ao carregar clientes:', err);
       document.getElementById('statRecorrentes').textContent = '—';
     }
+  }
+
+  // ---- Presença: marcar compareceu/faltou direto no evento do Calendar ----
+  async function marcarPresenca(eventId, status){
+    try{
+      const resp = await fetch(`${API_AGENDA_HOJE_URL}?tipo=marcar-presenca`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ eventId, status })
+      });
+      const data = await resp.json();
+      if(!resp.ok || !data.success) throw new Error(data.error || 'Falha ao marcar presença');
+      carregarDashboard();
+    }catch(err){
+      alert('Não foi possível marcar presença. Tente novamente.');
+    }
+  }
+
+  // Pré-preenche a cobrança de falta na aba Avisos — NÃO envia sozinho, só deixa
+  // pronto pra você revisar e apertar "Enviar notificação" quando quiser.
+  function cobrarFalta(telefone, nome, valor){
+    notifSelecionados = new Set([telefone]);
+    document.getElementById('notifFiltro').value = 'manual';
+    document.getElementById('notifPlanoGroup').style.display = 'none';
+    document.getElementById('notifManualGroup').style.display = '';
+    document.getElementById('notifTitulo').value = 'Agendamento não realizado';
+    const valorFmt = Number(valor || 0).toFixed(2);
+    document.getElementById('notifMensagem').value =
+      `Olá${nome ? ', ' + nome : ''}! Você tinha um horário marcado que não foi realizado. Pedimos, por favor, o valor combinado de R$ ${valorFmt} via Pix. Qualquer dúvida, é só chamar no WhatsApp!`;
+    goTo('notificacoes');
+    carregarClientesNotificacao();
   }
 
   // ---- Init ----
