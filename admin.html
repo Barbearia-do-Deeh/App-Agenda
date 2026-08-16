@@ -128,7 +128,7 @@
     pointer-events:none;
     transform:translateX(16px);
     transition:opacity .28s ease, transform .28s ease;
-    overflow-y:auto;
+    overflow:hidden;
   }
   .screen.active{
     opacity:1;
@@ -139,6 +139,8 @@
   .screen-body{
     padding:20px 20px 24px;
     flex:1;
+    overflow-y:auto;
+    min-height:0;
   }
 
   /* ---- Shared typography ---- */
@@ -248,7 +250,7 @@
     display:flex;
     justify-content:space-around;
     align-items:center;
-    padding:12px 0 18px;
+    padding:12px 0 calc(18px + env(safe-area-inset-bottom));
     background:var(--surface);
     border-top:1px solid var(--brown);
     flex-shrink:0;
@@ -529,6 +531,34 @@
     text-anchor:middle;
     font-weight:700;
     font-family:'Exo',sans-serif;
+  }
+
+  /* ---- Responsivo: em celular de verdade, a moldura vira a tela inteira ---- */
+  @media (max-width: 480px){
+    body{
+      padding:0;
+      gap:0;
+      height:100dvh;
+      min-height:100dvh;
+    }
+    .mode-switch{
+      margin:8px 0;
+      flex-shrink:0;
+    }
+    .phone{
+      width:100%;
+      max-width:100%;
+      height:auto;
+      min-height:0;
+      flex:1;
+      border:none;
+      border-radius:0;
+      box-shadow:none;
+      padding-top:env(safe-area-inset-top);
+    }
+    .notch{ display:none; }
+    .statusbar{ display:none; }
+    .hint{ display:none; }
   }
 </style>
 </head>
