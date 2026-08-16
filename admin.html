@@ -912,6 +912,10 @@
           <div id="despesasLista"><p class="hint" style="text-align:left;">Carregando...</p></div>
 
           <div class="gold-divider"></div>
+          <p class="eyebrow" style="margin-bottom:10px;">Fechamento por barbeiro</p>
+          <div id="fechamentoBarbeirosLista"><p class="hint" style="text-align:left;">Carregando...</p></div>
+
+          <div class="gold-divider"></div>
           <p class="eyebrow" style="margin-bottom:10px;">Retenção de clientes</p>
           <div id="retencaoResumo"><p class="hint" style="text-align:left;">Carregando...</p></div>
         </div>
@@ -1506,6 +1510,38 @@
     }
     carregarRetencao();
     carregarGraficoFaturamento();
+    carregarFechamentoBarbeiros();
+  }
+
+  async function carregarFechamentoBarbeiros(){
+    const box = document.getElementById('fechamentoBarbeirosLista');
+    box.innerHTML = '<p class="hint" style="text-align:left;">Carregando...</p>';
+    try{
+      const resp = await fetch(`${API_FINANCEIRO_URL}?tipo=barbeiros`);
+      const data = await resp.json();
+      if(!data.success) throw new Error(data.error || 'Falha ao buscar fechamento');
+      if(!data.barbeiros || !data.barbeiros.length){
+        box.innerHTML = '<p class="hint" style="text-align:left;">Nenhum barbeiro cadastrado ainda.</p>';
+        return;
+      }
+      box.innerHTML = data.barbeiros.map(b => {
+        const regimeLabel = b.regime === 'aluguel' ? 'Aluguel fixo' : 'Comissão';
+        const linhaBase = b.regime === 'aluguel'
+          ? `<div class="summary-row"><span class="label">Aluguel fixo</span><span class="val">R$ ${b.aluguel_fixo.toFixed(2)}</span></div>`
+          : `<div class="summary-row"><span class="label">Receita de serviços</span><span class="val">R$ ${b.receita_servicos.toFixed(2)}</span></div>
+             <div class="summary-row"><span class="label">Comissão sobre serviço</span><span class="val">R$ ${b.comissao_servico.toFixed(2)}</span></div>`;
+        const statusLabel = b.ativo ? '' : ' · inativo';
+        return `<div class="summary-card" style="margin-bottom:10px;">
+          <div class="summary-row"><span class="label" style="font-size:14px;color:var(--cream);font-weight:700;">${b.nome}${statusLabel}</span><span class="val" style="color:var(--gold);">${regimeLabel}</span></div>
+          ${linhaBase}
+          <div class="summary-row"><span class="label">Receita de produtos</span><span class="val">R$ ${b.receita_produtos.toFixed(2)}</span></div>
+          <div class="summary-row"><span class="label">Comissão sobre produtos</span><span class="val">R$ ${b.comissao_produtos.toFixed(2)}</span></div>
+          <div class="summary-row" style="border-bottom:none;"><span class="label" style="font-weight:700;color:var(--cream);">Total a pagar</span><span class="val" style="color:var(--gold);font-weight:700;">R$ ${b.total_a_pagar.toFixed(2)}</span></div>
+        </div>`;
+      }).join('');
+    }catch(err){
+      box.innerHTML = '<p class="hint" style="text-align:left;color:#e8a37f;">Erro ao carregar fechamento por barbeiro.</p>';
+    }
   }
 
   async function carregarGraficoFaturamento(){
