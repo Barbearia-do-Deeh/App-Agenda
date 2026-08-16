@@ -872,14 +872,26 @@
         </div>
         <div class="sticky-footer">
           <div class="total-line"><span>Total</span><b id="totalPrice">R$ 0</b></div>
-          <button class="cta-primary" onclick="goTo('calendar')">Continuar</button>
+          <button class="cta-primary" onclick="irParaProximaEtapaAposServicos()">Continuar</button>
+        </div>
+      </div>
+
+      <!-- 2b. ESCOLHER PROFISSIONAL (só aparece com 2+ barbeiros ativos) -->
+      <div class="screen" id="screen-barbeiro">
+        <div class="step-header">
+          <button class="back-btn" onclick="goTo('services')">←</button>
+          <h2 class="step-title">Profissional</h2>
+          <div class="step-dots"><span class="done"></span><span></span><span></span></div>
+        </div>
+        <div class="screen-body" style="padding-top:0;">
+          <div id="barbeiroLista"></div>
         </div>
       </div>
 
       <!-- 3. CALENDAR -->
       <div class="screen" id="screen-calendar">
         <div class="step-header">
-          <button class="back-btn" onclick="goTo('services')">←</button>
+          <button class="back-btn" id="calendarBackBtn" onclick="goTo('services')">←</button>
           <h2 class="step-title">Data e hora</h2>
           <div class="step-dots"><span class="done"></span><span class="done"></span><span></span></div>
         </div>
@@ -919,6 +931,7 @@
           </div>
           <div class="summary-card">
             <div class="summary-row"><span class="label">Serviço</span><span class="val" id="sumServico">—</span></div>
+            <div class="summary-row" id="sumBarbeiroRow" style="display:none;"><span class="label">Profissional</span><span class="val" id="sumBarbeiro">—</span></div>
             <div class="summary-row"><span class="label">Data</span><span class="val" id="sumData">—</span></div>
             <div class="summary-row"><span class="label">Horário</span><span class="val" id="sumHorario">—</span></div>
             <div class="summary-row"><span class="label">Local</span><span class="val">Jd. Morada do Sol</span></div>
@@ -1120,6 +1133,8 @@
   let selectedServices = []; // [{name, price, duration}]
   let selectedDate = null;   // Date object (00:00 local)
   let selectedTime = null;   // "HH:MM"
+  let selectedBarbeiroId = null; // id do barbeiro escolhido (null = barbearia com 1 só, ou nenhum cadastrado ainda)
+  let BARBEIROS_ATIVOS = []; // [{id, nome}] — só carrega nome, dado financeiro fica só no admin
 
   let currentMode = 'home';
 
@@ -1358,6 +1373,49 @@
     document.getElementById('totalPrice').textContent = 'R$ ' + total;
   }
 
+  // ---- Barbeiros: etapa de escolher profissional (só aparece com 2+ ativos) ----
+  async function fetchBarbeiros(){
+    try{
+      const resp = await fetch(`${API_CLIENTES_URL}?recurso=barbeiros&publico=1`);
+      const data = await resp.json();
+      if(data.success) BARBEIROS_ATIVOS = data.barbeiros || [];
+    }catch(err){
+      console.error('Erro ao carregar barbeiros:', err);
+      BARBEIROS_ATIVOS = []; // falha segura: some a etapa de escolher profissional
+    }
+  }
+
+  function renderBarbeiroLista(){
+    const lista = document.getElementById('barbeiroLista');
+    lista.innerHTML = BARBEIROS_ATIVOS.map(b => `
+      <div class="service-row" onclick="selecionarBarbeiro(${b.id}, '${b.nome.replace(/'/g, "\\'")}')">
+        <div class="service-row-left">
+          <div class="info"><div class="name">${b.nome}</div></div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // Chamado ao tocar "Continuar" na tela de Serviços. Com 0 ou 1 barbeiro cadastrado,
+  // pula direto pro Calendário (o cliente nem percebe que a etapa existe). Com 2+,
+  // mostra a lista pra escolher.
+  function irParaProximaEtapaAposServicos(){
+    if(BARBEIROS_ATIVOS.length > 1){
+      renderBarbeiroLista();
+      document.getElementById('calendarBackBtn').setAttribute('onclick', "goTo('barbeiro')");
+      goTo('barbeiro');
+    } else {
+      selectedBarbeiroId = BARBEIROS_ATIVOS.length === 1 ? BARBEIROS_ATIVOS[0].id : null;
+      document.getElementById('calendarBackBtn').setAttribute('onclick', "goTo('services')");
+      goTo('calendar');
+    }
+  }
+
+  function selecionarBarbeiro(id, nome){
+    selectedBarbeiroId = id;
+    goTo('calendar');
+  }
+
   // ---- Calendar: month grid, limited to 30 days ahead ----
   const LIMITE_DIAS = 30;
   const CAL_TODAY = new Date();
@@ -1429,7 +1487,8 @@
 
   async function buscarHorariosOcupados(dataDDMMAAAA){
     try {
-      const resp = await fetch(`${API_DISPONIBILIDADE_URL}?data=${encodeURIComponent(dataDDMMAAAA)}`);
+      const barbeiroParam = selectedBarbeiroId ? `&barbeiro_id=${encodeURIComponent(selectedBarbeiroId)}` : '';
+      const resp = await fetch(`${API_DISPONIBILIDADE_URL}?data=${encodeURIComponent(dataDDMMAAAA)}${barbeiroParam}`);
       const json = await resp.json();
       if(!json.success) return [];
       return json.ocupados; // [{ inicio: "10:00", fim: "11:00" }]
@@ -1624,6 +1683,16 @@
     document.getElementById('sumHorario').textContent = selectedTime;
     document.getElementById('sumTotal').textContent = 'R$ ' + total;
 
+    // Só mostra a linha de profissional se realmente houve escolha (2+ barbeiros ativos)
+    const barbeiroRow = document.getElementById('sumBarbeiroRow');
+    if(BARBEIROS_ATIVOS.length > 1 && selectedBarbeiroId){
+      const b = BARBEIROS_ATIVOS.find(x => x.id === selectedBarbeiroId);
+      document.getElementById('sumBarbeiro').textContent = b ? b.nome : '—';
+      barbeiroRow.style.display = 'flex';
+    } else {
+      barbeiroRow.style.display = 'none';
+    }
+
     document.getElementById('confirmError').style.display = 'none';
     document.getElementById('whatsappFallback').style.display = 'none';
 
@@ -1648,7 +1717,8 @@
       horario: selectedTime,
       duracao: duracaoMin === 15 ? '15 min' : '60 min',
       preco: 'R$' + total,
-      produtos: PRODUTOS_CACHE.filter(p => p.quantidade > 0).map(p => ({ id: p.id, quantidade: p.quantidade }))
+      produtos: PRODUTOS_CACHE.filter(p => p.quantidade > 0).map(p => ({ id: p.id, quantidade: p.quantidade })),
+      barbeiro_id: selectedBarbeiroId
     };
   }
 
@@ -1712,6 +1782,7 @@
     selectedServices = [];
     selectedDate = null;
     selectedTime = null;
+    selectedBarbeiroId = null;
     document.querySelectorAll('.service-row.selected').forEach(r => r.classList.remove('selected'));
     document.getElementById('totalPrice').textContent = 'R$ 0';
     document.getElementById('inputNome').value = '';
@@ -1728,6 +1799,7 @@
   document.addEventListener('touchmove', (e) => { if (e.touches.length > 1) e.preventDefault(); }, { passive: false });
   buildDateScroller();
   fetchProdutos();
+  fetchBarbeiros();
   prefillFromStorage();
   goTo('home');
   detectarIOSInstall();
