@@ -2,12 +2,16 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Painel Deeh - Admin</title>
-<link rel="manifest" href="/manifest-admin.json">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>App Barbearia do Deeh</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#0f0e0d">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Painel Deeh">
+<meta name="apple-mobile-web-app-title" content="Deeh App">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Exo:wght@400;500;600;700;800&display=swap');
 
@@ -128,7 +132,7 @@
     pointer-events:none;
     transform:translateX(16px);
     transition:opacity .28s ease, transform .28s ease;
-    overflow-y:auto;
+    overflow:hidden;
   }
   .screen.active{
     opacity:1;
@@ -139,6 +143,8 @@
   .screen-body{
     padding:20px 20px 24px;
     flex:1;
+    overflow-y:auto;
+    min-height:0;
   }
 
   /* ---- Shared typography ---- */
@@ -248,7 +254,7 @@
     display:flex;
     justify-content:space-around;
     align-items:center;
-    padding:12px 0 18px;
+    padding:12px 0 calc(18px + env(safe-area-inset-bottom));
     background:var(--surface);
     border-top:1px solid var(--brown);
     flex-shrink:0;
@@ -336,26 +342,126 @@
   .total-line b{color:var(--cream); font-size:15px;}
 
   /* ---- Calendar ---- */
-  .date-scroller{
+  .cal-nav{
     display:flex;
-    gap:8px;
-    overflow-x:auto;
-    padding-bottom:4px;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:10px;
   }
-  .date-chip{
-    min-width:52px;
+  .cal-nav-btn{
+    width:30px;height:30px;
+    border-radius:8px;
+    border:1px solid var(--brown);
+    background:var(--surface);
+    color:var(--cream);
+    font-size:15px;
+    cursor:pointer;
+  }
+  .cal-nav-btn:disabled{opacity:.3; cursor:default;}
+  .cal-dow-row{
+    display:grid;
+    grid-template-columns:repeat(7,1fr);
+    gap:4px;
+    margin-bottom:4px;
+  }
+  .cal-dow-row span{
+    text-align:center;
+    font-size:10px;
+    color:var(--muted);
+    text-transform:uppercase;
+  }
+  .cal-grid{
+    display:grid;
+    grid-template-columns:repeat(7,1fr);
+    gap:4px;
+  }
+  .cal-day{
+    aspect-ratio:1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:10px;
+    background:var(--surface);
+    border:1px solid var(--brown);
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+  }
+  .cal-day.empty{background:transparent; border-color:transparent; cursor:default;}
+  .cal-day.disabled{opacity:.25; cursor:default; pointer-events:none;}
+  .cal-day.selected{background:var(--gold); border-color:var(--gold); color:var(--black);}
+
+  .produtos-list{
+    display:flex;
+    gap:10px;
+    overflow-x:auto;
+    padding-bottom:6px;
+    margin-top:10px;
+  }
+  .produto-row{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:6px;
     background:var(--surface);
     border:1px solid var(--brown);
     border-radius:12px;
-    padding:10px 6px;
-    text-align:center;
-    cursor:pointer;
+    padding:10px 8px;
+    min-width:92px;
     flex-shrink:0;
+    text-align:center;
   }
-  .date-chip .dow{font-size:10px; color:var(--muted); text-transform:uppercase;}
-  .date-chip .num{font-size:17px; font-weight:700; margin-top:2px;}
-  .date-chip.selected{background:var(--gold); border-color:var(--gold);}
-  .date-chip.selected .dow, .date-chip.selected .num{color:var(--black);}
+  .produto-row img{
+    width:56px;height:56px;
+    border-radius:8px;
+    object-fit:cover;
+    flex-shrink:0;
+    background:var(--surface-2);
+  }
+  .produto-info{width:100%;}
+  .produto-info .nome{font-size:11px; font-weight:600; line-height:1.2; height:26px; overflow:hidden;}
+  .produto-info .preco{font-size:11px; color:var(--gold); margin-top:2px;}
+  .produto-stepper{display:flex; align-items:center; justify-content:center; gap:6px;}
+  .produto-stepper button{
+    width:22px;height:22px;
+    border-radius:7px;
+    border:1px solid var(--brown);
+    background:var(--surface-2);
+    color:var(--cream);
+    font-size:13px;
+    cursor:pointer;
+  }
+  .produto-stepper .qtd{min-width:12px; text-align:center; font-size:12px; font-weight:600;}
+  .produtos-subtotal{
+    display:flex; justify-content:space-between;
+    margin-top:10px; font-size:13px; color:var(--muted);
+  }
+  .produtos-subtotal b{color:var(--gold);}
+
+  .produtos-grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:12px;
+  }
+  .produto-card-grid{
+    background:var(--surface);
+    border:1px solid var(--brown);
+    border-radius:14px;
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+  }
+  .produto-card-grid img{
+    width:100%;
+    aspect-ratio:1;
+    object-fit:cover;
+    display:block;
+    background:var(--surface-2);
+  }
+  .produto-card-grid .body{padding:10px;}
+  .produto-card-grid .nome{font-size:13px; font-weight:600; line-height:1.25; height:33px; overflow:hidden;}
+  .produto-card-grid .preco{font-size:13px; color:var(--gold); font-weight:700; margin-top:2px;}
+  .produto-card-grid .produto-stepper{margin-top:8px; justify-content:space-between;}
 
   .time-grid{
     display:grid;
@@ -393,6 +499,55 @@
   .summary-row:last-child{border-bottom:none;}
   .summary-row .label{color:var(--muted);}
   .summary-row .val{color:var(--cream); font-weight:600;}
+
+  /* ---- Plans carousel ---- */
+  .plans-carousel{
+    display:flex;
+    overflow-x:auto;
+    scroll-snap-type:x mandatory;
+    gap:14px;
+    padding:4px 4px 18px;
+    margin:0 -4px;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
+  }
+  .plans-carousel::-webkit-scrollbar{display:none;}
+  .plan-card{
+    scroll-snap-align:center;
+    flex:0 0 84%;
+    background:var(--surface);
+    border:1px solid var(--brown);
+    border-radius:16px;
+    padding:20px 18px;
+  }
+  .plan-card.featured{border-color:var(--gold); background:linear-gradient(160deg, var(--brown), var(--surface-2));}
+  .plan-card .plan-name{font-size:19px; color:var(--cream); font-weight:700;}
+  .plan-card .plan-price{color:var(--gold); font-size:15px; font-weight:700; margin-top:2px;}
+  .plan-card .plan-desc{color:var(--muted); font-size:13px; margin-top:10px; line-height:1.5;}
+  .plan-card .plan-badge{
+    display:inline-block;
+    background:var(--gold);
+    color:var(--black);
+    font-size:10.5px;
+    font-weight:700;
+    letter-spacing:0.04em;
+    padding:3px 9px;
+    border-radius:20px;
+    margin-bottom:10px;
+  }
+  .plans-dots{
+    display:flex;
+    justify-content:center;
+    gap:7px;
+    margin-bottom:16px;
+  }
+  .plans-dots .dot-ind{
+    width:7px; height:7px;
+    border-radius:50%;
+    background:var(--brown);
+    transition:background .2s, transform .2s;
+  }
+  .plans-dots .dot-ind.active{background:var(--gold); transform:scale(1.2);}
 
   .whatsapp-btn{
     background:#25D366;
@@ -450,6 +605,19 @@
 
   .cta-primary.loading{opacity:0.7; cursor:wait;}
   .cta-primary:disabled{opacity:0.4; cursor:not-allowed;}
+
+  .cancel-btn{
+    background:transparent;
+    color:var(--danger);
+    border:1px solid var(--danger);
+    border-radius:8px;
+    padding:6px 12px;
+    font-family:'Exo',sans-serif;
+    font-weight:600;
+    font-size:11.5px;
+    cursor:pointer;
+  }
+  .cancel-btn:active{transform:scale(0.97);}
 
   .success-box{
     text-align:center;
@@ -510,46 +678,80 @@
   }
   .hint b{color:var(--gold);}
 
-  /* ---- Gráfico de faturamento (barras SVG simples) ---- */
-  .grafico-container{
+  /* ---- Banner de instalação iOS (Safari não expõe botão de instalar) ---- */
+  #iosInstallBanner{
+    display:none;
+    position:fixed;
+    left:0; right:0; bottom:0;
+    z-index:999;
     background:var(--surface);
-    border:1px solid var(--brown);
-    border-radius:14px;
-    padding:16px 12px 10px;
+    border-top:1px solid var(--gold);
+    padding:16px 20px calc(16px + env(safe-area-inset-bottom));
+    box-shadow:0 -8px 24px rgba(0,0,0,.45);
   }
-  .grafico-bar-label{
-    font-size:9.5px;
-    fill:var(--muted);
-    text-anchor:middle;
-    font-family:'Exo',sans-serif;
+  #iosInstallBanner .install-banner-row{
+    display:flex;
+    align-items:flex-start;
+    gap:12px;
+    max-width:375px;
+    margin:0 auto;
   }
-  .grafico-bar-valor{
-    font-size:10px;
-    fill:var(--cream);
-    text-anchor:middle;
+  #iosInstallBanner .install-banner-title{
     font-weight:700;
-    font-family:'Exo',sans-serif;
+    font-size:14px;
+    color:var(--cream);
+    margin-bottom:4px;
+  }
+  #iosInstallBanner .install-banner-text{
+    font-size:12.5px;
+    color:var(--muted);
+    line-height:1.5;
+    text-align:left;
+  }
+  #iosInstallBanner .install-banner-text b{color:var(--gold);}
+  #iosInstallBanner .install-banner-close{
+    background:none;
+    border:none;
+    color:var(--muted);
+    font-size:20px;
+    cursor:pointer;
+    line-height:1;
+    padding:0 2px;
+    flex-shrink:0;
+  }
+
+  /* ---- Responsivo: em celular de verdade, a moldura vira a tela inteira ---- */
+  @media (max-width: 480px){
+    body{
+      padding:0;
+      gap:0;
+      height:100dvh;
+      min-height:100dvh;
+    }
+    .mode-switch{
+      margin:8px 0;
+      flex-shrink:0;
+    }
+    .phone{
+      width:100%;
+      max-width:100%;
+      height:auto;
+      min-height:0;
+      flex:1;
+      border:none;
+      border-radius:0;
+      box-shadow:none;
+      padding-top:env(safe-area-inset-top);
+    }
+    .notch{ display:none; }
+    .statusbar{ display:none; }
+    .hint{ display:none; }
   }
 </style>
 </head>
 <body>
 
-  <div class="mode-switch">
-    <button class="active" id="modeSwitchLabel" style="cursor:default;">Painel (admin)</button>
-    <button onclick="logoutAdmin()">Sair</button>
-  </div>
-
-  <!-- Tela de login -->
-  <div id="loginGate" style="max-width:375px;margin:60px auto;text-align:center;color:var(--cream);">
-    <img class="logo-img" src="" alt="" style="width:64px;margin-bottom:16px;">
-    <h2 style="margin-bottom:16px;">Acesso restrito</h2>
-    <input type="password" id="adminPassword" class="form-input" placeholder="Senha" style="max-width:260px;margin:0 auto 12px;" onkeydown="if(event.key==='Enter')tentarLogin()">
-    <br>
-    <button class="cta-primary" style="max-width:260px;" onclick="tentarLogin()">Entrar</button>
-    <p id="loginError" style="color:#ff6b6b;font-size:12px;margin-top:10px;display:none;">Senha incorreta.</p>
-  </div>
-
-  <div class="phone" id="appShell" style="display:none;">
+  <div class="phone">
     <div class="notch"></div>
     <div class="statusbar">
       <span>9:41</span>
@@ -558,381 +760,238 @@
 
     <div class="screens">
 
-      <!-- 5. DASHBOARD (DEEH) -->
-      <div class="screen" id="screen-dashboard">
+      <!-- 1. HOME -->
+      <div class="screen active" id="screen-home">
         <div class="brand-header">
-          <img class="logo-img" src="" alt="">
+          <img class="logo-img" src="logo-v2.png" alt="Logo Barbearia do Deeh">
           <div class="brand-text">
-            <p class="eyebrow" id="dashDataHoje">—</p>
-            <h1 style="font-size:26px;" id="dashGreeting">Olá!</h1>
+            <p class="eyebrow">Indaiatuba · SP</p>
+            <h1>BARBEARIA <span>DO DEEH</span></h1>
+            <p>Seu horário garantido, sem complicação.</p>
           </div>
         </div>
         <div class="screen-body" style="padding-top:0;">
-          <div class="stat-grid">
-            <div class="stat-card"><div class="val" id="statAgendamentos">—</div><div class="lbl">Agendamentos hoje</div></div>
-            <div class="stat-card"><div class="val" id="statFaturamento">—</div><div class="lbl">Faturamento estimado</div></div>
-            <div class="stat-card"><div class="val" id="statProximo">—</div><div class="lbl">Próximo horário livre</div></div>
-            <div class="stat-card"><div class="val" id="statRecorrentes">—</div><div class="lbl">Clientes com plano ativo</div></div>
-          </div>
-          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
-            <p class="eyebrow" style="margin-bottom:0;">Agenda de hoje</p>
-            <button onclick="carregarDashboard()" style="background:none;border:none;color:var(--gold);font-size:11px;cursor:pointer;font-family:'Exo',sans-serif;font-weight:600;">↻ Atualizar</button>
-          </div>
-          <div id="agendaHojeList">
-            <p class="hint" style="text-align:left;">Carregando agenda...</p>
-          </div>
-
+          <button class="cta-primary" onclick="goTo('services')">Agendar horário</button>
           <div class="gold-divider"></div>
-          <p class="eyebrow" style="margin-bottom:10px;">Bloquear horário (ex: almoço)</p>
-          <div class="form-group">
-            <label class="form-label">Data (DD/MM/AAAA)</label>
-            <input type="date" id="bloqData" class="form-input">
+          <p class="eyebrow" style="margin-bottom:10px;">Serviços rápidos</p>
+          <div class="quick-grid">
+            <div class="quick-card" onclick="goTo('services')">
+              <div class="name">Corte</div>
+              <div class="price">R$ 50</div>
+            </div>
+            <div class="quick-card" onclick="goTo('services')">
+              <div class="name">Barba</div>
+              <div class="price">R$ 50</div>
+            </div>
+            <div class="quick-card" onclick="goTo('services')">
+              <div class="name">Corte + Barba</div>
+              <div class="price">R$ 95</div>
+            </div>
+            <div class="quick-card" onclick="goTo('services')">
+              <div class="name">Corte Kids</div>
+              <div class="price">R$ 45</div>
+            </div>
           </div>
-          <div class="form-group">
-            <label class="form-label">Das</label>
-            <input type="time" id="bloqInicio" class="form-input" value="12:00">
+          <p class="eyebrow" style="margin-top:20px;margin-bottom:10px;">Planos mensais</p>
+          <div class="plans-carousel" id="plansCarousel" onscroll="syncPlanDots()">
+            <div class="plan-card" onclick="goTo('plans')">
+              <div class="plan-name">Essencial</div>
+              <div class="plan-price">R$ 160/mês</div>
+              <div class="plan-desc">4 cortes ou 4 barbas por mês. Toque para ver os planos.</div>
+            </div>
+            <div class="plan-card featured" onclick="goTo('plans')">
+              <span class="plan-badge">MAIS ESCOLHIDO</span>
+              <div class="plan-name">Clássico</div>
+              <div class="plan-price">R$ 260/mês</div>
+              <div class="plan-desc">4 barbas + 2 cortes + 2 pezinhos de brinde. Toque para ver os planos.</div>
+            </div>
+            <div class="plan-card" onclick="goTo('plans')">
+              <div class="plan-name">Empresário</div>
+              <div class="plan-price">R$ 340/mês</div>
+              <div class="plan-desc">4 cortes + 4 barbas + sobrancelha de brinde. Toque para ver os planos.</div>
+            </div>
           </div>
-          <div class="form-group">
-            <label class="form-label">Até</label>
-            <input type="time" id="bloqFim" class="form-input" value="13:00">
+          <div class="plans-dots" id="plansDots">
+            <span class="dot-ind active"></span>
+            <span class="dot-ind"></span>
+            <span class="dot-ind"></span>
           </div>
-          <div class="form-group">
-            <label class="form-label">Motivo</label>
-            <input type="text" id="bloqMotivo" class="form-input" placeholder="Almoço" value="Almoço">
-          </div>
-          <div id="bloqError" class="error-banner" style="display:none;"></div>
-          <div id="bloqSucesso" class="hint" style="display:none;text-align:left;color:var(--gold);"></div>
-          <button class="cta-primary" style="background:var(--surface); color:var(--gold); border:1px solid var(--gold);" onclick="bloquearHorario()">🚫 Bloquear</button>
         </div>
         <div class="bottom-nav">
-          <button class="nav-item" data-target="dashboard" onclick="goTo('dashboard')"><span class="nav-icon">⌂</span>Painel<span class="dot"></span></button>
-          <button class="nav-item" data-target="clientes" onclick="goTo('clientes')"><span class="nav-icon">👤</span>Clientes<span class="dot"></span></button>
-          <button class="nav-item" data-target="barbeiros" onclick="goTo('barbeiros')"><span class="nav-icon">✂</span>Equipe<span class="dot"></span></button>
-          <button class="nav-item" data-target="financeiro" onclick="goTo('financeiro')"><span class="nav-icon">💰</span>Financeiro<span class="dot"></span></button>
-          <button class="nav-item" data-target="notificacoes" onclick="goTo('notificacoes')"><span class="nav-icon">🔔</span>Avisos<span class="dot"></span></button>
+          <button class="nav-item" data-target="home" onclick="goTo('home')"><span class="nav-icon">⌂</span>Início<span class="dot"></span></button>
+          <button class="nav-item" data-target="services" onclick="goTo('services')"><span class="nav-icon">✂</span>Agendar<span class="dot"></span></button>
+          <button class="nav-item" data-target="plans" onclick="goTo('plans')"><span class="nav-icon">◆</span>Planos<span class="dot"></span></button>
+          <button class="nav-item" data-target="produtos" onclick="goTo('produtos')"><span class="nav-icon">🛍</span>Produtos<span class="dot"></span></button>
           <button class="nav-item" data-target="profile" onclick="goTo('profile')"><span class="nav-icon">☺</span>Perfil<span class="dot"></span></button>
         </div>
       </div>
 
-      <!-- 8. CLIENTES (admin) -->
-      <div class="screen" id="screen-clientes">
+      <!-- 2. SERVICES -->
+      <div class="screen" id="screen-services">
         <div class="step-header">
-          <button class="back-btn" onclick="goTo('dashboard')">←</button>
-          <h2 class="step-title">Clientes</h2>
+          <button class="back-btn" onclick="goTo('home')">←</button>
+          <h2 class="step-title">Serviços</h2>
+          <div class="step-dots"><span class="done"></span><span></span><span></span></div>
         </div>
         <div class="screen-body" style="padding-top:0;">
-          <button class="cta-primary" onclick="abrirNovoCliente()">+ Novo cliente</button>
-          <div class="gold-divider"></div>
-          <div id="clientesLista"><p class="hint" style="text-align:left;">Carregando...</p></div>
+          <div class="service-row" data-price="50" data-name="Corte" data-duration="60" onclick="toggleService(this)">
+            <div class="service-row-left">
+              <div class="checkbox"></div>
+              <div class="info"><div class="name">Corte</div><div class="dur">60 min</div></div>
+            </div>
+            <div class="price">R$ 50</div>
+          </div>
+          <div class="service-row" data-price="50" data-name="Barba" data-duration="60" onclick="toggleService(this)">
+            <div class="service-row-left">
+              <div class="checkbox"></div>
+              <div class="info"><div class="name">Barba</div><div class="dur">60 min</div></div>
+            </div>
+            <div class="price">R$ 50</div>
+          </div>
+          <div class="service-row" data-price="15" data-name="Sobrancelha" data-duration="0" onclick="toggleService(this)">
+            <div class="service-row-left">
+              <div class="checkbox"></div>
+              <div class="info"><div class="name">Sobrancelha</div><div class="dur">complemento</div></div>
+            </div>
+            <div class="price">R$ 15</div>
+          </div>
+          <div class="service-row" data-price="15" data-name="Pezinho" data-duration="15" onclick="toggleService(this)">
+            <div class="service-row-left">
+              <div class="checkbox"></div>
+              <div class="info"><div class="name">Pezinho</div><div class="dur">15 min</div></div>
+            </div>
+            <div class="price">R$ 15</div>
+          </div>
+          <div class="service-row" data-price="45" data-name="Corte Kids" data-duration="60" onclick="toggleService(this)">
+            <div class="service-row-left">
+              <div class="checkbox"></div>
+              <div class="info"><div class="name">Corte Kids</div><div class="dur">60 min</div></div>
+            </div>
+            <div class="price">R$ 45</div>
+          </div>
+        </div>
+        <div class="sticky-footer">
+          <div class="total-line"><span>Total</span><b id="totalPrice">R$ 0</b></div>
+          <button class="cta-primary" onclick="irParaProximaEtapaAposServicos()">Continuar</button>
         </div>
       </div>
 
-      <!-- 8b. NOVO CLIENTE (admin) -->
-      <div class="screen" id="screen-cliente-novo">
+      <!-- 2b. ESCOLHER PROFISSIONAL (só aparece com 2+ barbeiros ativos) -->
+      <div class="screen" id="screen-barbeiro">
         <div class="step-header">
-          <button class="back-btn" onclick="goTo('clientes')">←</button>
-          <h2 class="step-title">Novo cliente</h2>
+          <button class="back-btn" onclick="goTo('services')">←</button>
+          <h2 class="step-title">Profissional</h2>
+          <div class="step-dots"><span class="done"></span><span></span><span></span></div>
+        </div>
+        <div class="screen-body" style="padding-top:0;">
+          <div id="barbeiroLista"></div>
+        </div>
+      </div>
+
+      <!-- 3. CALENDAR -->
+      <div class="screen" id="screen-calendar">
+        <div class="step-header">
+          <button class="back-btn" id="calendarBackBtn" onclick="goTo('services')">←</button>
+          <h2 class="step-title">Data e hora</h2>
+          <div class="step-dots"><span class="done"></span><span class="done"></span><span></span></div>
+        </div>
+        <div class="screen-body" style="padding-top:0;">
+          <div class="cal-nav">
+            <button class="cal-nav-btn" id="calPrev" onclick="calNav(-1)">‹</button>
+            <p class="eyebrow" id="monthLabel" style="margin:0;">—</p>
+            <button class="cal-nav-btn" id="calNext" onclick="calNav(1)">›</button>
+          </div>
+          <div class="cal-dow-row" id="calDowRow"></div>
+          <div class="cal-grid" id="calGrid"></div>
+          <div class="gold-divider"></div>
+          <p class="eyebrow" style="margin-bottom:10px;">Horários disponíveis</p>
+          <div class="time-grid" id="timeGrid"></div>
+          <p class="hint" style="margin-top:12px; text-align:left; font-size:11px;">Horários sujeitos a disponibilidade — o Deeh confirma na hora.</p>
+        </div>
+        <div class="sticky-footer">
+          <button class="cta-primary" id="btnToConfirm" onclick="goToConfirm()" disabled>Continuar</button>
+        </div>
+      </div>
+
+      <!-- 4. CONFIRM -->
+      <div class="screen" id="screen-confirm">
+        <div class="step-header">
+          <button class="back-btn" onclick="goTo('calendar')">←</button>
+          <h2 class="step-title">Confirmar</h2>
+          <div class="step-dots"><span class="done"></span><span class="done"></span><span class="done"></span></div>
         </div>
         <div class="screen-body" style="padding-top:0;">
           <div class="form-group">
-            <label class="form-label">Nome</label>
-            <input type="text" id="novoClienteNome" class="form-input" placeholder="Nome completo">
+            <label class="form-label">Seu nome</label>
+            <input type="text" id="inputNome" class="form-input" placeholder="Nome completo">
           </div>
           <div class="form-group">
             <label class="form-label">WhatsApp</label>
-            <input type="tel" id="novoClienteTelefone" class="form-input" placeholder="19993900880">
+            <input type="tel" id="inputTelefone" class="form-input" placeholder="(19) 99999-9999">
           </div>
-          <div class="form-group">
-            <label class="form-label">Plano</label>
-            <select id="novoClientePlano" class="form-input plano-select" data-nenhum="1"></select>
+          <div class="summary-card">
+            <div class="summary-row"><span class="label">Serviço</span><span class="val" id="sumServico">—</span></div>
+            <div class="summary-row" id="sumBarbeiroRow" style="display:none;"><span class="label">Profissional</span><span class="val" id="sumBarbeiro">—</span></div>
+            <div class="summary-row"><span class="label">Data</span><span class="val" id="sumData">—</span></div>
+            <div class="summary-row"><span class="label">Horário</span><span class="val" id="sumHorario">—</span></div>
+            <div class="summary-row"><span class="label">Local</span><span class="val">Jd. Morada do Sol</span></div>
+            <div class="summary-row"><span class="label">Total</span><span class="val" id="sumTotal" style="color:var(--gold); font-size:16px;">R$ 0</span></div>
           </div>
-          <div class="form-group" id="subtipoEssencialGroup" style="display:none;">
-            <label class="form-label">Essencial — tipo</label>
-            <select id="novoClienteSubtipo" class="form-input">
-              <option value="corte">Cortes</option>
-              <option value="barba">Barbas</option>
-            </select>
+          <p class="eyebrow" style="margin-top:18px; margin-bottom:6px;">Quer levar algum produto?</p>
+          <p class="hint" style="text-align:left; margin-bottom:4px;">Separa pra você e paga tudo junto, pessoalmente, na hora do atendimento.</p>
+          <div class="produtos-list" id="produtosList"></div>
+          <div class="produtos-subtotal" id="produtosSubtotal" style="display:none;">
+            <span>Produtos (pago na hora)</span><b id="produtosSubtotalValor">R$ 0</b>
           </div>
-          <div class="form-group">
-            <label class="form-label">Valor do pacote (opcional)</label>
-            <input type="number" id="novoClienteValorPacote" class="form-input" placeholder="Deixe em branco pra usar o valor padrão" min="0" step="0.01">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Data de nascimento (opcional)</label>
-            <input type="date" id="novoClienteDataNascimento" class="form-input">
-          </div>
-          <div id="novoClienteError" class="error-banner" style="display:none;"></div>
-          <button class="cta-primary" onclick="salvarNovoCliente()">Cadastrar</button>
+          <div id="confirmError" class="error-banner" style="display:none;"></div>
+          <button class="cta-primary" id="btnConfirmar" style="margin-top:18px;" onclick="confirmarAgendamento()">Confirmar agendamento</button>
+          <a id="whatsappFallback" class="whatsapp-btn" style="display:none; text-decoration:none;" target="_blank">📲 Confirmar via WhatsApp</a>
+          <p class="hint" style="margin-top:14px; text-align:left;">Ao confirmar, seu horário é reservado direto na agenda do Deeh.</p>
         </div>
       </div>
 
-      <!-- 8c. EDITAR CLIENTE (admin) -->
-      <div class="screen" id="screen-cliente-editar">
-        <div class="step-header">
-          <button class="back-btn" onclick="goTo('clientes')">←</button>
-          <h2 class="step-title" id="editarClienteNome">Cliente</h2>
-        </div>
-        <div class="screen-body" style="padding-top:0;">
-          <p class="eyebrow" style="margin-bottom:10px;">Plano do cliente</p>
-          <div class="form-group">
-            <label class="form-label">Plano</label>
-            <select id="editPlano" class="form-input plano-select" data-nenhum="1"></select>
-          </div>
-          <div class="form-group" id="editSubtipoEssencialGroup" style="display:none;">
-            <label class="form-label">Essencial — tipo</label>
-            <select id="editSubtipoEssencial" class="form-input">
-              <option value="corte">Cortes</option>
-              <option value="barba">Barbas</option>
-            </select>
-          </div>
-
-          <p class="eyebrow" style="margin-bottom:10px;">Saldo do pacote</p>
-          <div class="form-group">
-            <label class="form-label">Cortes restantes</label>
-            <input type="number" id="editCortes" class="form-input" min="0">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Barbas restantes</label>
-            <input type="number" id="editBarbas" class="form-input" min="0">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Pezinhos restantes</label>
-            <input type="number" id="editPezinhos" class="form-input" min="0">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Sobrancelha de brinde</label>
-            <select id="editSobrancelha" class="form-input">
-              <option value="true">Disponível</option>
-              <option value="false">Já usada</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Valor do pacote (R$)</label>
-            <input type="number" id="editValorPacote" class="form-input" placeholder="Deixe em branco pra usar o valor padrão do plano" min="0" step="0.01">
-            <p class="hint" style="text-align:left; margin-top:6px;">Em branco = usa o valor padrão do plano (R$160/260/340). Preenchido = vale só pra esse cliente, útil pra pacotes antigos com valor diferente.</p>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Data de nascimento</label>
-            <input type="date" id="editDataNascimento" class="form-input">
-          </div>
-          <div id="editarClienteError" class="error-banner" style="display:none;"></div>
-          <button class="cta-primary" onclick="salvarEdicaoCliente()">Salvar alterações</button>
-
-          <div class="gold-divider"></div>
-          <p class="eyebrow" style="margin-bottom:10px;">Horário fixo semanal</p>
-          <div class="form-group">
-            <label class="form-label">Serviço</label>
-            <select id="fixoServico" class="form-input"></select>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Primeira data (DD/MM/AAAA)</label>
-            <input type="text" id="fixoDataInicio" class="form-input" placeholder="05/08/2026">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Horário (HH:MM)</label>
-            <input type="text" id="fixoHorario" class="form-input" placeholder="15:00">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Repetir por quantas semanas</label>
-            <input type="number" id="fixoRepeticoes" class="form-input" value="12" min="1">
-          </div>
-          <div id="fixoError" class="error-banner" style="display:none;"></div>
-          <div id="fixoSucesso" class="hint" style="display:none;text-align:left;color:var(--gold);"></div>
-          <button class="cta-primary" style="background:var(--surface); color:var(--gold); border:1px solid var(--gold);" onclick="criarHorarioFixo()">🔁 Criar horário fixo</button>
-
-          <div class="gold-divider"></div>
-          <p class="eyebrow" style="margin-bottom:10px;">Pagamento do plano</p>
-          <p class="hint" style="text-align:left;" id="planoAtualLabel"></p>
-          <div id="pagamentoPlanoError" class="error-banner" style="display:none;"></div>
-          <div id="pagamentoPlanoSucesso" class="hint" style="display:none;text-align:left;color:var(--gold);"></div>
-          <button class="whatsapp-btn" onclick="registrarPagamentoPlano()">💰 Registrar pagamento recebido</button>
+      <!-- 4b. SUCCESS -->
+      <div class="screen" id="screen-success">
+        <div class="screen-body success-box">
+          <div class="success-icon">✓</div>
+          <h2>Agendamento confirmado!</h2>
+          <p id="successMsg">Seu horário foi reservado na agenda da Barbearia do Deeh.</p>
+          <button class="cta-primary" style="margin-top:26px;" onclick="resetFlow()">Voltar ao início</button>
         </div>
       </div>
 
-      <!-- 8d. BARBEIROS (admin) -->
-      <div class="screen" id="screen-barbeiros">
+      <!-- 6. PLANOS -->
+      <div class="screen" id="screen-plans">
         <div class="step-header">
-          <button class="back-btn" onclick="goTo('dashboard')">←</button>
-          <h2 class="step-title">Barbeiros</h2>
+          <button class="back-btn" onclick="goTo(currentMode)">←</button>
+          <h2 class="step-title">Planos mensais</h2>
         </div>
         <div class="screen-body" style="padding-top:0;">
-          <button class="cta-primary" onclick="abrirNovoBarbeiro()">+ Novo barbeiro</button>
-          <div class="gold-divider"></div>
-          <div id="barbeirosLista"><p class="hint" style="text-align:left;">Carregando...</p></div>
+          <div class="summary-card" style="margin-bottom:14px;">
+            <div class="summary-row"><span class="label" style="font-size:15px;color:var(--cream);font-weight:700;">Essencial</span><span class="val" style="color:var(--gold);">R$ 160/mês</span></div>
+            <div class="summary-row"><span class="label">4 cortes ou 4 barbas por mês</span></div>
+          </div>
+          <div class="summary-card" style="margin-bottom:14px;">
+            <div class="summary-row"><span class="label" style="font-size:15px;color:var(--cream);font-weight:700;">Clássico</span><span class="val" style="color:var(--gold);">R$ 260/mês</span></div>
+            <div class="summary-row"><span class="label">4 barbas + 2 cortes + 2 pezinhos de brinde</span></div>
+          </div>
+          <div class="summary-card" style="margin-bottom:14px;">
+            <div class="summary-row"><span class="label" style="font-size:15px;color:var(--cream);font-weight:700;">Empresário</span><span class="val" style="color:var(--gold);">R$ 340/mês</span></div>
+            <div class="summary-row"><span class="label">4 cortes + 4 barbas + sobrancelha de brinde</span></div>
+          </div>
+          <button class="whatsapp-btn" onclick="assinarPlano()">📲 Assinar via WhatsApp</button>
         </div>
       </div>
 
-      <!-- 8e. NOVO BARBEIRO (admin) -->
-      <div class="screen" id="screen-barbeiro-novo">
+      <!-- 6b. PRODUTOS (aba própria) -->
+      <div class="screen" id="screen-produtos">
         <div class="step-header">
-          <button class="back-btn" onclick="goTo('barbeiros')">←</button>
-          <h2 class="step-title">Novo barbeiro</h2>
+          <button class="back-btn" onclick="goTo(currentMode)">←</button>
+          <h2 class="step-title">Produtos</h2>
         </div>
         <div class="screen-body" style="padding-top:0;">
-          <div class="form-group">
-            <label class="form-label">Nome</label>
-            <input type="text" id="novoBarbeiroNome" class="form-input" placeholder="Nome completo">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Regime</label>
-            <select id="novoBarbeiroRegime" class="form-input">
-              <option value="comissao">Comissão sobre serviço</option>
-              <option value="aluguel">Aluguel de cadeira (valor fixo)</option>
-            </select>
-          </div>
-          <div class="form-group" id="novoBarbeiroComissaoGroup">
-            <label class="form-label">Comissão sobre serviço (%)</label>
-            <input type="number" id="novoBarbeiroComissaoServico" class="form-input" placeholder="Ex: 50" min="0" max="100" step="0.1">
-          </div>
-          <div class="form-group" id="novoBarbeiroAluguelGroup" style="display:none;">
-            <label class="form-label">Aluguel fixo mensal (R$)</label>
-            <input type="number" id="novoBarbeiroAluguel" class="form-input" placeholder="Ex: 800" min="0" step="0.01">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Comissão sobre produtos vendidos (%)</label>
-            <input type="number" id="novoBarbeiroComissaoProdutos" class="form-input" placeholder="Ex: 10" min="0" max="100" step="0.1" value="0">
-            <p class="hint" style="text-align:left; margin-top:6px;">Existe nos dois regimes — é sobre produto vendido na comanda, separado do serviço.</p>
-          </div>
-          <div id="novoBarbeiroError" class="error-banner" style="display:none;"></div>
-          <button class="cta-primary" onclick="salvarNovoBarbeiro()">Cadastrar</button>
-        </div>
-      </div>
-
-      <!-- 8f. EDITAR BARBEIRO (admin) -->
-      <div class="screen" id="screen-barbeiro-editar">
-        <div class="step-header">
-          <button class="back-btn" onclick="goTo('barbeiros')">←</button>
-          <h2 class="step-title" id="editarBarbeiroNome">Barbeiro</h2>
-        </div>
-        <div class="screen-body" style="padding-top:0;">
-          <div class="form-group">
-            <label class="form-label">Nome</label>
-            <input type="text" id="editBarbeiroNome" class="form-input">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Regime</label>
-            <select id="editBarbeiroRegime" class="form-input">
-              <option value="comissao">Comissão sobre serviço</option>
-              <option value="aluguel">Aluguel de cadeira (valor fixo)</option>
-            </select>
-          </div>
-          <div class="form-group" id="editBarbeiroComissaoGroup">
-            <label class="form-label">Comissão sobre serviço (%)</label>
-            <input type="number" id="editBarbeiroComissaoServico" class="form-input" min="0" max="100" step="0.1">
-          </div>
-          <div class="form-group" id="editBarbeiroAluguelGroup" style="display:none;">
-            <label class="form-label">Aluguel fixo mensal (R$)</label>
-            <input type="number" id="editBarbeiroAluguel" class="form-input" min="0" step="0.01">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Comissão sobre produtos vendidos (%)</label>
-            <input type="number" id="editBarbeiroComissaoProdutos" class="form-input" min="0" max="100" step="0.1">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Status</label>
-            <select id="editBarbeiroAtivo" class="form-input">
-              <option value="true">Ativo</option>
-              <option value="false">Inativo (não aparece pro cliente)</option>
-            </select>
-          </div>
-          <div id="editBarbeiroError" class="error-banner" style="display:none;"></div>
-          <button class="cta-primary" onclick="salvarEdicaoBarbeiro()">Salvar alterações</button>
-        </div>
-      </div>
-
-      <!-- 9. FINANCEIRO (admin) -->
-      <div class="screen" id="screen-financeiro">
-        <div class="step-header">
-          <button class="back-btn" onclick="goTo('dashboard')">←</button>
-          <h2 class="step-title">Financeiro</h2>
-        </div>
-        <div class="screen-body" style="padding-top:0;">
-          <div id="financeiroResumo"><p class="hint" style="text-align:left;">Carregando...</p></div>
-
-          <div class="gold-divider"></div>
-          <p class="eyebrow" style="margin-bottom:10px;">Faturamento — últimos 6 meses</p>
-          <div id="graficoFaturamento"><p class="hint" style="text-align:left;">Carregando...</p></div>
-
-          <div class="gold-divider"></div>
-          <p class="eyebrow" style="margin-bottom:10px;">Nova despesa</p>
-          <div class="form-group">
-            <label class="form-label">Descrição</label>
-            <input type="text" id="despesaDescricao" class="form-input" placeholder="Aluguel, produtos...">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Categoria</label>
-            <select id="despesaCategoria" class="form-input">
-              <option value="aluguel">Aluguel</option>
-              <option value="produtos">Produtos</option>
-              <option value="contas">Contas (água/luz/internet)</option>
-              <option value="funcionario">Funcionário</option>
-              <option value="marketing">Marketing</option>
-              <option value="outro">Outro</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Valor (R$)</label>
-            <input type="number" id="despesaValor" class="form-input" min="0" step="0.01">
-          </div>
-          <div id="despesaError" class="error-banner" style="display:none;"></div>
-          <button class="cta-primary" onclick="adicionarDespesa()">+ Adicionar despesa</button>
-
-          <div class="gold-divider"></div>
-          <p class="eyebrow" style="margin-bottom:10px;">Despesas do mês</p>
-          <div id="despesasLista"><p class="hint" style="text-align:left;">Carregando...</p></div>
-
-          <div class="gold-divider"></div>
-          <p class="eyebrow" style="margin-bottom:10px;">Retenção de clientes</p>
-          <div id="retencaoResumo"><p class="hint" style="text-align:left;">Carregando...</p></div>
-        </div>
-      </div>
-
-      <!-- 10. NOTIFICAÇÕES (admin) -->
-      <div class="screen" id="screen-notificacoes">
-        <div class="step-header">
-          <button class="back-btn" onclick="goTo('dashboard')">←</button>
-          <h2 class="step-title">Notificações</h2>
-        </div>
-        <div class="screen-body" style="padding-top:0;">
-          <p class="eyebrow" style="margin-bottom:10px;">Enviar para</p>
-          <div class="form-group">
-            <select id="notifFiltro" class="form-input">
-              <option value="todos">Todos os clientes inscritos</option>
-              <option value="plano">Clientes de um plano específico</option>
-              <option value="aniversariantes_hoje">Aniversariantes de hoje</option>
-              <option value="aniversariantes_mes">Aniversariantes do mês</option>
-              <option value="manual">Selecionar manualmente</option>
-            </select>
-          </div>
-
-          <div class="form-group" id="notifPlanoGroup" style="display:none;">
-            <label class="form-label">Plano</label>
-            <select id="notifPlano" class="form-input plano-select"></select>
-          </div>
-
-          <div id="notifManualGroup" style="display:none;">
-            <label class="form-label">Clientes</label>
-            <div id="notifClientesLista" style="max-height:240px; overflow-y:auto; margin:8px 0 6px;">
-              <p class="hint" style="text-align:left;">Carregando clientes...</p>
-            </div>
-          </div>
-
-          <div class="gold-divider"></div>
-
-          <div class="form-group">
-            <label class="form-label">Título</label>
-            <input type="text" id="notifTitulo" class="form-input">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Mensagem</label>
-            <textarea id="notifMensagem" class="form-input" rows="4" placeholder="Escreva o aviso aqui..." style="resize:vertical;"></textarea>
-          </div>
-
-          <p class="hint" style="text-align:left; margin-bottom:14px;">Só chega pra quem já autorizou notificações no app. No iPhone, só recebe quem instalou o app na tela de início.</p>
-
-          <div id="notifError" class="error-banner" style="display:none;"></div>
-          <div id="notifSucesso" class="hint" style="display:none;text-align:left;color:var(--gold);"></div>
-          <button class="cta-primary" id="btnEnviarNotif" onclick="enviarNotificacao()">📢 Enviar notificação</button>
+          <p class="hint" style="text-align:left; margin-bottom:12px;">Separe o que quiser e pague tudo junto, pessoalmente, no dia do seu atendimento.</p>
+          <div class="produtos-grid" id="produtosGrid"></div>
         </div>
       </div>
 
@@ -951,739 +1010,213 @@
             <label class="form-label">WhatsApp</label>
             <input type="tel" id="profileTelefone" class="form-input" placeholder="(19) 99999-9999">
           </div>
+          <div class="form-group">
+            <label class="form-label">Data de nascimento (opcional)</label>
+            <input type="date" id="profileDataNascimento" class="form-input">
+          </div>
+          <label style="display:flex; align-items:flex-start; gap:10px; margin-bottom:16px; cursor:pointer;">
+            <input type="checkbox" id="lgpdConsent" style="margin-top:3px; width:16px; height:16px; accent-color:var(--gold); flex-shrink:0;">
+            <span class="hint" style="text-align:left; margin:0;">Li e aceito os <a href="#" onclick="event.preventDefault(); toggleTermosTexto();" style="color:var(--gold); text-decoration:underline;">Termos de Uso e a Política de Privacidade</a>, e autorizo o uso dos meus dados (nome, WhatsApp e histórico de atendimentos) pela Barbearia do Deeh para agendamentos e contato.</span>
+          </label>
+          <div id="termosTexto" class="summary-card" style="display:none; margin-bottom:14px;">
+            <p class="hint" style="text-align:left; line-height:1.6;">
+              Seus dados (nome, WhatsApp e histórico de atendimentos) são usados apenas para viabilizar seu agendamento, lembretes, avisos e atendimento na Barbearia do Deeh, em conformidade com a LGPD (Lei 13.709/2018). Não compartilhamos seus dados com terceiros. Você pode pedir a remoção dos seus dados a qualquer momento falando direto com o Deeh no WhatsApp.
+            </p>
+          </div>
           <button class="cta-primary" onclick="salvarPerfil()">Salvar</button>
           <div class="gold-divider"></div>
           <p class="eyebrow" style="margin-bottom:10px;">Meus agendamentos</p>
-          <p class="hint" style="text-align:left;">Em breve: histórico de agendamentos direto aqui.</p>
+          <div id="proximoAgendamento"></div>
+
+          <p class="eyebrow" style="margin-bottom:10px; margin-top:14px;">Próximos horários</p>
+          <div id="agendamentosFuturos"><p class="hint" style="text-align:left;">Salve seu WhatsApp acima para ver seus horários.</p></div>
+
+          <div class="gold-divider"></div>
+          <p class="eyebrow" style="margin-bottom:10px;">Histórico</p>
+          <div id="historicoLista"><p class="hint" style="text-align:left;">Salve seu WhatsApp acima para ver seu histórico.</p></div>
+
+          <div class="gold-divider"></div>
+          <p class="eyebrow" style="margin-bottom:10px;">Contato</p>
+          <div class="summary-card" style="margin-bottom:14px;">
+            <a href="https://www.google.com/maps/search/?api=1&query=Rua+Seraphin+Gilberto+Candelo%2C+2063+-+Jd.+Morada+do+Sol%2C+Indaiatuba+-+SP" target="_blank" rel="noopener" style="text-decoration:none;">
+              <div class="summary-row" style="cursor:pointer;">
+                <span class="label">📍 Endereço</span>
+                <span class="val" style="color:var(--gold);">Ver no mapa →</span>
+              </div>
+            </a>
+            <p class="hint" style="text-align:left; margin:6px 0 0; padding:0;">Rua Seraphin Gilberto Candelo, 2063 — Jd. Morada do Sol, Indaiatuba/SP</p>
+          </div>
+          <div class="summary-card" style="margin-bottom:14px;">
+            <a href="https://wa.me/5519993900880" target="_blank" rel="noopener" style="text-decoration:none;">
+              <div class="summary-row" style="cursor:pointer; border-bottom:none;">
+                <span class="label">📲 WhatsApp</span>
+                <span class="val" style="color:var(--gold);">(19) 99390-0880</span>
+              </div>
+            </a>
+          </div>
+          <div class="summary-card" style="margin-bottom:14px;">
+            <a href="https://instagram.com/barbeariadodeeh" target="_blank" rel="noopener" style="text-decoration:none;">
+              <div class="summary-row" style="cursor:pointer;">
+                <span class="label">📸 Instagram</span>
+                <span class="val" style="color:var(--gold);">@barbeariadodeeh</span>
+              </div>
+            </a>
+            <a href="https://instagram.com/davidlucasdias" target="_blank" rel="noopener" style="text-decoration:none;">
+              <div class="summary-row" style="cursor:pointer; border-bottom:none;">
+                <span class="label">👤 Pessoal</span>
+                <span class="val" style="color:var(--gold);">@davidlucasdias</span>
+              </div>
+            </a>
+          </div>
+          <div class="summary-card" style="margin-bottom:14px;">
+            <a href="https://share.google/zfVJVDrPgBTdu0j6u" target="_blank" rel="noopener" style="text-decoration:none;">
+              <div class="summary-row" style="cursor:pointer; border-bottom:none;">
+                <span class="label">⭐ Avalie no Google</span>
+                <span class="val" style="color:var(--gold);">Deixar avaliação →</span>
+              </div>
+            </a>
+          </div>
+
+          <div class="gold-divider"></div>
+          <p class="eyebrow" style="margin-bottom:10px;">Pagamentos</p>
+          <div class="summary-card" style="margin-bottom:14px;">
+            <div class="summary-row" style="border-bottom:none;">
+              <span class="label">Chave Pix (telefone)</span>
+              <span class="val" id="pixKeyVal" style="color:var(--gold);">(19) 99390-0880</span>
+            </div>
+          </div>
+          <button class="cta-primary" style="background:var(--surface); color:var(--gold); border:1px solid var(--gold);" onclick="copiarPix()">📋 Copiar chave Pix</button>
         </div>
       </div>
 
     </div>
   </div>
 
-<script src="config-negocio.js"></script>
+  <p class="hint">Barbearia do Deeh — agende seu horário em segundos.</p>
+
+  <!-- Banner de instalação iOS: só aparece se detectar iPhone/iPad fora do modo app -->
+  <div id="iosInstallBanner">
+    <div class="install-banner-row">
+      <div style="flex:1;">
+        <p class="install-banner-title">Instale o app na tela de início</p>
+        <p class="install-banner-text" id="iosInstallBannerText">
+          Toque em <b>Compartilhar</b> ⬆️ na barra do Safari e depois em <b>"Adicionar à Tela de Início"</b>.
+        </p>
+      </div>
+      <button class="install-banner-close" onclick="fecharIosInstallBanner()" aria-label="Fechar">×</button>
+    </div>
+  </div>
+
 <script>
-  // ====== CONFIG (hidratado a partir de NEGOCIO, ver config-negocio.js) ======
-  const API_AGENDA_HOJE_URL = `${NEGOCIO.apiBase}/agenda-hoje`;
-  const API_CLIENTES_URL = `${NEGOCIO.apiBase}/clientes`;
-  const API_AGENDAR_FIXO_URL = `${NEGOCIO.apiBase}/agendar-fixo`;
-  const API_BLOQUEAR_URL = `${NEGOCIO.apiBase}/bloquear-horario`;
-  const API_FINANCEIRO_URL = `${NEGOCIO.apiBase}/financeiro`;
-  const API_DESPESAS_URL = `${NEGOCIO.apiBase}/despesas`;
-  const API_PAGAMENTOS_PLANOS_URL = `${NEGOCIO.apiBase}/pagamentos-planos`;
-  const API_PUSH_SUBSCRIBE_URL = `${NEGOCIO.apiBase}/push-subscribe`;
-  const API_ENVIAR_LEMBRETES_URL = `${NEGOCIO.apiBase}/enviar-lembretes`;
-  const CRON_SECRET_CLIENT = 'deeh261210'; // autoriza o envio manual de notificações (mesmo secret do cron)
-  const WHATSAPP_NUMBER = NEGOCIO.whatsapp;
-  const ADMIN_TELEFONE = NEGOCIO.whatsapp; // identifica a inscrição push do dono do painel
+  // ====== CONFIG ======
+  const API_URL = 'https://backend-v2-five-topaz.vercel.app/api/agendar';
+  const API_DISPONIBILIDADE_URL = 'https://backend-v2-five-topaz.vercel.app/api/disponibilidade';
+  const API_ATENDIMENTOS_URL = 'https://backend-v2-five-topaz.vercel.app/api/atendimentos';
+  const API_PUSH_SUBSCRIBE_URL = 'https://backend-v2-five-topaz.vercel.app/api/push-subscribe';
+  const API_CLIENTES_URL = 'https://backend-v2-five-topaz.vercel.app/api/clientes';
+  const WHATSAPP_NUMBER = '5519993900880';
   const VAPID_PUBLIC_KEY = 'BMrLQ-xHvALzu301ihaunGo5vGJ6FYKaJzx7B-RqVbU7FAO4eEHu3MIQ7mDqQPWc7CwUSrfi49nBG7ahp2mlrZU';
 
   // Horário de funcionamento: 0=Dom ... 6=Sáb
-  const BUSINESS_HOURS = NEGOCIO.horarioFuncionamento;
+  const BUSINESS_HOURS = {
+    2: { open: 9, close: 19 }, // Terça
+    3: { open: 9, close: 19 }, // Quarta
+    4: { open: 9, close: 19 }, // Quinta
+    5: { open: 9, close: 19 }, // Sexta
+    6: { open: 8, close: 17 }, // Sábado
+  };
 
   const DOW_LABELS = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
-  const DOW_LABELS_LONGO = ['Domingo','Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado'];
   const MONTH_LABELS = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 
-  const PLANO_LABELS = { nenhum: 'Sem plano' };
-  NEGOCIO.planos.forEach(p => { PLANO_LABELS[p.id] = p.nome; });
-
   // ====== STATE ======
-  let currentMode = 'dashboard';
+  let selectedServices = []; // [{name, price, duration}]
+  let selectedDate = null;   // Date object (00:00 local)
+  let selectedTime = null;   // "HH:MM"
+  let selectedBarbeiroId = null; // id do barbeiro escolhido (null = barbearia com 1 só, ou nenhum cadastrado ainda)
+  let BARBEIROS_ATIVOS = []; // [{id, nome}] — só carrega nome, dado financeiro fica só no admin
+
+  let currentMode = 'home';
 
   function goTo(id){
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById('screen-' + id).classList.add('active');
     document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.target === id));
-    if(id === 'dashboard'){ currentMode = id; carregarDashboard(); }
-    if(id === 'clientes'){ carregarClientes(); }
-    if(id === 'barbeiros'){ carregarBarbeiros(); }
-    if(id === 'financeiro'){ carregarFinanceiro(); }
+    if(id === 'home'){ currentMode = id; }
+    if(id === 'profile'){ initPerfil(); }
   }
 
-  let clientesCache = [];
-
-  // ====== Hidratação a partir de NEGOCIO (config-negocio.js) ======
-  function hidratarNegocio(){
-    document.title = `Painel ${NEGOCIO.nome.split(' ').pop()} - Admin`;
-    document.querySelectorAll('.logo-img').forEach(img => {
-      img.src = NEGOCIO.logoAdmin;
-      img.alt = `Logo ${NEGOCIO.nome}`;
-    });
-    document.getElementById('modeSwitchLabel').textContent = `Painel · ${NEGOCIO.nome} (admin)`;
-    const greeting = document.getElementById('dashGreeting');
-    if(greeting) greeting.innerHTML = NEGOCIO.donoNome ? `Olá, <span>${NEGOCIO.donoNome}</span>` : 'Olá!';
-    const notifTitulo = document.getElementById('notifTitulo');
-    if(notifTitulo){ notifTitulo.placeholder = NEGOCIO.nome; notifTitulo.value = NEGOCIO.nome; }
-    hidratarSelectsPlano();
-    hidratarSelectFixoServico();
+  function syncPlanDots(){
+    const carousel = document.getElementById('plansCarousel');
+    const dots = document.querySelectorAll('#plansDots .dot-ind');
+    if(!carousel || !dots.length) return;
+    const cardWidth = carousel.firstElementChild.offsetWidth + 14;
+    const index = Math.round(carousel.scrollLeft / cardWidth);
+    dots.forEach((d,i)=> d.classList.toggle('active', i === index));
   }
 
-  function hidratarSelectsPlano(){
-    document.querySelectorAll('select.plano-select').forEach(sel => {
-      const incluirNenhum = sel.dataset.nenhum === '1';
-      let html = incluirNenhum ? '<option value="nenhum">Sem plano</option>' : '';
-      html += NEGOCIO.planos.map(p => `<option value="${p.id}">${p.nome}</option>`).join('');
-      sel.innerHTML = html;
+  function copiarPix(){
+    const chave = '19993900880';
+    navigator.clipboard.writeText(chave).then(()=>{
+      alert('Chave Pix copiada!');
+    }).catch(()=>{
+      alert('Não foi possível copiar. Chave Pix: ' + chave);
     });
   }
 
-  function hidratarSelectFixoServico(){
-    const sel = document.getElementById('fixoServico');
-    if(!sel) return;
-    sel.innerHTML = NEGOCIO.servicosRapidosHome.map(s => `<option value="${s.name}">${s.name}</option>`).join('');
+  function assinarPlano(){
+    const msg = encodeURIComponent('Olá! Quero assinar um plano mensal da Barbearia do Deeh.');
+    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${msg}`, '_blank');
   }
 
-  document.addEventListener('change', (e) => {
-    if(e.target && e.target.id === 'novoClientePlano'){
-      document.getElementById('subtipoEssencialGroup').style.display =
-        e.target.value === 'essencial' ? '' : 'none';
-    }
-    if(e.target && e.target.id === 'editPlano'){
-      document.getElementById('editSubtipoEssencialGroup').style.display =
-        e.target.value === 'essencial' ? '' : 'none';
-    }
-    if(e.target && e.target.id === 'notifFiltro'){
-      const val = e.target.value;
-      document.getElementById('notifPlanoGroup').style.display = val === 'plano' ? '' : 'none';
-      document.getElementById('notifManualGroup').style.display = val === 'manual' ? '' : 'none';
-      if(val === 'manual') carregarClientesNotificacao();
-    }
-    if(e.target && e.target.id === 'novoBarbeiroRegime'){
-      const isComissao = e.target.value === 'comissao';
-      document.getElementById('novoBarbeiroComissaoGroup').style.display = isComissao ? '' : 'none';
-      document.getElementById('novoBarbeiroAluguelGroup').style.display = isComissao ? 'none' : '';
-    }
-    if(e.target && e.target.id === 'editBarbeiroRegime'){
-      const isComissao = e.target.value === 'comissao';
-      document.getElementById('editBarbeiroComissaoGroup').style.display = isComissao ? '' : 'none';
-      document.getElementById('editBarbeiroAluguelGroup').style.display = isComissao ? 'none' : '';
-    }
-  });
-
-  // ---- Notificações manuais (avisos, pacotes, reajustes) ----
-  let notifSelecionados = new Set();
-
-  async function carregarClientesNotificacao(){
-    const lista = document.getElementById('notifClientesLista');
-    if(!clientesCache.length){
-      lista.innerHTML = '<p class="hint" style="text-align:left;">Carregando clientes...</p>';
-      try{
-        const resp = await fetch(API_CLIENTES_URL);
-        const data = await resp.json();
-        if(data.success) clientesCache = data.clientes || [];
-      }catch(err){ /* segue com cache vazio, trata abaixo */ }
-    }
-    if(!clientesCache.length){
-      lista.innerHTML = '<p class="hint" style="text-align:left;">Nenhum cliente cadastrado.</p>';
-      return;
-    }
-    lista.innerHTML = clientesCache.map(c => `
-      <div class="service-row${notifSelecionados.has(c.telefone) ? ' selected' : ''}" style="margin-bottom:8px;" onclick="toggleNotifCliente(this, '${c.telefone}')">
-        <div class="service-row-left">
-          <div class="checkbox">${notifSelecionados.has(c.telefone) ? '✓' : ''}</div>
-          <div class="info"><div class="name">${c.nome}</div><div class="dur">${c.telefone}</div></div>
-        </div>
-      </div>
-    `).join('');
+  function toggleTermosTexto(){
+    const box = document.getElementById('termosTexto');
+    box.style.display = box.style.display === 'none' ? '' : 'none';
   }
 
-  function toggleNotifCliente(el, telefone){
-    if(notifSelecionados.has(telefone)){
-      notifSelecionados.delete(telefone);
-      el.classList.remove('selected');
-      el.querySelector('.checkbox').textContent = '';
-    } else {
-      notifSelecionados.add(telefone);
-      el.classList.add('selected');
-      el.querySelector('.checkbox').textContent = '✓';
-    }
-  }
+  function salvarPerfil(){
+    const nome = document.getElementById('profileNome').value.trim();
+    const telefone = document.getElementById('profileTelefone').value.trim();
+    const dataNascimento = document.getElementById('profileDataNascimento').value; // '' se vazio
+    const aceitouTermos = document.getElementById('lgpdConsent').checked;
 
-  async function enviarNotificacao(){
-    const errorBox = document.getElementById('notifError');
-    const sucessoBox = document.getElementById('notifSucesso');
-    errorBox.style.display = 'none';
-    sucessoBox.style.display = 'none';
-
-    const filtro = document.getElementById('notifFiltro').value;
-    const titulo = document.getElementById('notifTitulo').value.trim();
-    const mensagem = document.getElementById('notifMensagem').value.trim();
-
-    if(!mensagem){
-      errorBox.textContent = 'Escreva a mensagem.';
-      errorBox.style.display = 'block';
+    if(!aceitouTermos){
+      alert('Para salvar seu perfil, é preciso aceitar os Termos de Uso e a Política de Privacidade.');
       return;
     }
 
-    let valor = null;
-    if(filtro === 'plano'){
-      valor = document.getElementById('notifPlano').value;
-    } else if(filtro === 'manual'){
-      if(!notifSelecionados.size){
-        errorBox.textContent = 'Selecione ao menos um cliente.';
-        errorBox.style.display = 'block';
-        return;
-      }
-      valor = Array.from(notifSelecionados);
+    if(nome) document.getElementById('inputNome').value = nome;
+    if(telefone) document.getElementById('inputTelefone').value = telefone;
+    if(nome) localStorage.setItem('deeh_nome', nome);
+    if(dataNascimento) localStorage.setItem('deeh_data_nascimento', dataNascimento);
+    localStorage.setItem('deeh_lgpd_consent', '1');
+    if(telefone){
+      localStorage.setItem('deeh_telefone', telefone);
+      carregarHistorico(telefone);
+      carregarAgendamentosFuturos(telefone);
+      inscreverPushCliente(telefone, true);
     }
+    if(nome && telefone) salvarClienteNoBanco(nome, telefone, dataNascimento);
+    alert('Perfil salvo!');
+  }
 
-    const btn = document.getElementById('btnEnviarNotif');
-    btn.disabled = true;
-    btn.textContent = 'Enviando...';
-
+  // Cria/atualiza o registro do cliente no banco ao salvar o Perfil.
+  // Best-effort: se falhar, não trava o "Perfil salvo!" (dado já está no localStorage).
+  // Em conflito de telefone, api/clientes.js só atualiza nome e data_nascimento —
+  // nunca mexe em plano/saldo existente.
+  async function salvarClienteNoBanco(nome, telefone, dataNascimento){
     try{
-      const resp = await fetch(`${API_ENVIAR_LEMBRETES_URL}?tipo=broadcast&secret=${CRON_SECRET_CLIENT}`, {
+      await fetch(API_CLIENTES_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ titulo, mensagem, filtro, valor })
+        body: JSON.stringify({ nome, telefone: telefone.replace(/\D/g, ''), data_nascimento: dataNascimento || null })
       });
-      const data = await resp.json();
-      if(!resp.ok || !data.success) throw new Error(data.error || 'Falha ao enviar');
-      sucessoBox.textContent = `Enviado para ${data.enviados} de ${data.inscritos_encontrados ?? 0} inscrito(s) (${data.selecionados} selecionado(s) no total).`;
-      sucessoBox.style.display = 'block';
-      document.getElementById('notifMensagem').value = '';
     }catch(err){
-      errorBox.textContent = 'Erro ao enviar notificação: ' + err.message;
-      errorBox.style.display = 'block';
-    }finally{
-      btn.disabled = false;
-      btn.textContent = '📢 Enviar notificação';
+      console.error('Erro ao salvar cliente no banco:', err);
     }
   }
 
-  async function carregarClientes(){
-    const lista = document.getElementById('clientesLista');
-    lista.innerHTML = '<p class="hint" style="text-align:left;">Carregando...</p>';
-    try{
-      const resp = await fetch(API_CLIENTES_URL);
-      const data = await resp.json();
-      if(!data.success) throw new Error(data.error || 'Falha ao buscar clientes');
-      clientesCache = data.clientes || [];
-      if(!clientesCache.length){
-        lista.innerHTML = '<p class="hint" style="text-align:left;">Nenhum cliente cadastrado ainda.</p>';
-        return;
-      }
-      lista.innerHTML = clientesCache.map(c => {
-        const plano = PLANO_LABELS[c.plano] || c.plano;
-        const saldo = c.plano && c.plano !== 'nenhum'
-          ? `${c.cortes_restantes ?? 0} cortes · ${c.barbas_restantes ?? 0} barbas · ${c.pezinhos_restantes ?? 0} pezinhos`
-          : 'Sem pacote ativo';
-        const valorLabel = c.valor_pacote ? ` · R$ ${parseFloat(c.valor_pacote).toFixed(2)}` : '';
-        return `<div class="summary-card" style="margin-bottom:10px;cursor:pointer;" onclick="abrirEditarCliente(${c.id})">
-          <div class="summary-row"><span class="label" style="font-size:14px;color:var(--cream);font-weight:700;">${c.nome}</span><span class="val" style="color:var(--gold);">${plano}${valorLabel}</span></div>
-          <div class="summary-row" style="border-bottom:none;"><span class="label">${c.telefone} · ${saldo}</span></div>
-        </div>`;
-      }).join('');
-    }catch(err){
-      lista.innerHTML = '<p class="hint" style="text-align:left;color:#e8a37f;">Erro ao carregar clientes.</p>';
-    }
-  }
-
-  function abrirNovoCliente(){
-    document.getElementById('novoClienteNome').value = '';
-    document.getElementById('novoClienteTelefone').value = '';
-    document.getElementById('novoClientePlano').value = 'nenhum';
-    document.getElementById('novoClienteValorPacote').value = '';
-    document.getElementById('novoClienteDataNascimento').value = '';
-    document.getElementById('subtipoEssencialGroup').style.display = 'none';
-    document.getElementById('novoClienteError').style.display = 'none';
-    goTo('cliente-novo');
-  }
-
-  async function salvarNovoCliente(){
-    const nome = document.getElementById('novoClienteNome').value.trim();
-    const telefone = document.getElementById('novoClienteTelefone').value.trim().replace(/\D/g, '');
-    const plano = document.getElementById('novoClientePlano').value;
-    const subtipo_essencial = plano === 'essencial' ? document.getElementById('novoClienteSubtipo').value : null;
-    const valorPacoteRaw = document.getElementById('novoClienteValorPacote').value;
-    const valor_pacote = valorPacoteRaw === '' ? null : parseFloat(valorPacoteRaw);
-    const data_nascimento = document.getElementById('novoClienteDataNascimento').value || null;
-    const errorBox = document.getElementById('novoClienteError');
-
-    if(!nome || !telefone){
-      errorBox.textContent = 'Preencha nome e WhatsApp.';
-      errorBox.style.display = 'block';
-      return;
-    }
-
-    try{
-      const resp = await fetch(API_CLIENTES_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nome, telefone, plano, subtipo_essencial, valor_pacote, data_nascimento })
-      });
-      const data = await resp.json();
-      if(!resp.ok || !data.success) throw new Error(data.error || 'Falha ao cadastrar');
-      goTo('clientes');
-    }catch(err){
-      errorBox.textContent = 'Erro ao cadastrar cliente. Tente novamente.';
-      errorBox.style.display = 'block';
-    }
-  }
-
-  let clienteEditandoId = null;
-
-  function abrirEditarCliente(id){
-    const c = clientesCache.find(x => x.id === id);
-    if(!c) return;
-    clienteEditandoId = id;
-    document.getElementById('editarClienteNome').textContent = c.nome;
-    document.getElementById('editPlano').value = c.plano || 'nenhum';
-    document.getElementById('editSubtipoEssencialGroup').style.display = c.plano === 'essencial' ? '' : 'none';
-    document.getElementById('editSubtipoEssencial').value = c.subtipo_essencial || 'corte';
-    document.getElementById('editCortes').value = c.cortes_restantes ?? 0;
-    document.getElementById('editBarbas').value = c.barbas_restantes ?? 0;
-    document.getElementById('editPezinhos').value = c.pezinhos_restantes ?? 0;
-    document.getElementById('editSobrancelha').value = String(!!c.sobrancelha_restante);
-    document.getElementById('editValorPacote').value = c.valor_pacote ?? '';
-    document.getElementById('editDataNascimento').value = c.data_nascimento ? c.data_nascimento.slice(0, 10) : '';
-    document.getElementById('editarClienteError').style.display = 'none';
-    const planoLabel = document.getElementById('planoAtualLabel');
-    planoLabel.textContent = c.plano && c.plano !== 'nenhum'
-      ? `Plano salvo: ${PLANO_LABELS[c.plano] || c.plano}`
-      : 'Cliente sem plano ativo.';
-    document.getElementById('pagamentoPlanoError').style.display = 'none';
-    document.getElementById('pagamentoPlanoSucesso').style.display = 'none';
-    goTo('cliente-editar');
-  }
-
-  async function salvarEdicaoCliente(){
-    if(!clienteEditandoId) return;
-    const errorBox = document.getElementById('editarClienteError');
-    const valorPacoteRaw = document.getElementById('editValorPacote').value;
-    const planoSelecionado = document.getElementById('editPlano').value;
-    const payload = {
-      id: clienteEditandoId,
-      plano: planoSelecionado,
-      subtipo_essencial: planoSelecionado === 'essencial' ? document.getElementById('editSubtipoEssencial').value : null,
-      cortes_restantes: parseInt(document.getElementById('editCortes').value, 10) || 0,
-      barbas_restantes: parseInt(document.getElementById('editBarbas').value, 10) || 0,
-      pezinhos_restantes: parseInt(document.getElementById('editPezinhos').value, 10) || 0,
-      sobrancelha_restante: document.getElementById('editSobrancelha').value === 'true',
-      valor_pacote: valorPacoteRaw === '' ? null : parseFloat(valorPacoteRaw),
-      data_nascimento: document.getElementById('editDataNascimento').value || null
-    };
-    try{
-      const resp = await fetch(API_CLIENTES_URL, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      const data = await resp.json();
-      if(!resp.ok || !data.success) throw new Error(data.details || data.error || 'Falha ao salvar');
-      goTo('clientes');
-    }catch(err){
-      // DEBUG TEMPORÁRIO: mostra o erro real do servidor (Postgres) pra diagnosticar.
-      // Depois de identificar e corrigir a causa, pode voltar essa linha pro texto genérico.
-      errorBox.textContent = 'Erro ao salvar alterações: ' + err.message;
-      errorBox.style.display = 'block';
-    }
-  }
-
-  // ---- Barbeiros ----
-  const REGIME_LABELS = { comissao: 'Comissão', aluguel: 'Aluguel fixo' };
-  let barbeirosCache = [];
-
-  async function carregarBarbeiros(){
-    const lista = document.getElementById('barbeirosLista');
-    lista.innerHTML = '<p class="hint" style="text-align:left;">Carregando...</p>';
-    try{
-      const resp = await fetch(`${API_CLIENTES_URL}?recurso=barbeiros`);
-      const data = await resp.json();
-      if(!data.success) throw new Error(data.error || 'Falha ao buscar barbeiros');
-      barbeirosCache = data.barbeiros || [];
-      if(!barbeirosCache.length){
-        lista.innerHTML = '<p class="hint" style="text-align:left;">Nenhum barbeiro cadastrado ainda.</p>';
-        return;
-      }
-      lista.innerHTML = barbeirosCache.map(b => {
-        const regimeLabel = REGIME_LABELS[b.regime] || b.regime;
-        const valorLabel = b.regime === 'comissao'
-          ? `${b.comissao_servico_pct ?? 0}% sobre serviço`
-          : `R$ ${parseFloat(b.aluguel_fixo_valor ?? 0).toFixed(2)} fixo/mês`;
-        const statusLabel = b.ativo ? '' : ' · inativo';
-        return `<div class="summary-card" style="margin-bottom:10px;cursor:pointer;" onclick="abrirEditarBarbeiro(${b.id})">
-          <div class="summary-row"><span class="label" style="font-size:14px;color:var(--cream);font-weight:700;">${b.nome}</span><span class="val" style="color:var(--gold);">${regimeLabel}</span></div>
-          <div class="summary-row" style="border-bottom:none;"><span class="label">${valorLabel} · ${b.comissao_produtos_pct ?? 0}% produtos${statusLabel}</span></div>
-        </div>`;
-      }).join('');
-    }catch(err){
-      lista.innerHTML = '<p class="hint" style="text-align:left;color:#e8a37f;">Erro ao carregar barbeiros.</p>';
-    }
-  }
-
-  function abrirNovoBarbeiro(){
-    document.getElementById('novoBarbeiroNome').value = '';
-    document.getElementById('novoBarbeiroRegime').value = 'comissao';
-    document.getElementById('novoBarbeiroComissaoServico').value = '';
-    document.getElementById('novoBarbeiroAluguel').value = '';
-    document.getElementById('novoBarbeiroComissaoProdutos').value = '0';
-    document.getElementById('novoBarbeiroComissaoGroup').style.display = '';
-    document.getElementById('novoBarbeiroAluguelGroup').style.display = 'none';
-    document.getElementById('novoBarbeiroError').style.display = 'none';
-    goTo('barbeiro-novo');
-  }
-
-  async function salvarNovoBarbeiro(){
-    const nome = document.getElementById('novoBarbeiroNome').value.trim();
-    const regime = document.getElementById('novoBarbeiroRegime').value;
-    const comissao_servico_pct = document.getElementById('novoBarbeiroComissaoServico').value;
-    const aluguel_fixo_valor = document.getElementById('novoBarbeiroAluguel').value;
-    const comissao_produtos_pct = document.getElementById('novoBarbeiroComissaoProdutos').value;
-    const errorBox = document.getElementById('novoBarbeiroError');
-
-    if(!nome){
-      errorBox.textContent = 'Preencha o nome.';
-      errorBox.style.display = 'block';
-      return;
-    }
-
-    try{
-      const resp = await fetch(`${API_CLIENTES_URL}?recurso=barbeiros`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nome, regime, comissao_servico_pct, aluguel_fixo_valor, comissao_produtos_pct })
-      });
-      const data = await resp.json();
-      if(!resp.ok || !data.success) throw new Error(data.error || 'Falha ao cadastrar');
-      goTo('barbeiros');
-    }catch(err){
-      errorBox.textContent = 'Erro ao cadastrar barbeiro. Tente novamente.';
-      errorBox.style.display = 'block';
-    }
-  }
-
-  let barbeiroEditandoId = null;
-
-  function abrirEditarBarbeiro(id){
-    const b = barbeirosCache.find(x => x.id === id);
-    if(!b) return;
-    barbeiroEditandoId = id;
-    document.getElementById('editarBarbeiroNome').textContent = b.nome;
-    document.getElementById('editBarbeiroNome').value = b.nome;
-    document.getElementById('editBarbeiroRegime').value = b.regime;
-    document.getElementById('editBarbeiroComissaoServico').value = b.comissao_servico_pct ?? '';
-    document.getElementById('editBarbeiroAluguel').value = b.aluguel_fixo_valor ?? '';
-    document.getElementById('editBarbeiroComissaoProdutos').value = b.comissao_produtos_pct ?? 0;
-    document.getElementById('editBarbeiroAtivo').value = String(!!b.ativo);
-    document.getElementById('editBarbeiroComissaoGroup').style.display = b.regime === 'comissao' ? '' : 'none';
-    document.getElementById('editBarbeiroAluguelGroup').style.display = b.regime === 'aluguel' ? '' : 'none';
-    document.getElementById('editBarbeiroError').style.display = 'none';
-    goTo('barbeiro-editar');
-  }
-
-  async function salvarEdicaoBarbeiro(){
-    if(!barbeiroEditandoId) return;
-    const errorBox = document.getElementById('editBarbeiroError');
-    const payload = {
-      id: barbeiroEditandoId,
-      nome: document.getElementById('editBarbeiroNome').value.trim(),
-      regime: document.getElementById('editBarbeiroRegime').value,
-      comissao_servico_pct: document.getElementById('editBarbeiroComissaoServico').value,
-      aluguel_fixo_valor: document.getElementById('editBarbeiroAluguel').value,
-      comissao_produtos_pct: document.getElementById('editBarbeiroComissaoProdutos').value,
-      ativo: document.getElementById('editBarbeiroAtivo').value === 'true'
-    };
-    try{
-      const resp = await fetch(`${API_CLIENTES_URL}?recurso=barbeiros`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      const data = await resp.json();
-      if(!resp.ok || !data.success) throw new Error(data.error || 'Falha ao salvar');
-      goTo('barbeiros');
-    }catch(err){
-      errorBox.textContent = 'Erro ao salvar alterações: ' + err.message;
-      errorBox.style.display = 'block';
-    }
-  }
-
-  async function registrarPagamentoPlano(){
-    if(!clienteEditandoId) return;
-    const c = clientesCache.find(x => x.id === clienteEditandoId);
-    const errorBox = document.getElementById('pagamentoPlanoError');
-    const sucessoBox = document.getElementById('pagamentoPlanoSucesso');
-    errorBox.style.display = 'none';
-    sucessoBox.style.display = 'none';
-
-    if(!c.plano || c.plano === 'nenhum'){
-      errorBox.textContent = 'Este cliente não tem plano ativo.';
-      errorBox.style.display = 'block';
-      return;
-    }
-
-    try{
-      const resp = await fetch(API_PAGAMENTOS_PLANOS_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cliente_id: c.id, plano: c.plano, forma_pagamento: 'pix' })
-      });
-      const data = await resp.json();
-      if(!resp.ok || !data.success) throw new Error(data.error || 'Falha ao registrar');
-      sucessoBox.textContent = `Pagamento de R$ ${data.valor} registrado.`;
-      sucessoBox.style.display = 'block';
-    }catch(err){
-      errorBox.textContent = 'Erro ao registrar pagamento. Tente novamente.';
-      errorBox.style.display = 'block';
-    }
-  }
-
-  const CATEGORIA_LABELS = { aluguel: 'Aluguel', produtos: 'Produtos', contas: 'Contas', funcionario: 'Funcionário', marketing: 'Marketing', outro: 'Outro' };
-
-  async function carregarFinanceiro(){
-    const resumoBox = document.getElementById('financeiroResumo');
-    const listaBox = document.getElementById('despesasLista');
-    resumoBox.innerHTML = '<p class="hint" style="text-align:left;">Carregando...</p>';
-    listaBox.innerHTML = '<p class="hint" style="text-align:left;">Carregando...</p>';
-    try{
-      const resp = await fetch(API_FINANCEIRO_URL);
-      const r = await resp.json();
-      if(!r.success) throw new Error(r.error || 'Falha ao buscar dados');
-
-      resumoBox.innerHTML = `
-        <div class="summary-card" style="margin-bottom:10px;">
-          <div class="summary-row"><span class="label">Receita total (mês)</span><span class="val" style="color:var(--gold);">R$ ${r.receita.total}</span></div>
-          <div class="summary-row"><span class="label">Serviços avulsos</span><span class="val">R$ ${r.receita.servicos_avulsos}</span></div>
-          <div class="summary-row" style="border-bottom:none;"><span class="label">Planos</span><span class="val">R$ ${r.receita.planos}</span></div>
-        </div>
-        <div class="summary-card" style="margin-bottom:10px;">
-          <div class="summary-row"><span class="label">Despesas (mês)</span><span class="val">R$ ${r.despesas.total}</span></div>
-          <div class="summary-row" style="border-bottom:none;"><span class="label" style="font-weight:700;color:var(--cream);">Lucro líquido</span><span class="val" style="color:var(--gold);font-weight:700;">R$ ${r.lucro_liquido}</span></div>
-        </div>
-        <div class="summary-card" style="margin-bottom:10px;">
-          <div class="summary-row"><span class="label">Ticket médio</span><span class="val">R$ ${r.atendimentos.ticket_medio}</span></div>
-          <div class="summary-row" style="border-bottom:none;"><span class="label">Atendimentos no mês</span><span class="val">${r.atendimentos.quantidade}</span></div>
-        </div>
-        <div class="summary-card">
-          <div class="summary-row" style="border-bottom:none;"><span class="label">MRR estimado (planos ativos)</span><span class="val" style="color:var(--gold);">R$ ${r.mrr_estimado}</span></div>
-        </div>`;
-
-      const despesasResp = await fetch(`${API_DESPESAS_URL}?mes=${r.periodo.mes}&ano=${r.periodo.ano}`);
-      const despesasData = await despesasResp.json();
-      if(despesasData.success && despesasData.despesas.length){
-        listaBox.innerHTML = despesasData.despesas.map(d => `
-          <div class="summary-card" style="margin-bottom:8px;">
-            <div class="summary-row" style="border-bottom:none;"><span class="label">${d.descricao} · ${CATEGORIA_LABELS[d.categoria] || d.categoria}</span><span class="val">R$ ${parseFloat(d.valor).toFixed(2)}</span></div>
-          </div>`).join('');
-      } else {
-        listaBox.innerHTML = '<p class="hint" style="text-align:left;">Nenhuma despesa neste mês.</p>';
-      }
-    }catch(err){
-      resumoBox.innerHTML = '<p class="hint" style="text-align:left;color:#e8a37f;">Erro ao carregar financeiro.</p>';
-      listaBox.innerHTML = '';
-    }
-    carregarRetencao();
-    carregarGraficoFaturamento();
-  }
-
-  async function carregarGraficoFaturamento(){
-    const box = document.getElementById('graficoFaturamento');
-    box.innerHTML = '<p class="hint" style="text-align:left;">Carregando...</p>';
-    try{
-      const resp = await fetch(`${API_FINANCEIRO_URL}?tipo=historico&meses=6`);
-      const data = await resp.json();
-      if(!data.success) throw new Error(data.error || 'Falha ao buscar histórico');
-      box.innerHTML = renderizarGraficoFaturamento(data.historico);
-    }catch(err){
-      box.innerHTML = '<p class="hint" style="text-align:left;color:#e8a37f;">Erro ao carregar gráfico.</p>';
-    }
-  }
-
-  function renderizarGraficoFaturamento(historico){
-    if(!historico || !historico.length){
-      return '<p class="hint" style="text-align:left;">Sem dados suficientes ainda.</p>';
-    }
-
-    const MESES_ABREV = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
-    const largura = 335;
-    const altura = 150;
-    const alturaBarraMax = 90;
-    const baseY = 112;
-    const n = historico.length;
-    const larguraBarra = Math.min(38, (largura - 20) / n - 10);
-    const espacamento = (largura - 20) / n;
-
-    const maiorReceita = Math.max(...historico.map(h => h.receita_total), 1);
-
-    const barras = historico.map((h, i) => {
-      const alturaBarra = Math.max(2, (h.receita_total / maiorReceita) * alturaBarraMax);
-      const x = 10 + i * espacamento + (espacamento - larguraBarra) / 2;
-      const y = baseY - alturaBarra;
-      const label = `${MESES_ABREV[h.mes - 1]}`;
-      const valorFmt = h.receita_total >= 1000
-        ? `${(h.receita_total / 1000).toFixed(1)}k`
-        : `${Math.round(h.receita_total)}`;
-      return `
-        <rect x="${x}" y="${y}" width="${larguraBarra}" height="${alturaBarra}" rx="4" fill="var(--gold)"></rect>
-        <text x="${x + larguraBarra / 2}" y="${y - 6}" class="grafico-bar-valor">${valorFmt}</text>
-        <text x="${x + larguraBarra / 2}" y="${baseY + 16}" class="grafico-bar-label">${label}</text>
-      `;
-    }).join('');
-
-    return `
-      <div class="grafico-container">
-        <svg viewBox="0 0 ${largura} ${altura}" style="width:100%; height:auto; display:block;">
-          <line x1="10" y1="${baseY}" x2="${largura - 10}" y2="${baseY}" stroke="var(--brown)" stroke-width="1"></line>
-          ${barras}
-        </svg>
-      </div>
-    `;
-  }
-
-  async function carregarRetencao(){
-    const box = document.getElementById('retencaoResumo');
-    box.innerHTML = '<p class="hint" style="text-align:left;">Carregando...</p>';
-    try{
-      const resp = await fetch(`${API_FINANCEIRO_URL}?tipo=retencao`);
-      const data = await resp.json();
-      if(!data.success) throw new Error(data.error || 'Falha ao buscar retenção');
-      const r = data.retencao;
-      box.innerHTML = `
-        <div class="stat-grid">
-          <div class="stat-card"><div class="val">${r.ativos_30}</div><div class="lbl">Ativos (≤30 dias)</div></div>
-          <div class="stat-card"><div class="val">${r.inativos_31_60}</div><div class="lbl">31–60 dias sem voltar</div></div>
-          <div class="stat-card"><div class="val">${r.inativos_61_90}</div><div class="lbl">61–90 dias sem voltar</div></div>
-          <div class="stat-card"><div class="val">${r.inativos_90_mais}</div><div class="lbl">90+ dias sem voltar</div></div>
-        </div>
-        <p class="hint" style="text-align:left; margin-top:8px;">${r.nunca_visitou} de ${r.total_clientes} cliente(s) cadastrado(s) nunca tiveram atendimento registrado.</p>
-      `;
-    }catch(err){
-      box.innerHTML = '<p class="hint" style="text-align:left;color:#e8a37f;">Erro ao carregar retenção.</p>';
-    }
-  }
-
-  async function adicionarDespesa(){
-    const errorBox = document.getElementById('despesaError');
-    errorBox.style.display = 'none';
-    const descricao = document.getElementById('despesaDescricao').value.trim();
-    const categoria = document.getElementById('despesaCategoria').value;
-    const valor = parseFloat(document.getElementById('despesaValor').value);
-
-    if(!descricao || !valor || valor <= 0){
-      errorBox.textContent = 'Preencha descrição e valor válido.';
-      errorBox.style.display = 'block';
-      return;
-    }
-
-    try{
-      const resp = await fetch(API_DESPESAS_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ descricao, categoria, valor })
-      });
-      const data = await resp.json();
-      if(!resp.ok || !data.success) throw new Error(data.error || 'Falha ao adicionar');
-      document.getElementById('despesaDescricao').value = '';
-      document.getElementById('despesaValor').value = '';
-      carregarFinanceiro();
-    }catch(err){
-      errorBox.textContent = 'Erro ao adicionar despesa. Tente novamente.';
-      errorBox.style.display = 'block';
-    }
-  }
-
-  async function bloquearHorario(){
-    const errorBox = document.getElementById('bloqError');
-    const sucessoBox = document.getElementById('bloqSucesso');
-    errorBox.style.display = 'none';
-    sucessoBox.style.display = 'none';
-
-    const dataRaw = document.getElementById('bloqData').value;
-    const horaInicio = document.getElementById('bloqInicio').value;
-    const horaFim = document.getElementById('bloqFim').value;
-    const motivo = document.getElementById('bloqMotivo').value.trim() || 'Almoço';
-
-    if(!dataRaw || !horaInicio || !horaFim){
-      errorBox.textContent = 'Preencha data e horários.';
-      errorBox.style.display = 'block';
-      return;
-    }
-
-    const [ano, mes, dia] = dataRaw.split('-');
-    const data = `${dia}/${mes}/${ano}`;
-
-    try{
-      const resp = await fetch(API_BLOQUEAR_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ data, horaInicio, horaFim, motivo })
-      });
-      const result = await resp.json();
-      if(!resp.ok || !result.success) throw new Error(result.error || 'Falha ao bloquear');
-      sucessoBox.textContent = `Horário bloqueado: ${data} ${horaInicio}–${horaFim}.`;
-      sucessoBox.style.display = 'block';
-    }catch(err){
-      errorBox.textContent = 'Erro ao bloquear horário. Tente novamente.';
-      errorBox.style.display = 'block';
-    }
-  }
-
-  async function criarHorarioFixo(){
-    if(!clienteEditandoId) return;
-    const c = clientesCache.find(x => x.id === clienteEditandoId);
-    const errorBox = document.getElementById('fixoError');
-    const sucessoBox = document.getElementById('fixoSucesso');
-    errorBox.style.display = 'none';
-    sucessoBox.style.display = 'none';
-
-    const servico = document.getElementById('fixoServico').value;
-    const dataInicio = document.getElementById('fixoDataInicio').value.trim();
-    const horario = document.getElementById('fixoHorario').value.trim();
-    const repeticoes = document.getElementById('fixoRepeticoes').value;
-
-    if(!/^\d{2}\/\d{2}\/\d{4}$/.test(dataInicio) || !/^\d{2}:\d{2}$/.test(horario)){
-      errorBox.textContent = 'Preencha data (DD/MM/AAAA) e horário (HH:MM) corretamente.';
-      errorBox.style.display = 'block';
-      return;
-    }
-
-    const duracao = servico === 'Corte Kids' || servico.includes('Barba') || servico === 'Corte' || servico.includes('+') ? '60 min' : '60 min';
-
-    try{
-      const resp = await fetch(API_AGENDAR_FIXO_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          nome: c.nome, telefone: c.telefone, servico, dataInicio, horario,
-          duracao, preco: 'incluso no pacote', repeticoes
-        })
-      });
-      const data = await resp.json();
-      if(!resp.ok || !data.success) throw new Error(data.error || 'Falha ao criar horário fixo');
-      sucessoBox.textContent = `Horário fixo criado (${repeticoes} semanas).`;
-      sucessoBox.style.display = 'block';
-    }catch(err){
-      errorBox.textContent = 'Erro ao criar horário fixo. Tente novamente.';
-      errorBox.style.display = 'block';
-    }
-  }
-
-  // ====== LOGIN (admin) ======
-  // ATENÇÃO: proteção simples do lado do cliente. Impede acesso casual,
-  // mas não é criptografia real (qualquer um que abrir o código-fonte vê a senha).
-  // Troque a senha abaixo quando quiser.
-  const ADMIN_PASSWORD = 'deeh2026';
-
-  function tentarLogin(){
-    const val = document.getElementById('adminPassword').value;
-    if(val === ADMIN_PASSWORD){
-      sessionStorage.setItem('deehAdminAuth', '1');
-      abrirPainel();
-    } else {
-      document.getElementById('loginError').style.display = 'block';
-    }
-  }
-
-  function abrirPainel(){
-    document.getElementById('loginGate').style.display = 'none';
-    document.getElementById('appShell').style.display = '';
-    goTo('dashboard');
-    inscreverPushAdmin();
-  }
-
-  // ---- Push notification: avisa o Deeh na hora que um cliente agenda ----
+  // ---- Push notifications: inscrição do cliente (avisos, pacotes, reajustes etc.) ----
   function urlBase64ToUint8Array(base64String){
     const padding = '='.repeat((4 - base64String.length % 4) % 4);
     const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
@@ -1691,12 +1224,16 @@
     return Uint8Array.from([...rawData].map(c => c.charCodeAt(0)));
   }
 
-  async function inscreverPushAdmin(){
+  async function inscreverPushCliente(telefone, pedirPermissao){
     if(!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+    const telefoneLimpo = (telefone || '').replace(/\D/g, '');
+    if(!telefoneLimpo) return;
     try{
       const registration = await navigator.serviceWorker.ready;
       let subscription = await registration.pushManager.getSubscription();
       if(!subscription){
+        // Sem pedirPermissao explícito, só re-inscreve se o navegador já tiver permissão concedida antes
+        if(!pedirPermissao && Notification.permission !== 'granted') return;
         const permissao = await Notification.requestPermission();
         if(permissao !== 'granted') return;
         subscription = await registration.pushManager.subscribe({
@@ -1707,20 +1244,258 @@
       await fetch(API_PUSH_SUBSCRIBE_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ telefone: ADMIN_TELEFONE, subscription })
+        body: JSON.stringify({ telefone: telefoneLimpo, subscription })
       });
     }catch(err){
-      console.error('Erro ao inscrever push do admin:', err);
+      console.error('Erro ao inscrever push do cliente:', err);
     }
   }
 
-  function logoutAdmin(){
-    sessionStorage.removeItem('deehAdminAuth');
-    location.reload();
+  async function carregarAgendamentosFuturos(telefone){
+    const container = document.getElementById('agendamentosFuturos');
+    container.innerHTML = '<p class="hint" style="text-align:left;">Carregando...</p>';
+    try{
+      const telefoneLimpo = telefone.replace(/\D/g, '');
+      const resp = await fetch(`${API_URL}?tipo=meus-agendamentos&telefone=${encodeURIComponent(telefoneLimpo)}`);
+      const data = await resp.json();
+      if(!data.success || !data.agendamentos || !data.agendamentos.length){
+        container.innerHTML = '<p class="hint" style="text-align:left;">Nenhum horário marcado no momento.</p>';
+        return;
+      }
+      container.innerHTML = data.agendamentos.map(a => `
+        <div class="summary-card" style="margin-bottom:10px; border:1px solid var(--gold);">
+          <div class="summary-row"><span class="label">${a.servico}</span><span class="val" style="color:var(--gold);">${a.preco || ''}</span></div>
+          <div class="summary-row" style="border-bottom:none; align-items:center;">
+            <span class="label">${a.data} às ${a.horario}</span>
+            <button class="cancel-btn" onclick="cancelarMeuAgendamento('${a.eventId}')">Cancelar</button>
+          </div>
+        </div>
+      `).join('');
+    }catch(err){
+      container.innerHTML = '<p class="hint" style="text-align:left;">Erro ao carregar seus horários.</p>';
+    }
   }
 
-  function salvarPerfil(){
-    alert('Perfil salvo!');
+  async function cancelarMeuAgendamento(eventId){
+    if(!confirm('Tem certeza que quer cancelar esse horário?')) return;
+    const telefone = localStorage.getItem('deeh_telefone');
+    if(!telefone) return;
+    try{
+      const resp = await fetch(`${API_URL}?tipo=cancelar`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ eventId, telefone })
+      });
+      const data = await resp.json();
+      if(!resp.ok || !data.success) throw new Error(data.error || 'Falha ao cancelar');
+      carregarAgendamentosFuturos(telefone);
+    }catch(err){
+      alert('Não foi possível cancelar. Tente novamente ou fale com o Deeh no WhatsApp.');
+    }
+  }
+
+  async function carregarHistorico(telefone){
+    const container = document.getElementById('historicoLista');
+    const proximoContainer = document.getElementById('proximoAgendamento');
+    container.innerHTML = '<p class="hint" style="text-align:left;">Carregando...</p>';
+    try{
+      const telefoneLimpo = telefone.replace(/\D/g, '');
+      const resp = await fetch(`${API_ATENDIMENTOS_URL}?telefone=${encodeURIComponent(telefoneLimpo)}`);
+      const data = await resp.json();
+
+      if(data.proximo_agendamento){
+        const p = data.proximo_agendamento;
+        const dataHora = new Date(p.data_hora);
+        const dataFmt = dataHora.toLocaleDateString('pt-BR');
+        const horaFmt = dataHora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        proximoContainer.innerHTML = `<div class="summary-card" style="margin-bottom:14px; border:1px solid var(--gold);">
+          <div class="summary-row" style="border-bottom:none;">
+            <span class="label">📅 Próximo horário</span>
+            <span class="val" style="color:var(--gold);">${p.servico} — ${dataFmt} às ${horaFmt}</span>
+          </div>
+        </div>`;
+      } else {
+        proximoContainer.innerHTML = '';
+      }
+
+      if(!data.success || !data.atendimentos || data.atendimentos.length === 0){
+        container.innerHTML = '<p class="hint" style="text-align:left;">Nenhum atendimento encontrado ainda.</p>';
+        return;
+      }
+      container.innerHTML = data.atendimentos.map(a => {
+        const data_hora = new Date(a.data_hora);
+        const dataFmt = data_hora.toLocaleDateString('pt-BR');
+        const servicos = Array.isArray(a.servicos) ? a.servicos.join(', ') : (JSON.parse(a.servicos || '[]').join(', '));
+        return `<div class="summary-card" style="margin-bottom:10px;">
+          <div class="summary-row"><span class="label">${dataFmt}</span><span class="val" style="color:var(--gold);">R$ ${a.valor_cobrado}</span></div>
+          <div class="summary-row" style="border-bottom:none;"><span class="label">${servicos}</span></div>
+        </div>`;
+      }).join('');
+    }catch(err){
+      container.innerHTML = '<p class="hint" style="text-align:left;">Erro ao carregar histórico.</p>';
+    }
+  }
+
+  function initPerfil(){
+    const nomeSalvo = localStorage.getItem('deeh_nome');
+    const telefoneSalvo = localStorage.getItem('deeh_telefone');
+    const dataNascimentoSalva = localStorage.getItem('deeh_data_nascimento');
+    if(nomeSalvo) document.getElementById('profileNome').value = nomeSalvo;
+    if(dataNascimentoSalva) document.getElementById('profileDataNascimento').value = dataNascimentoSalva;
+    if(telefoneSalvo){
+      document.getElementById('profileTelefone').value = telefoneSalvo;
+      carregarHistorico(telefoneSalvo);
+      carregarAgendamentosFuturos(telefoneSalvo);
+    }
+    document.getElementById('lgpdConsent').checked = localStorage.getItem('deeh_lgpd_consent') === '1';
+  }
+
+  function prefillFromStorage(){
+    const nomeSalvo = localStorage.getItem('deeh_nome');
+    const telefoneSalvo = localStorage.getItem('deeh_telefone');
+    if(nomeSalvo) document.getElementById('inputNome').value = nomeSalvo;
+    if(telefoneSalvo) document.getElementById('inputTelefone').value = telefoneSalvo;
+  }
+
+  function toggleService(el){
+    el.classList.toggle('selected');
+    let total = 0;
+    selectedServices = [];
+    document.querySelectorAll('.service-row.selected').forEach(row => {
+      const price = parseInt(row.dataset.price, 10);
+      total += price;
+      selectedServices.push({
+        name: row.dataset.name,
+        price,
+        duration: parseInt(row.dataset.duration, 10)
+      });
+    });
+    document.getElementById('totalPrice').textContent = 'R$ ' + total;
+  }
+
+  // ---- Barbeiros: etapa de escolher profissional (só aparece com 2+ ativos) ----
+  async function fetchBarbeiros(){
+    try{
+      const resp = await fetch(`${API_CLIENTES_URL}?recurso=barbeiros&publico=1`);
+      const data = await resp.json();
+      if(data.success) BARBEIROS_ATIVOS = data.barbeiros || [];
+    }catch(err){
+      console.error('Erro ao carregar barbeiros:', err);
+      BARBEIROS_ATIVOS = []; // falha segura: some a etapa de escolher profissional
+    }
+  }
+
+  function renderBarbeiroLista(){
+    const lista = document.getElementById('barbeiroLista');
+    lista.innerHTML = BARBEIROS_ATIVOS.map(b => `
+      <div class="service-row" onclick="selecionarBarbeiro(${b.id}, '${b.nome.replace(/'/g, "\\'")}')">
+        <div class="service-row-left">
+          <div class="info"><div class="name">${b.nome}</div></div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // Chamado ao tocar "Continuar" na tela de Serviços. Com 0 ou 1 barbeiro cadastrado,
+  // pula direto pro Calendário (o cliente nem percebe que a etapa existe). Com 2+,
+  // mostra a lista pra escolher.
+  function irParaProximaEtapaAposServicos(){
+    if(BARBEIROS_ATIVOS.length > 1){
+      renderBarbeiroLista();
+      document.getElementById('calendarBackBtn').setAttribute('onclick', "goTo('barbeiro')");
+      goTo('barbeiro');
+    } else {
+      selectedBarbeiroId = BARBEIROS_ATIVOS.length === 1 ? BARBEIROS_ATIVOS[0].id : null;
+      document.getElementById('calendarBackBtn').setAttribute('onclick', "goTo('services')");
+      goTo('calendar');
+    }
+  }
+
+  function selecionarBarbeiro(id, nome){
+    selectedBarbeiroId = id;
+    goTo('calendar');
+  }
+
+  // ---- Calendar: month grid, limited to 30 days ahead ----
+  const LIMITE_DIAS = 30;
+  const CAL_TODAY = new Date();
+  CAL_TODAY.setHours(0,0,0,0);
+  const CAL_LIMITE = new Date(CAL_TODAY);
+  CAL_LIMITE.setDate(CAL_LIMITE.getDate() + LIMITE_DIAS);
+  let viewMonth = new Date(CAL_TODAY.getFullYear(), CAL_TODAY.getMonth(), 1);
+
+  function buildDateScroller(){
+    const dowRow = document.getElementById('calDowRow');
+    dowRow.innerHTML = ['D','S','T','Q','Q','S','S'].map(l => `<span>${l}</span>`).join('');
+
+    const grid = document.getElementById('calGrid');
+    grid.innerHTML = '';
+
+    const firstDow = viewMonth.getDay();
+    const daysInMonth = new Date(viewMonth.getFullYear(), viewMonth.getMonth()+1, 0).getDate();
+
+    for(let i=0; i<firstDow; i++){
+      grid.appendChild(Object.assign(document.createElement('div'), {className:'cal-day empty'}));
+    }
+
+    let firstEnabled = null;
+    for(let dayNum=1; dayNum<=daysInMonth; dayNum++){
+      const d = new Date(viewMonth.getFullYear(), viewMonth.getMonth(), dayNum);
+      const cell = document.createElement('div');
+      cell.className = 'cal-day';
+      cell.textContent = String(dayNum).padStart(2,'0');
+
+      const foraDoAlcance = d < CAL_TODAY || d > CAL_LIMITE;
+      const fechado = !BUSINESS_HOURS[d.getDay()];
+      if(foraDoAlcance || fechado){
+        cell.classList.add('disabled');
+      } else {
+        if(!firstEnabled) firstEnabled = {cell, date: d};
+        cell.onclick = () => selectDate(cell, d);
+      }
+      if(selectedDate && d.getTime() === selectedDate.getTime()){
+        cell.classList.add('selected');
+      }
+      grid.appendChild(cell);
+    }
+
+    updateMonthLabel(viewMonth);
+    document.getElementById('calPrev').disabled = viewMonth <= new Date(CAL_TODAY.getFullYear(), CAL_TODAY.getMonth(), 1);
+    const nextMonthStart = new Date(viewMonth.getFullYear(), viewMonth.getMonth()+1, 1);
+    document.getElementById('calNext').disabled = nextMonthStart > CAL_LIMITE;
+
+    if(!selectedDate && firstEnabled){
+      selectDate(firstEnabled.cell, firstEnabled.date);
+    }
+  }
+
+  function calNav(delta){
+    viewMonth = new Date(viewMonth.getFullYear(), viewMonth.getMonth()+delta, 1);
+    buildDateScroller();
+  }
+
+  function updateMonthLabel(d){
+    document.getElementById('monthLabel').textContent = `${MONTH_LABELS[d.getMonth()]} ${d.getFullYear()}`;
+  }
+
+  function selectDate(el, dateObj){
+    document.querySelectorAll('.cal-day').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedDate = dateObj;
+    buildTimeGrid(dateObj);
+  }
+
+  async function buscarHorariosOcupados(dataDDMMAAAA){
+    try {
+      const barbeiroParam = selectedBarbeiroId ? `&barbeiro_id=${encodeURIComponent(selectedBarbeiroId)}` : '';
+      const resp = await fetch(`${API_DISPONIBILIDADE_URL}?data=${encodeURIComponent(dataDDMMAAAA)}${barbeiroParam}`);
+      const json = await resp.json();
+      if(!json.success) return [];
+      return json.ocupados; // [{ inicio: "10:00", fim: "11:00" }]
+    } catch(e){
+      console.error('Erro ao buscar disponibilidade:', e);
+      return []; // falha segura: se a API cair, não bloqueia nenhum horário
+    }
   }
 
   function horarioConflita(horarioInicio, duracaoMin, ocupados){
@@ -1737,100 +1512,347 @@
     });
   }
 
-  // ---- Dashboard: dados reais ----
-  function formatarDataHojeExtenso(){
-    const hoje = new Date();
-    return `${DOW_LABELS_LONGO[hoje.getDay()]}, ${String(hoje.getDate()).padStart(2,'0')} de ${MONTH_LABELS[hoje.getMonth()].toLowerCase()}`;
-  }
+  async function buildTimeGrid(dateObj){
+    const grid = document.getElementById('timeGrid');
+    grid.innerHTML = '<div style="color:var(--muted);font-size:12px;padding:8px 0;">Carregando horários...</div>';
+    selectedTime = null;
+    document.getElementById('btnToConfirm').disabled = true;
 
-  function proximoHorarioLivre(eventos){
-    const hoje = new Date();
-    const hours = BUSINESS_HOURS[hoje.getDay()];
-    if(!hours) return 'Fechado hoje';
+    const hours = BUSINESS_HOURS[dateObj.getDay()];
+    if(!hours){ grid.innerHTML = ''; return; }
 
-    const ocupados = eventos.map(e => ({ inicio: e.horaInicio, fim: e.horaFim }));
-    const agoraMin = hoje.getHours() * 60 + hoje.getMinutes();
+    const now = new Date();
+    const isToday = dateObj.toDateString() === now.toDateString();
+
+    const dia = String(dateObj.getDate()).padStart(2,'0');
+    const mes = String(dateObj.getMonth() + 1).padStart(2,'0');
+    const ano = dateObj.getFullYear();
+    const dataStr = `${dia}/${mes}/${ano}`;
+
+    const hasFullService = selectedServices.some(x => x.duration >= 60);
+    const duracaoMin = selectedServices.length ? (hasFullService ? 60 : 15) : 60;
+
+    const ocupados = await buscarHorariosOcupados(dataStr);
+
+    grid.innerHTML = '';
 
     for(let h = hours.open; h < hours.close; h++){
+      // esconde horários que já passaram, se for hoje
+      if(isToday && h <= now.getHours()) continue;
+
       const label = String(h).padStart(2,'0') + ':00';
-      const inicioMin = h * 60;
-      if(inicioMin < agoraMin) continue; // já passou
-      if(!horarioConflita(label, 60, ocupados)) return label;
+      // esconde horários já ocupados no Google Calendar
+      if(horarioConflita(label, duracaoMin, ocupados)) continue;
+
+      const slot = document.createElement('div');
+      slot.className = 'time-slot';
+      slot.textContent = label;
+      slot.onclick = () => selectTime(slot, label);
+      grid.appendChild(slot);
     }
-    return 'Sem horário livre hoje';
+
+    if(!grid.children.length){
+      grid.innerHTML = `
+        <div style="color:var(--muted);font-size:12px;padding:8px 0;">Nenhum horário disponível neste dia.</div>
+        <button class="cta-primary" style="margin-top:8px; background:var(--surface); color:var(--gold); border:1px solid var(--gold);" onclick="entrarNaFilaEspera('${dataStr}')">🔔 Avisar se abrir vaga nesse dia</button>
+      `;
+    }
   }
 
-  async function carregarDashboard(){
-    document.getElementById('dashDataHoje').textContent = formatarDataHojeExtenso();
+  function selectTime(el, label){
+    document.querySelectorAll('.time-slot').forEach(t => t.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedTime = label;
+    document.getElementById('btnToConfirm').disabled = false;
+  }
 
-    const bloqDataInput = document.getElementById('bloqData');
-    if(bloqDataInput && !bloqDataInput.value){
-      bloqDataInput.value = new Date().toISOString().slice(0, 10);
+  // ---- Fila de espera: cliente pede aviso se abrir vaga num dia lotado ----
+  async function entrarNaFilaEspera(dataStr){
+    let nome = localStorage.getItem('deeh_nome');
+    let telefone = localStorage.getItem('deeh_telefone');
+
+    if(!nome){
+      nome = prompt('Seu nome:');
+      if(!nome) return;
+    }
+    if(!telefone){
+      telefone = prompt('Seu WhatsApp:');
+      if(!telefone) return;
     }
 
-    const agendaList = document.getElementById('agendaHojeList');
-    agendaList.innerHTML = '<p class="hint" style="text-align:left;">Carregando agenda...</p>';
+    const servico = selectedServices.map(s => s.name).join(' + ') || null;
 
-    // ---- Agenda do dia (Google Calendar) ----
+    try{
+      const resp = await fetch(`${API_URL}?tipo=fila-espera`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nome, telefone, data: dataStr, servico })
+      });
+      const data = await resp.json();
+      if(!resp.ok || !data.success) throw new Error(data.error || 'Falha ao entrar na fila');
+      inscreverPushCliente(telefone, true);
+      alert(`Combinado! Se abrir vaga no dia ${dataStr}, te avisamos por notificação.`);
+    }catch(err){
+      alert('Não conseguimos te colocar na fila agora. Tente novamente ou fale com o Deeh no WhatsApp.');
+    }
+  }
+
+  // ---- Produtos (comanda opcional) ----
+  let PRODUTOS_CACHE = [];
+
+  async function fetchProdutos(){
     try {
-      const resp = await fetch(API_AGENDA_HOJE_URL);
-      const json = await resp.json();
-
-      if(!json.success) throw new Error(json.error || 'Falha ao buscar agenda');
-
-      const eventos = json.eventos || [];
-
-      document.getElementById('statAgendamentos').textContent = json.total ?? eventos.length;
-      document.getElementById('statFaturamento').textContent = 'R$ ' + (json.faturamento_estimado ?? 0);
-      document.getElementById('statProximo').textContent = proximoHorarioLivre(eventos);
-
-      if(!eventos.length){
-        agendaList.innerHTML = '<p class="hint" style="text-align:left;">Nenhum agendamento para hoje.</p>';
-      } else {
-        agendaList.innerHTML = eventos.map(e => `
-          <div class="agenda-item">
-            <div class="agenda-time">${e.horaInicio}</div>
-            <div class="agenda-info"><div class="cli">${e.nome}</div><div class="srv">${e.servico}${e.valor ? ' · R$ ' + e.valor : ''}</div></div>
-          </div>
-        `).join('');
+      const res = await fetch(`${API_ATENDIMENTOS_URL}?tipo=produtos`);
+      const data = await res.json();
+      if(data.success){
+        PRODUTOS_CACHE = data.produtos.map(p => ({ ...p, quantidade: 0 }));
+        renderProdutosList();
+        renderProdutosGrid();
       }
     } catch(err){
-      console.error('Erro ao carregar agenda do dia:', err);
-      document.getElementById('statAgendamentos').textContent = '—';
-      document.getElementById('statFaturamento').textContent = '—';
-      document.getElementById('statProximo').textContent = '—';
-      agendaList.innerHTML = '<p class="hint" style="text-align:left;color:#e8a37f;">Não foi possível carregar a agenda de hoje. Toque em "Atualizar" pra tentar de novo.</p>';
+      console.error('Erro ao carregar produtos:', err);
+    }
+  }
+
+  function renderProdutosGrid(){
+    const grid = document.getElementById('produtosGrid');
+    if(!grid) return;
+    grid.innerHTML = PRODUTOS_CACHE.map(p => `
+      <div class="produto-card-grid">
+        <img src="/produtos/${p.imagem_url}" alt="${p.nome}" onerror="this.style.opacity=0">
+        <div class="body">
+          <div class="nome">${p.nome}</div>
+          <div class="preco">R$ ${Number(p.preco).toFixed(2).replace('.', ',')}</div>
+          <div class="produto-stepper">
+            <button onclick="changeProdutoQtd(${p.id}, -1)">−</button>
+            <span class="qtd" id="qtdgrid-${p.id}">0</span>
+            <button onclick="changeProdutoQtd(${p.id}, 1)">+</button>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function renderProdutosList(){
+    const list = document.getElementById('produtosList');
+    list.innerHTML = PRODUTOS_CACHE.map(p => `
+      <div class="produto-row">
+        <img src="/produtos/${p.imagem_url}" alt="${p.nome}" onerror="this.style.opacity=0">
+        <div class="produto-info">
+          <div class="nome">${p.nome}</div>
+          <div class="preco">R$ ${Number(p.preco).toFixed(2).replace('.', ',')}</div>
+        </div>
+        <div class="produto-stepper">
+          <button onclick="changeProdutoQtd(${p.id}, -1)">−</button>
+          <span class="qtd" id="qtd-${p.id}">0</span>
+          <button onclick="changeProdutoQtd(${p.id}, 1)">+</button>
+        </div>
+      </div>
+    `).join('');
+    updateProdutosSubtotal();
+  }
+
+  function changeProdutoQtd(id, delta){
+    const produto = PRODUTOS_CACHE.find(p => p.id === id);
+    if(!produto) return;
+    produto.quantidade = Math.max(0, produto.quantidade + delta);
+    const spanList = document.getElementById(`qtd-${id}`);
+    const spanGrid = document.getElementById(`qtdgrid-${id}`);
+    if(spanList) spanList.textContent = produto.quantidade;
+    if(spanGrid) spanGrid.textContent = produto.quantidade;
+    updateProdutosSubtotal();
+  }
+
+  function updateProdutosSubtotal(){
+    const selecionados = PRODUTOS_CACHE.filter(p => p.quantidade > 0);
+    const total = selecionados.reduce((s, p) => s + Number(p.preco) * p.quantidade, 0);
+    const box = document.getElementById('produtosSubtotal');
+    box.style.display = selecionados.length ? 'flex' : 'none';
+    document.getElementById('produtosSubtotalValor').textContent = 'R$ ' + total.toFixed(2).replace('.', ',');
+  }
+
+  // ---- Confirm screen ----
+  function goToConfirm(){
+    if(!selectedServices.length || !selectedDate || !selectedTime) return;
+
+    const total = selectedServices.reduce((s, x) => s + x.price, 0);
+    const names = selectedServices.map(x => x.name).join(' + ');
+
+    document.getElementById('sumServico').textContent = names;
+    document.getElementById('sumData').textContent = `${DOW_LABELS[selectedDate.getDay()]}, ${String(selectedDate.getDate()).padStart(2,'0')} de ${MONTH_LABELS[selectedDate.getMonth()].toLowerCase()}`;
+    document.getElementById('sumHorario').textContent = selectedTime;
+    document.getElementById('sumTotal').textContent = 'R$ ' + total;
+
+    // Só mostra a linha de profissional se realmente houve escolha (2+ barbeiros ativos)
+    const barbeiroRow = document.getElementById('sumBarbeiroRow');
+    if(BARBEIROS_ATIVOS.length > 1 && selectedBarbeiroId){
+      const b = BARBEIROS_ATIVOS.find(x => x.id === selectedBarbeiroId);
+      document.getElementById('sumBarbeiro').textContent = b ? b.nome : '—';
+      barbeiroRow.style.display = 'flex';
+    } else {
+      barbeiroRow.style.display = 'none';
     }
 
-    // ---- Clientes com plano ativo ----
+    document.getElementById('confirmError').style.display = 'none';
+    document.getElementById('whatsappFallback').style.display = 'none';
+
+    goTo('confirm');
+  }
+
+  function getBookingPayload(){
+    const nome = document.getElementById('inputNome').value.trim();
+    const telefone = document.getElementById('inputTelefone').value.trim();
+    const total = selectedServices.reduce((s, x) => s + x.price, 0);
+    const names = selectedServices.map(x => x.name).join(' + ');
+    const hasFullService = selectedServices.some(x => x.duration >= 60);
+    const duracaoMin = hasFullService ? 60 : 15;
+    const dia = String(selectedDate.getDate()).padStart(2,'0');
+    const mes = String(selectedDate.getMonth() + 1).padStart(2,'0');
+    const ano = selectedDate.getFullYear();
+
+    return {
+      nome, telefone,
+      servico: names,
+      data: `${dia}/${mes}/${ano}`,
+      horario: selectedTime,
+      duracao: duracaoMin === 15 ? '15 min' : '60 min',
+      preco: 'R$' + total,
+      produtos: PRODUTOS_CACHE.filter(p => p.quantidade > 0).map(p => ({ id: p.id, quantidade: p.quantidade })),
+      barbeiro_id: selectedBarbeiroId
+    };
+  }
+
+  async function confirmarAgendamento(){
+    const payload = getBookingPayload();
+    const errorBox = document.getElementById('confirmError');
+    const whatsappLink = document.getElementById('whatsappFallback');
+    const btn = document.getElementById('btnConfirmar');
+
+    if(!payload.nome || !payload.telefone){
+      errorBox.textContent = 'Preencha seu nome e WhatsApp para confirmar.';
+      errorBox.style.display = 'block';
+      whatsappLink.style.display = 'none';
+      return;
+    }
+
+    errorBox.style.display = 'none';
+    whatsappLink.style.display = 'none';
+    btn.disabled = true;
+    btn.classList.add('loading');
+    btn.textContent = 'Confirmando...';
+
     try {
-      const resp = await fetch(API_CLIENTES_URL);
-      const json = await resp.json();
-      if(!json.success) throw new Error(json.error || 'Falha ao buscar clientes');
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
 
-      const ativos = (json.clientes || []).filter(c => c.plano && c.plano !== 'nenhum').length;
-      document.getElementById('statRecorrentes').textContent = ativos;
-    } catch(err){
-      console.error('Erro ao carregar clientes:', err);
-      document.getElementById('statRecorrentes').textContent = '—';
+      if(!res.ok || !data.success){
+        throw new Error(data.error || 'Não foi possível confirmar o agendamento.');
+      }
+
+      document.getElementById('successMsg').textContent =
+        `${payload.nome}, seu horário de ${payload.servico} no dia ${payload.data} às ${payload.horario} foi reservado na agenda da Barbearia do Deeh.`;
+
+      localStorage.setItem('deeh_nome', payload.nome);
+      localStorage.setItem('deeh_telefone', payload.telefone);
+
+      goTo('success');
+
+    } catch (err) {
+      errorBox.textContent = 'Não conseguimos confirmar automaticamente. Tente novamente ou fale direto com o Deeh no WhatsApp.';
+      errorBox.style.display = 'block';
+
+      const msg = encodeURIComponent(
+        `Olá! Quero agendar: ${payload.servico}, dia ${payload.data} às ${payload.horario}. Nome: ${payload.nome}`
+      );
+      whatsappLink.href = `https://wa.me/${WHATSAPP_NUMBER}?text=${msg}`;
+      whatsappLink.style.display = 'flex';
+
+    } finally {
+      btn.disabled = false;
+      btn.classList.remove('loading');
+      btn.textContent = 'Confirmar agendamento';
     }
+  }
+
+  function resetFlow(){
+    selectedServices = [];
+    selectedDate = null;
+    selectedTime = null;
+    selectedBarbeiroId = null;
+    document.querySelectorAll('.service-row.selected').forEach(r => r.classList.remove('selected'));
+    document.getElementById('totalPrice').textContent = 'R$ 0';
+    document.getElementById('inputNome').value = '';
+    document.getElementById('inputTelefone').value = '';
+    PRODUTOS_CACHE.forEach(p => p.quantidade = 0);
+    renderProdutosList();
+    renderProdutosGrid();
+    goTo('home');
   }
 
   // ---- Init ----
   // Reforço em JS pro pinch-zoom (Safari às vezes ignora viewport/CSS sozinhos)
   document.addEventListener('gesturestart', (e) => e.preventDefault());
   document.addEventListener('touchmove', (e) => { if (e.touches.length > 1) e.preventDefault(); }, { passive: false });
-  hidratarNegocio();
-  if(sessionStorage.getItem('deehAdminAuth') === '1'){
-    abrirPainel();
+  buildDateScroller();
+  fetchProdutos();
+  fetchBarbeiros();
+  prefillFromStorage();
+  goTo('home');
+  detectarIOSInstall();
+
+  // ---- Banner de instalação iOS ----
+  // O iOS não expõe evento/botão nativo de "instalar" como o Android (beforeinstallprompt).
+  // A única forma de instalar é manual: Safari > Compartilhar > Adicionar à Tela de Início.
+  // Como nada avisa isso, o cliente só desiste. Este banner detecta iPhone/iPad fora do
+  // modo instalado e mostra o passo a passo — com aviso à parte se estiver no Chrome do
+  // iPhone, que não expõe essa opção (precisa abrir no Safari).
+  function detectarIOSInstall(){
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    if(!isIOS) return;
+
+    const jaInstalado = window.navigator.standalone === true ||
+      window.matchMedia('(display-mode: standalone)').matches;
+    if(jaInstalado) return;
+
+    // Detecta Safari real (exclui Chrome/Firefox/Edge no iOS, que usam o motor do Safari
+    // mas identificam CriOS/FxiOS/EdgiOS no user-agent e não oferecem "Adicionar à Tela de Início")
+    const isSafari = /^((?!chrome|crios|fxios|edgios|android).)*safari/i.test(navigator.userAgent);
+
+    const fechouEm = localStorage.getItem('deeh_ios_banner_fechado');
+    if(fechouEm){
+      const diasDesde = (Date.now() - parseInt(fechouEm, 10)) / (1000 * 60 * 60 * 24);
+      if(diasDesde < 7) return; // não insiste toda visita, mas volta a lembrar depois de uma semana
+    }
+
+    if(!isSafari){
+      document.getElementById('iosInstallBannerText').innerHTML =
+        'Esse navegador não permite instalar o app. Toque em <b>⋯</b> (ou no menu do navegador) e escolha <b>"Abrir no Safari"</b> pra instalar.';
+    }
+
+    document.getElementById('iosInstallBanner').style.display = 'block';
   }
-  // se não estiver autenticado, fica só a tela de login visível (appShell continua display:none)
+
+  function fecharIosInstallBanner(){
+    document.getElementById('iosInstallBanner').style.display = 'none';
+    localStorage.setItem('deeh_ios_banner_fechado', String(Date.now()));
+  }
+
+  // ---- PWA: registra o service worker (permite instalar como app) ----
+  if('serviceWorker' in navigator){
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/service-worker.js').then(() => {
+        const telefoneSalvo = localStorage.getItem('deeh_telefone');
+        if(telefoneSalvo) inscreverPushCliente(telefoneSalvo, false);
+      }).catch(err => {
+        console.error('Erro ao registrar service worker:', err);
+      });
+    });
+  }
 </script>
 
-<script>
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/service-worker.js');
-  }
-</script>
 </body>
 </html>
