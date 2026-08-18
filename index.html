@@ -619,6 +619,26 @@
   }
   .cancel-btn:active{transform:scale(0.97);}
 
+  .confirm-btn{
+    background:transparent;
+    color:var(--gold);
+    border:1px solid var(--gold);
+    border-radius:8px;
+    padding:6px 12px;
+    font-family:'Exo',sans-serif;
+    font-weight:600;
+    font-size:11.5px;
+    cursor:pointer;
+    margin-right:8px;
+  }
+  .confirm-btn:active{transform:scale(0.97);}
+  .confirmado-badge{
+    color:var(--gold);
+    font-size:11.5px;
+    font-weight:600;
+    margin-right:8px;
+  }
+
   .success-box{
     text-align:center;
     padding:40px 20px;
@@ -1262,17 +1282,40 @@
         container.innerHTML = '<p class="hint" style="text-align:left;">Nenhum horário marcado no momento.</p>';
         return;
       }
-      container.innerHTML = data.agendamentos.map(a => `
+      container.innerHTML = data.agendamentos.map(a => {
+        const jaConfirmado = a.status === 'confirmado';
+        const acaoConfirmar = jaConfirmado
+          ? `<span class="confirmado-badge">✓ Confirmado</span>`
+          : `<button class="confirm-btn" onclick="confirmarMeuAgendamento('${a.eventId}')">Confirmar presença</button>`;
+        return `
         <div class="summary-card" style="margin-bottom:10px; border:1px solid var(--gold);">
           <div class="summary-row"><span class="label">${a.servico}</span><span class="val" style="color:var(--gold);">${a.preco || ''}</span></div>
           <div class="summary-row" style="border-bottom:none; align-items:center;">
             <span class="label">${a.data} às ${a.horario}</span>
-            <button class="cancel-btn" onclick="cancelarMeuAgendamento('${a.eventId}')">Cancelar</button>
+            <span>${acaoConfirmar}<button class="cancel-btn" onclick="cancelarMeuAgendamento('${a.eventId}')">Cancelar</button></span>
           </div>
         </div>
-      `).join('');
+      `;
+      }).join('');
     }catch(err){
       container.innerHTML = '<p class="hint" style="text-align:left;">Erro ao carregar seus horários.</p>';
+    }
+  }
+
+  async function confirmarMeuAgendamento(eventId){
+    const telefone = localStorage.getItem('deeh_telefone');
+    if(!telefone) return;
+    try{
+      const resp = await fetch(`${API_URL}?tipo=confirmar`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ eventId, telefone })
+      });
+      const data = await resp.json();
+      if(!resp.ok || !data.success) throw new Error(data.error || 'Falha ao confirmar');
+      carregarAgendamentosFuturos(telefone);
+    }catch(err){
+      alert('Não foi possível confirmar. Tente novamente ou fale com o Deeh no WhatsApp.');
     }
   }
 
@@ -1586,7 +1629,7 @@
       const resp = await fetch(`${API_URL}?tipo=fila-espera`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nome, telefone, data: dataStr, servico })
+        body: JSON.stringify({ nome, telefone, data: dataStr, servico, barbeiro_id: selectedBarbeiroId })
       });
       const data = await resp.json();
       if(!resp.ok || !data.success) throw new Error(data.error || 'Falha ao entrar na fila');
