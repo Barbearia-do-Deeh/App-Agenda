@@ -662,6 +662,12 @@
             <label class="form-label">Motivo</label>
             <input type="text" id="bloqMotivo" class="form-input" placeholder="Almoço" value="Almoço">
           </div>
+          <div class="form-group" id="bloqBarbeiroGroup" style="display:none;">
+            <label class="form-label">Barbeiro</label>
+            <select id="bloqBarbeiro" class="form-input">
+              <option value="">Todos (bloqueia a barbearia toda)</option>
+            </select>
+          </div>
           <div id="bloqError" class="error-banner" style="display:none;"></div>
           <div id="bloqSucesso" class="hint" style="display:none;text-align:left;color:var(--gold);"></div>
           <button class="cta-primary" style="background:var(--surface); color:var(--gold); border:1px solid var(--gold);" onclick="bloquearHorario()">🚫 Bloquear</button>
@@ -899,6 +905,7 @@
           </div>
           <div id="editBarbeiroError" class="error-banner" style="display:none;"></div>
           <button class="cta-primary" onclick="salvarEdicaoBarbeiro()">Salvar alterações</button>
+          <button class="cta-primary" style="margin-top:10px; background:var(--surface); color:var(--danger); border:1px solid var(--danger);" onclick="excluirBarbeiro()">🗑 Excluir barbeiro</button>
         </div>
       </div>
 
@@ -1379,6 +1386,28 @@
     }
   }
 
+  // Popula o select de barbeiro no bloqueio de horário — só aparece com 2+ ativos,
+  // igual a etapa de escolher profissional no fluxo de agendamento do cliente.
+  async function carregarBarbeirosParaBloqueio(){
+    const group = document.getElementById('bloqBarbeiroGroup');
+    const select = document.getElementById('bloqBarbeiro');
+    try{
+      const resp = await fetch(`${API_CLIENTES_URL}?recurso=barbeiros&publico=1`);
+      const data = await resp.json();
+      const ativos = data.success ? (data.barbeiros || []) : [];
+      if(ativos.length > 1){
+        select.innerHTML = '<option value="">Todos (bloqueia a barbearia toda)</option>' +
+          ativos.map(b => `<option value="${b.id}">${b.nome}</option>`).join('');
+        group.style.display = '';
+      } else {
+        group.style.display = 'none';
+        select.value = '';
+      }
+    }catch(err){
+      group.style.display = 'none'; // falha segura: bloqueio continua funcionando pra barbearia toda
+    }
+  }
+
   function abrirNovoBarbeiro(){
     document.getElementById('novoBarbeiroNome').value = '';
     document.getElementById('novoBarbeiroRegime').value = 'comissao';
@@ -1462,6 +1491,25 @@
       goTo('barbeiros');
     }catch(err){
       errorBox.textContent = 'Erro ao salvar alterações: ' + err.message;
+      errorBox.style.display = 'block';
+    }
+  }
+
+  async function excluirBarbeiro(){
+    if(!barbeiroEditandoId) return;
+    if(!confirm('Tem certeza que quer excluir esse barbeiro? Não dá pra desfazer.')) return;
+    const errorBox = document.getElementById('editBarbeiroError');
+    try{
+      const resp = await fetch(`${API_CLIENTES_URL}?recurso=barbeiros`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: barbeiroEditandoId })
+      });
+      const data = await resp.json();
+      if(!resp.ok || !data.success) throw new Error(data.error || 'Falha ao excluir');
+      goTo('barbeiros');
+    }catch(err){
+      errorBox.textContent = err.message;
       errorBox.style.display = 'block';
     }
   }
@@ -1701,12 +1749,13 @@
 
     const [ano, mes, dia] = dataRaw.split('-');
     const data = `${dia}/${mes}/${ano}`;
+    const barbeiro_id = document.getElementById('bloqBarbeiro').value || null;
 
     try{
       const resp = await fetch(API_BLOQUEAR_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ data, horaInicio, horaFim, motivo })
+        body: JSON.stringify({ data, horaInicio, horaFim, motivo, barbeiro_id })
       });
       const result = await resp.json();
       if(!resp.ok || !result.success) throw new Error(result.error || 'Falha ao bloquear');
@@ -1866,6 +1915,8 @@
       bloqDataInput.value = new Date().toISOString().slice(0, 10);
     }
 
+    carregarBarbeirosParaBloqueio();
+
     const agendaList = document.getElementById('agendaHojeList');
     agendaList.innerHTML = '<p class="hint" style="text-align:left;">Carregando agenda...</p>';
 
@@ -1940,7 +1991,7 @@
       if(!resp.ok || !data.success) throw new Error(data.error || 'Falha ao marcar presença');
       carregarDashboard();
     }catch(err){
-      alert('Não foi possível marcar presença. Tente novamente.');
+      alert('Não foi possível marcar presença: ' + err.message);
     }
   }
 
