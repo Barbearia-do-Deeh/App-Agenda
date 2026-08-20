@@ -801,7 +801,16 @@
             <input type="text" id="fixoHorario" class="form-input" placeholder="15:00">
           </div>
           <div class="form-group">
-            <label class="form-label">Repetir por quantas semanas</label>
+            <label class="form-label">Repetir a cada</label>
+            <select id="fixoIntervalo" class="form-input">
+              <option value="1">Toda semana (7 dias)</option>
+              <option value="2">14 dias</option>
+              <option value="3">21 dias</option>
+              <option value="4">28 dias</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Repetir quantas vezes</label>
             <input type="number" id="fixoRepeticoes" class="form-input" value="12" min="1">
           </div>
           <div id="fixoError" class="error-banner" style="display:none;"></div>
@@ -1779,6 +1788,7 @@
     const dataInicio = document.getElementById('fixoDataInicio').value.trim();
     const horario = document.getElementById('fixoHorario').value.trim();
     const repeticoes = document.getElementById('fixoRepeticoes').value;
+    const intervaloSemanas = document.getElementById('fixoIntervalo').value;
 
     if(!/^\d{2}\/\d{2}\/\d{4}$/.test(dataInicio) || !/^\d{2}:\d{2}$/.test(horario)){
       errorBox.textContent = 'Preencha data (DD/MM/AAAA) e horário (HH:MM) corretamente.';
@@ -1794,12 +1804,13 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           nome: c.nome, telefone: c.telefone, servico, dataInicio, horario,
-          duracao, preco: 'incluso no pacote', repeticoes
+          duracao, preco: 'incluso no pacote', repeticoes, intervaloSemanas
         })
       });
       const data = await resp.json();
       if(!resp.ok || !data.success) throw new Error(data.error || 'Falha ao criar horário fixo');
-      sucessoBox.textContent = `Horário fixo criado (${repeticoes} semanas).`;
+      const diasLabel = intervaloSemanas === '1' ? 'toda semana' : `a cada ${Number(intervaloSemanas) * 7} dias`;
+      sucessoBox.textContent = `Horário fixo criado (${repeticoes}x, ${diasLabel}).`;
       sucessoBox.style.display = 'block';
     }catch(err){
       errorBox.textContent = 'Erro ao criar horário fixo. Tente novamente.';
