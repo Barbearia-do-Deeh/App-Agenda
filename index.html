@@ -1793,7 +1793,9 @@
       const data = await res.json();
 
       if(!res.ok || !data.success){
-        throw new Error(data.error || 'Não foi possível confirmar o agendamento.');
+        const erro = new Error(data.error || 'Não foi possível confirmar o agendamento.');
+        erro.status = res.status;
+        throw erro;
       }
 
       document.getElementById('successMsg').textContent =
@@ -1805,14 +1807,23 @@
       goTo('success');
 
     } catch (err) {
-      errorBox.textContent = 'Não conseguimos confirmar automaticamente. Tente novamente ou fale direto com o Deeh no WhatsApp.';
-      errorBox.style.display = 'block';
+      if(err.status === 409){
+        // Horário ficou ocupado entre o cliente ver a agenda e confirmar — não é uma
+        // falha técnica, é só uma corrida por horário. Nada de WhatsApp aqui, o certo
+        // é escolher outro horário.
+        errorBox.textContent = err.message;
+        errorBox.style.display = 'block';
+        whatsappLink.style.display = 'none';
+      } else {
+        errorBox.textContent = 'Não conseguimos confirmar automaticamente. Tente novamente ou fale direto com o Deeh no WhatsApp.';
+        errorBox.style.display = 'block';
 
-      const msg = encodeURIComponent(
-        `Olá! Quero agendar: ${payload.servico}, dia ${payload.data} às ${payload.horario}. Nome: ${payload.nome}`
-      );
-      whatsappLink.href = `https://wa.me/${WHATSAPP_NUMBER}?text=${msg}`;
-      whatsappLink.style.display = 'flex';
+        const msg = encodeURIComponent(
+          `Olá! Quero agendar: ${payload.servico}, dia ${payload.data} às ${payload.horario}. Nome: ${payload.nome}`
+        );
+        whatsappLink.href = `https://wa.me/${WHATSAPP_NUMBER}?text=${msg}`;
+        whatsappLink.style.display = 'flex';
+      }
 
     } finally {
       btn.disabled = false;
