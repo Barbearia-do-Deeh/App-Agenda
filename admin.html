@@ -668,6 +668,16 @@
               <option value="">Todos (bloqueia a barbearia toda)</option>
             </select>
           </div>
+          <div class="form-group">
+            <label class="form-label">Repetir toda semana</label>
+            <select id="bloqRepetir" class="form-input">
+              <option value="">Não — só essa data</option>
+              <option value="52">Sim — repetir por 52 semanas (1 ano)</option>
+              <option value="26">Sim — repetir por 26 semanas (6 meses)</option>
+              <option value="12">Sim — repetir por 12 semanas (3 meses)</option>
+            </select>
+            <p class="hint" style="text-align:left; margin-top:6px;">Pra "abrir" uma data específica depois, é só apagar aquela ocorrência direto no Google Calendar — não precisa mexer aqui.</p>
+          </div>
           <div id="bloqError" class="error-banner" style="display:none;"></div>
           <div id="bloqSucesso" class="hint" style="display:none;text-align:left;color:var(--gold);"></div>
           <button class="cta-primary" style="background:var(--surface); color:var(--gold); border:1px solid var(--gold);" onclick="bloquearHorario()">🚫 Bloquear</button>
@@ -1759,16 +1769,18 @@
     const [ano, mes, dia] = dataRaw.split('-');
     const data = `${dia}/${mes}/${ano}`;
     const barbeiro_id = document.getElementById('bloqBarbeiro').value || null;
+    const repetirSemanas = document.getElementById('bloqRepetir').value || null;
 
     try{
       const resp = await fetch(API_BLOQUEAR_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ data, horaInicio, horaFim, motivo, barbeiro_id })
+        body: JSON.stringify({ data, horaInicio, horaFim, motivo, barbeiro_id, repetirSemanas })
       });
       const result = await resp.json();
       if(!resp.ok || !result.success) throw new Error(result.error || 'Falha ao bloquear');
-      sucessoBox.textContent = `Horário bloqueado: ${data} ${horaInicio}–${horaFim}.`;
+      const repeticaoLabel = repetirSemanas ? ` (repetindo por ${repetirSemanas} semanas)` : '';
+      sucessoBox.textContent = `Horário bloqueado: ${data} ${horaInicio}–${horaFim}${repeticaoLabel}.`;
       sucessoBox.style.display = 'block';
     }catch(err){
       errorBox.textContent = 'Erro ao bloquear horário. Tente novamente.';
