@@ -497,6 +497,7 @@
     display:flex;
     gap:6px;
     flex-wrap:wrap;
+    align-items:center;
   }
   .presenca-btn{
     background:var(--surface-2);
@@ -1584,6 +1585,7 @@
         <div class="summary-card" style="margin-bottom:10px;">
           <div class="summary-row"><span class="label">Receita total (mês)</span><span class="val" style="color:var(--gold);">R$ ${r.receita.total}</span></div>
           <div class="summary-row"><span class="label">Serviços avulsos</span><span class="val">R$ ${r.receita.servicos_avulsos}</span></div>
+          <div class="summary-row"><span class="label">Produtos</span><span class="val">R$ ${r.receita.produtos}</span></div>
           <div class="summary-row" style="border-bottom:none;"><span class="label">Planos</span><span class="val">R$ ${r.receita.planos}</span></div>
         </div>
         <div class="summary-card" style="margin-bottom:10px;">
@@ -1956,7 +1958,7 @@
           <div class="cli">${e.nome}</div>
           <div class="srv">${e.servico}${e.valor ? ' · R$ ' + e.valor : ''}</div>
           <div class="presenca-actions">
-            <button class="presenca-btn${e.status === 'compareceu' ? ' ativo-compareceu' : ''}" onclick="marcarPresenca('${e.id}','compareceu')">✓ Compareceu</button>
+            <button class="presenca-btn${e.status === 'compareceu' ? ' ativo-compareceu' : ''}" onclick="abrirEscolhaPagamento('${e.id}', this)">✓ Compareceu</button>
             <button class="presenca-btn${e.status === 'faltou' ? ' ativo-faltou' : ''}" onclick="marcarPresenca('${e.id}','faltou')">✗ Faltou</button>
             ${cobrarBtn}
           </div>
@@ -1964,6 +1966,21 @@
       </div>
     `;
     }).join('');
+  }
+
+  // Ao clicar em "Compareceu", troca os botões daquele agendamento por um
+  // mini-seletor de método de pagamento — só depois disso é que grava de
+  // verdade (é o que preenche a coluna metodo_pagamento em `atendimentos`).
+  function abrirEscolhaPagamento(eventId, btnEl){
+    const container = btnEl.closest('.presenca-actions');
+    if(!container) return;
+    container.innerHTML = `
+      <span style="font-size:11px;color:var(--muted);">Pagou:</span>
+      <button class="presenca-btn" onclick="marcarPresenca('${eventId}','compareceu','pix')">Pix</button>
+      <button class="presenca-btn" onclick="marcarPresenca('${eventId}','compareceu','dinheiro')">Dinheiro</button>
+      <button class="presenca-btn" onclick="marcarPresenca('${eventId}','compareceu','cartao')">Cartão</button>
+      <button class="presenca-btn" onclick="carregarAgendaDia(agendaDataAtualISO)">✕</button>
+    `;
   }
 
   // Busca e renderiza a agenda de UM dia específico (dataISO no formato "YYYY-MM-DD").
@@ -2054,12 +2071,16 @@
   }
 
   // ---- Presença: marcar compareceu/faltou direto no evento do Calendar ----
-  async function marcarPresenca(eventId, status){
+  // metodoPagamento só é enviado quando status === 'compareceu' (vem do
+  // mini-seletor Pix/Dinheiro/Cartão aberto por abrirEscolhaPagamento).
+  async function marcarPresenca(eventId, status, metodoPagamento){
     try{
+      const body = { eventId, status };
+      if(metodoPagamento) body.metodo_pagamento = metodoPagamento;
       const resp = await fetch(`${API_AGENDA_HOJE_URL}?tipo=marcar-presenca`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ eventId, status })
+        body: JSON.stringify(body)
       });
       const data = await resp.json();
       if(!resp.ok || !data.success) throw new Error(data.error || 'Falha ao marcar presença');
