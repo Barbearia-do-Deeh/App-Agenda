@@ -976,6 +976,7 @@
           <div class="success-icon">✓</div>
           <h2>Agendamento confirmado!</h2>
           <p id="successMsg">Seu horário foi reservado na agenda da Barbearia do Deeh.</p>
+          <p id="successMsgPacote" style="display:none; color:var(--gold); font-weight:600; margin-top:10px; text-align:left; line-height:1.5;"></p>
           <button class="cta-primary" style="margin-top:26px;" onclick="resetFlow()">Voltar ao início</button>
         </div>
       </div>
@@ -1135,6 +1136,7 @@
   const API_PUSH_SUBSCRIBE_URL = 'https://backend-v2-five-topaz.vercel.app/api/push-subscribe';
   const API_CLIENTES_URL = 'https://backend-v2-five-topaz.vercel.app/api/clientes';
   const WHATSAPP_NUMBER = '5519993900880';
+  const PIX_KEY = '19993900880'; // mesma chave pix mostrada no Perfil (telefone)
   const VAPID_PUBLIC_KEY = 'BMrLQ-xHvALzu301ihaunGo5vGJ6FYKaJzx7B-RqVbU7FAO4eEHu3MIQ7mDqQPWc7CwUSrfi49nBG7ahp2mlrZU';
 
   // Horário de funcionamento: 0=Dom ... 6=Sáb
@@ -1801,6 +1803,18 @@
       document.getElementById('successMsg').textContent =
         `${payload.nome}, seu horário de ${payload.servico} no dia ${payload.data} às ${payload.horario} foi reservado na agenda da Barbearia do Deeh.`;
 
+      // Se esse atendimento estourou o saldo do pacote atual, avisa que um novo
+      // ciclo vai começar e já oferece o Pix pra adiantar (ou acertar na loja depois).
+      const pacoteMsgEl = document.getElementById('successMsgPacote');
+      if(data.aviso_pacote){
+        pacoteMsgEl.textContent =
+          `💈 Esse atendimento inicia um novo ciclo do seu pacote (R$ ${data.aviso_pacote.valor}). ` +
+          `Pode adiantar agora pelo Pix (chave: ${PIX_KEY}) ou acertar direto na barbearia.`;
+        pacoteMsgEl.style.display = 'block';
+      } else {
+        pacoteMsgEl.style.display = 'none';
+      }
+
       localStorage.setItem('deeh_nome', payload.nome);
       localStorage.setItem('deeh_telefone', payload.telefone);
 
@@ -1841,6 +1855,7 @@
     document.getElementById('totalPrice').textContent = 'R$ 0';
     document.getElementById('inputNome').value = '';
     document.getElementById('inputTelefone').value = '';
+    document.getElementById('successMsgPacote').style.display = 'none';
     PRODUTOS_CACHE.forEach(p => p.quantidade = 0);
     renderProdutosList();
     renderProdutosGrid();
