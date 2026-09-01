@@ -835,6 +835,10 @@
           <div class="gold-divider"></div>
           <p class="eyebrow" style="margin-bottom:10px;">Pagamento do plano</p>
           <p class="hint" style="text-align:left;" id="planoAtualLabel"></p>
+          <div class="form-group">
+            <label class="form-label">Data do pagamento</label>
+            <input type="date" id="pagamentoPlanoData" class="form-input">
+          </div>
           <div id="pagamentoPlanoError" class="error-banner" style="display:none;"></div>
           <div id="pagamentoPlanoSucesso" class="hint" style="display:none;text-align:left;color:var(--gold);"></div>
           <button class="whatsapp-btn" onclick="registrarPagamentoPlano()">💰 Registrar pagamento recebido</button>
@@ -1360,6 +1364,8 @@
       : 'Cliente sem plano ativo.';
     document.getElementById('pagamentoPlanoError').style.display = 'none';
     document.getElementById('pagamentoPlanoSucesso').style.display = 'none';
+    const pagamentoPlanoData = document.getElementById('pagamentoPlanoData');
+    if(pagamentoPlanoData) pagamentoPlanoData.value = new Date().toISOString().slice(0, 10);
     goTo('cliente-editar');
   }
 
@@ -1571,14 +1577,15 @@
     }
 
     try{
+      const dataEscolhida = document.getElementById('pagamentoPlanoData')?.value || null;
       const resp = await fetch(API_PAGAMENTOS_PLANOS_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cliente_id: c.id, plano: c.plano, forma_pagamento: 'pix' })
+        body: JSON.stringify({ cliente_id: c.id, plano: c.plano, forma_pagamento: 'pix', data_pagamento: dataEscolhida })
       });
       const data = await resp.json();
       if(!resp.ok || !data.success) throw new Error(data.error || 'Falha ao registrar');
-      sucessoBox.textContent = `Pagamento de R$ ${data.valor} registrado.`;
+      sucessoBox.textContent = `Pagamento de R$ ${data.valor} registrado (${formatarDataBR(data.data_pagamento)}).`;
       sucessoBox.style.display = 'block';
     }catch(err){
       errorBox.textContent = 'Erro ao registrar pagamento. Tente novamente.';
