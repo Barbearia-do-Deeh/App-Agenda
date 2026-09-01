@@ -940,11 +940,28 @@
           <h2 class="step-title">Financeiro</h2>
         </div>
         <div class="screen-body" style="padding-top:0;">
-          <div id="financeiroResumo"><p class="hint" style="text-align:left;">Carregando...</p></div>
+          <p class="eyebrow" style="margin-bottom:10px;">Período</p>
+          <div class="form-group">
+            <select id="financeiroPeriodoTipo" class="form-input" onchange="onMudarPeriodoFinanceiro()">
+              <option value="mes">Mês atual</option>
+              <option value="quinzena">Quinzena atual</option>
+              <option value="semana">Semana atual</option>
+              <option value="personalizado">Personalizado</option>
+            </select>
+          </div>
+          <div id="financeiroPeriodoCustomGroup" style="display:none;">
+            <div class="form-group">
+              <label class="form-label">De</label>
+              <input type="date" id="financeiroPeriodoDe" class="form-input" onchange="onMudarPeriodoFinanceiro()">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Até</label>
+              <input type="date" id="financeiroPeriodoAte" class="form-input" onchange="onMudarPeriodoFinanceiro()">
+            </div>
+          </div>
+          <p class="hint" id="financeiroPeriodoLabel" style="text-align:left; margin-bottom:10px;"></p>
 
-          <div class="gold-divider"></div>
-          <p class="eyebrow" style="margin-bottom:10px;">Faturamento — últimos 6 meses</p>
-          <div id="graficoFaturamento"><p class="hint" style="text-align:left;">Carregando...</p></div>
+          <div id="financeiroResumo"><p class="hint" style="text-align:left;">Carregando...</p></div>
 
           <div class="gold-divider"></div>
           <p class="eyebrow" style="margin-bottom:10px;">Nova despesa</p>
@@ -971,7 +988,7 @@
           <button class="cta-primary" onclick="adicionarDespesa()">+ Adicionar despesa</button>
 
           <div class="gold-divider"></div>
-          <p class="eyebrow" style="margin-bottom:10px;">Despesas do mês</p>
+          <p class="eyebrow" style="margin-bottom:10px;">Despesas do mês (referência)</p>
           <div id="despesasLista"><p class="hint" style="text-align:left;">Carregando...</p></div>
 
           <div class="gold-divider"></div>
@@ -1569,38 +1586,99 @@
     }
   }
 
+  // ---- Período do Financeiro (semana / quinzena / mês / personalizado) ----
+  function formatarDataBR(iso){
+    const [ano, mes, dia] = iso.split('-');
+    return `${dia}/${mes}/${ano}`;
+  }
+
+  function toISOLocal(d){
+    // Evita o problema de toISOString() jogar pro UTC e voltar um dia errado
+    // perto da meia-noite — monta a string direto das partes locais.
+    const y = d.getFullYear(), m = String(d.getMonth()+1).padStart(2,'0'), dd = String(d.getDate()).padStart(2,'0');
+    return `${y}-${m}-${dd}`;
+  }
+
+  function calcularPeriodoPreset(tipo){
+    const hoje = new Date();
+    const y = hoje.getFullYear(), m = hoje.getMonth(), d = hoje.getDate();
+
+    if(tipo === 'semana'){
+      const diaSemana = hoje.getDay(); // 0=domingo
+      const diffSegunda = diaSemana === 0 ? -6 : 1 - diaSemana;
+      const seg = new Date(y, m, d + diffSegunda);
+      const dom = new Date(y, m, d + diffSegunda + 6);
+      return { inicio: toISOLocal(seg), fim: toISOLocal(dom) };
+    }
+    if(tipo === 'quinzena'){
+      if(d <= 15) return { inicio: toISOLocal(new Date(y, m, 1)), fim: toISOLocal(new Date(y, m, 15)) };
+      const ultimo = new Date(y, m + 1, 0).getDate();
+      return { inicio: toISOLocal(new Date(y, m, 16)), fim: toISOLocal(new Date(y, m, ultimo)) };
+    }
+    // mes
+    const ultimo = new Date(y, m + 1, 0).getDate();
+    return { inicio: toISOLocal(new Date(y, m, 1)), fim: toISOLocal(new Date(y, m, ultimo)) };
+  }
+
+  function obterPeriodoSelecionado(){
+    const tipo = document.getElementById('financeiroPeriodoTipo').value;
+    if(tipo === 'personalizado'){
+      const de = document.getElementById('financeiroPeriodoDe').value;
+      const ate = document.getElementById('financeiroPeriodoAte').value;
+      if(!de || !ate) return calcularPeriodoPreset('mes'); // ainda não preencheu os dois — usa mês atual como default temporário
+      return { inicio: de, fim: ate };
+    }
+    return calcularPeriodoPreset(tipo);
+  }
+
+  function onMudarPeriodoFinanceiro(){
+    const tipo = document.getElementById('financeiroPeriodoTipo').value;
+    document.getElementById('financeiroPeriodoCustomGroup').style.display = tipo === 'personalizado' ? '' : 'none';
+    carregarFinanceiro();
+  }
+
   const CATEGORIA_LABELS = { aluguel: 'Aluguel', produtos: 'Produtos', contas: 'Contas', funcionario: 'Funcionário', marketing: 'Marketing', outro: 'Outro' };
 
   async function carregarFinanceiro(){
     const resumoBox = document.getElementById('financeiroResumo');
     const listaBox = document.getElementById('despesasLista');
+    const labelBox = document.getElementById('financeiroPeriodoLabel');
     resumoBox.innerHTML = '<p class="hint" style="text-align:left;">Carregando...</p>';
     listaBox.innerHTML = '<p class="hint" style="text-align:left;">Carregando...</p>';
+
+    const { inicio, fim } = obterPeriodoSelecionado();
+    if(labelBox) labelBox.textContent = `${formatarDataBR(inicio)} a ${formatarDataBR(fim)}`;
+
     try{
-      const resp = await fetch(API_FINANCEIRO_URL);
+      const resp = await fetch(`${API_FINANCEIRO_URL}?inicio=${inicio}&fim=${fim}`);
       const r = await resp.json();
       if(!r.success) throw new Error(r.error || 'Falha ao buscar dados');
 
       resumoBox.innerHTML = `
         <div class="summary-card" style="margin-bottom:10px;">
-          <div class="summary-row"><span class="label">Receita total (mês)</span><span class="val" style="color:var(--gold);">R$ ${r.receita.total}</span></div>
+          <div class="summary-row"><span class="label">Receita total (período)</span><span class="val" style="color:var(--gold);">R$ ${r.receita.total}</span></div>
           <div class="summary-row"><span class="label">Serviços avulsos</span><span class="val">R$ ${r.receita.servicos_avulsos}</span></div>
           <div class="summary-row"><span class="label">Produtos</span><span class="val">R$ ${r.receita.produtos}</span></div>
           <div class="summary-row" style="border-bottom:none;"><span class="label">Planos</span><span class="val">R$ ${r.receita.planos}</span></div>
         </div>
         <div class="summary-card" style="margin-bottom:10px;">
-          <div class="summary-row"><span class="label">Despesas (mês)</span><span class="val">R$ ${r.despesas.total}</span></div>
+          <div class="summary-row"><span class="label">Despesas (período)</span><span class="val">R$ ${r.despesas.total}</span></div>
           <div class="summary-row" style="border-bottom:none;"><span class="label" style="font-weight:700;color:var(--cream);">Lucro líquido</span><span class="val" style="color:var(--gold);font-weight:700;">R$ ${r.lucro_liquido}</span></div>
         </div>
         <div class="summary-card" style="margin-bottom:10px;">
           <div class="summary-row"><span class="label">Ticket médio</span><span class="val">R$ ${r.atendimentos.ticket_medio}</span></div>
-          <div class="summary-row" style="border-bottom:none;"><span class="label">Atendimentos no mês</span><span class="val">${r.atendimentos.quantidade}</span></div>
+          <div class="summary-row" style="border-bottom:none;"><span class="label">Atendimentos no período</span><span class="val">${r.atendimentos.quantidade}</span></div>
         </div>
         <div class="summary-card">
-          <div class="summary-row" style="border-bottom:none;"><span class="label">MRR estimado (planos ativos)</span><span class="val" style="color:var(--gold);">R$ ${r.mrr_estimado}</span></div>
+          <div class="summary-row" style="border-bottom:none;"><span class="label">MRR estimado (planos ativos agora)</span><span class="val" style="color:var(--gold);">R$ ${r.mrr_estimado}</span></div>
         </div>`;
 
-      const despesasResp = await fetch(`${API_DESPESAS_URL}?mes=${r.periodo.mes}&ano=${r.periodo.ano}`);
+      // Lista itemizada de despesas ainda é por mês/ano (endpoint /api/despesas não
+      // entende intervalo de datas) — usa como referência o mês em que o período
+      // selecionado começa. Pode ficar levemente diferente do total acima quando
+      // o período é semana/quinzena/personalizado; o total do card já está exato.
+      const [anoRef, mesRef] = inicio.split('-');
+      const despesasResp = await fetch(`${API_DESPESAS_URL}?mes=${parseInt(mesRef, 10)}&ano=${anoRef}`);
       const despesasData = await despesasResp.json();
       if(despesasData.success && despesasData.despesas.length){
         listaBox.innerHTML = despesasData.despesas.map(d => `
@@ -1615,15 +1693,14 @@
       listaBox.innerHTML = '';
     }
     carregarRetencao();
-    carregarGraficoFaturamento();
-    carregarFechamentoBarbeiros();
+    carregarFechamentoBarbeiros(inicio, fim);
   }
 
-  async function carregarFechamentoBarbeiros(){
+  async function carregarFechamentoBarbeiros(inicio, fim){
     const box = document.getElementById('fechamentoBarbeirosLista');
     box.innerHTML = '<p class="hint" style="text-align:left;">Carregando...</p>';
     try{
-      const resp = await fetch(`${API_FINANCEIRO_URL}?tipo=barbeiros`);
+      const resp = await fetch(`${API_FINANCEIRO_URL}?tipo=barbeiros&inicio=${inicio}&fim=${fim}`);
       const data = await resp.json();
       if(!data.success) throw new Error(data.error || 'Falha ao buscar fechamento');
       if(!data.barbeiros || !data.barbeiros.length){
@@ -1648,60 +1725,6 @@
     }catch(err){
       box.innerHTML = '<p class="hint" style="text-align:left;color:#e8a37f;">Erro ao carregar fechamento por barbeiro.</p>';
     }
-  }
-
-  async function carregarGraficoFaturamento(){
-    const box = document.getElementById('graficoFaturamento');
-    box.innerHTML = '<p class="hint" style="text-align:left;">Carregando...</p>';
-    try{
-      const resp = await fetch(`${API_FINANCEIRO_URL}?tipo=historico&meses=6`);
-      const data = await resp.json();
-      if(!data.success) throw new Error(data.error || 'Falha ao buscar histórico');
-      box.innerHTML = renderizarGraficoFaturamento(data.historico);
-    }catch(err){
-      box.innerHTML = '<p class="hint" style="text-align:left;color:#e8a37f;">Erro ao carregar gráfico.</p>';
-    }
-  }
-
-  function renderizarGraficoFaturamento(historico){
-    if(!historico || !historico.length){
-      return '<p class="hint" style="text-align:left;">Sem dados suficientes ainda.</p>';
-    }
-
-    const MESES_ABREV = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
-    const largura = 335;
-    const altura = 150;
-    const alturaBarraMax = 90;
-    const baseY = 112;
-    const n = historico.length;
-    const larguraBarra = Math.min(38, (largura - 20) / n - 10);
-    const espacamento = (largura - 20) / n;
-
-    const maiorReceita = Math.max(...historico.map(h => h.receita_total), 1);
-
-    const barras = historico.map((h, i) => {
-      const alturaBarra = Math.max(2, (h.receita_total / maiorReceita) * alturaBarraMax);
-      const x = 10 + i * espacamento + (espacamento - larguraBarra) / 2;
-      const y = baseY - alturaBarra;
-      const label = `${MESES_ABREV[h.mes - 1]}`;
-      const valorFmt = h.receita_total >= 1000
-        ? `${(h.receita_total / 1000).toFixed(1)}k`
-        : `${Math.round(h.receita_total)}`;
-      return `
-        <rect x="${x}" y="${y}" width="${larguraBarra}" height="${alturaBarra}" rx="4" fill="var(--gold)"></rect>
-        <text x="${x + larguraBarra / 2}" y="${y - 6}" class="grafico-bar-valor">${valorFmt}</text>
-        <text x="${x + larguraBarra / 2}" y="${baseY + 16}" class="grafico-bar-label">${label}</text>
-      `;
-    }).join('');
-
-    return `
-      <div class="grafico-container">
-        <svg viewBox="0 0 ${largura} ${altura}" style="width:100%; height:auto; display:block;">
-          <line x1="10" y1="${baseY}" x2="${largura - 10}" y2="${baseY}" stroke="var(--brown)" stroke-width="1"></line>
-          ${barras}
-        </svg>
-      </div>
-    `;
   }
 
   async function carregarRetencao(){
