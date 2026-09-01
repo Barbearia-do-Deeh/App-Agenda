@@ -1974,6 +1974,17 @@
       const cobrarBtn = (e.status === 'faltou' && e.telefone)
         ? `<button class="presenca-btn cobrar-btn" onclick="cobrarFalta('${e.telefone}', '${nomeEscapado}', ${e.valor || 0})">💰 Cobrar</button>`
         : '';
+      // Método de pagamento é sempre opcional — não trava a presença. Só faz
+      // sentido oferecer depois que já está marcado "Compareceu" (cliente de
+      // pacote, por exemplo, nunca precisa preencher isso).
+      const pagamentoBtns = e.status === 'compareceu'
+        ? `<div class="presenca-actions" style="margin-top:4px;">
+             <span style="font-size:10px;color:var(--muted);">Pagamento (opcional):</span>
+             <button class="presenca-btn" onclick="marcarPresenca('${e.id}','compareceu','pix')">Pix</button>
+             <button class="presenca-btn" onclick="marcarPresenca('${e.id}','compareceu','dinheiro')">Dinheiro</button>
+             <button class="presenca-btn" onclick="marcarPresenca('${e.id}','compareceu','cartao')">Cartão</button>
+           </div>`
+        : '';
       return `
       <div class="agenda-item">
         <div class="agenda-time">${e.horaInicio}</div>
@@ -1981,29 +1992,15 @@
           <div class="cli">${e.nome}</div>
           <div class="srv">${e.servico}${e.valor ? ' · R$ ' + e.valor : ''}</div>
           <div class="presenca-actions">
-            <button class="presenca-btn${e.status === 'compareceu' ? ' ativo-compareceu' : ''}" onclick="abrirEscolhaPagamento('${e.id}', this)">✓ Compareceu</button>
+            <button class="presenca-btn${e.status === 'compareceu' ? ' ativo-compareceu' : ''}" onclick="marcarPresenca('${e.id}','compareceu')">✓ Compareceu</button>
             <button class="presenca-btn${e.status === 'faltou' ? ' ativo-faltou' : ''}" onclick="marcarPresenca('${e.id}','faltou')">✗ Faltou</button>
             ${cobrarBtn}
           </div>
+          ${pagamentoBtns}
         </div>
       </div>
     `;
     }).join('');
-  }
-
-  // Ao clicar em "Compareceu", troca os botões daquele agendamento por um
-  // mini-seletor de método de pagamento — só depois disso é que grava de
-  // verdade (é o que preenche a coluna metodo_pagamento em `atendimentos`).
-  function abrirEscolhaPagamento(eventId, btnEl){
-    const container = btnEl.closest('.presenca-actions');
-    if(!container) return;
-    container.innerHTML = `
-      <span style="font-size:11px;color:var(--muted);">Pagou:</span>
-      <button class="presenca-btn" onclick="marcarPresenca('${eventId}','compareceu','pix')">Pix</button>
-      <button class="presenca-btn" onclick="marcarPresenca('${eventId}','compareceu','dinheiro')">Dinheiro</button>
-      <button class="presenca-btn" onclick="marcarPresenca('${eventId}','compareceu','cartao')">Cartão</button>
-      <button class="presenca-btn" onclick="carregarAgendaDia(agendaDataAtualISO)">✕</button>
-    `;
   }
 
   // Busca e renderiza a agenda de UM dia específico (dataISO no formato "YYYY-MM-DD").
