@@ -832,16 +832,18 @@
           <div id="fixoSucesso" class="hint" style="display:none;text-align:left;color:var(--gold);"></div>
           <button class="cta-primary" style="background:var(--surface); color:var(--gold); border:1px solid var(--gold);" onclick="criarHorarioFixo()">🔁 Criar horário fixo</button>
 
-          <div class="gold-divider"></div>
-          <p class="eyebrow" style="margin-bottom:10px;">Pagamento do plano</p>
-          <p class="hint" style="text-align:left;" id="planoAtualLabel"></p>
-          <div class="form-group">
-            <label class="form-label">Data do pagamento</label>
-            <input type="date" id="pagamentoPlanoData" class="form-input">
+          <div id="pagamentoPlanoBloco">
+            <div class="gold-divider"></div>
+            <p class="eyebrow" style="margin-bottom:10px;">Pagamento do plano</p>
+            <p class="hint" style="text-align:left;" id="planoAtualLabel"></p>
+            <div class="form-group">
+              <label class="form-label">Data do pagamento</label>
+              <input type="date" id="pagamentoPlanoData" class="form-input">
+            </div>
+            <div id="pagamentoPlanoError" class="error-banner" style="display:none;"></div>
+            <div id="pagamentoPlanoSucesso" class="hint" style="display:none;text-align:left;color:var(--gold);"></div>
+            <button class="whatsapp-btn" onclick="registrarPagamentoPlano()">💰 Registrar pagamento recebido</button>
           </div>
-          <div id="pagamentoPlanoError" class="error-banner" style="display:none;"></div>
-          <div id="pagamentoPlanoSucesso" class="hint" style="display:none;text-align:left;color:var(--gold);"></div>
-          <button class="whatsapp-btn" onclick="registrarPagamentoPlano()">💰 Registrar pagamento recebido</button>
         </div>
       </div>
 
@@ -1161,6 +1163,8 @@
     if(e.target && e.target.id === 'editPlano'){
       document.getElementById('editSubtipoEssencialGroup').style.display =
         e.target.value === 'essencial' ? '' : 'none';
+      const bloco = document.getElementById('pagamentoPlanoBloco');
+      if(bloco) bloco.style.display = e.target.value !== 'nenhum' ? '' : 'none';
     }
     if(e.target && e.target.id === 'notifFiltro'){
       const val = e.target.value;
@@ -1362,6 +1366,8 @@
     planoLabel.textContent = c.plano && c.plano !== 'nenhum'
       ? `Plano salvo: ${PLANO_LABELS[c.plano] || c.plano}`
       : 'Cliente sem plano ativo.';
+    const temPlanoAtivo = c.plano && c.plano !== 'nenhum';
+    document.getElementById('pagamentoPlanoBloco').style.display = temPlanoAtivo ? '' : 'none';
     document.getElementById('pagamentoPlanoError').style.display = 'none';
     document.getElementById('pagamentoPlanoSucesso').style.display = 'none';
     const pagamentoPlanoData = document.getElementById('pagamentoPlanoData');
