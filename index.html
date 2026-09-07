@@ -1719,6 +1719,7 @@
   // ---- Confirm screen ----
   function goToConfirm(){
     if(!selectedServices.length || !selectedDate || !selectedTime) return;
+    prefillFromStorage(); // reforço: garante nome/telefone preenchidos mesmo se algo tiver limpado o campo antes
 
     const total = selectedServices.reduce((s, x) => s + x.price, 0);
     const names = selectedServices.map(x => x.name).join(' + ');
@@ -1853,8 +1854,7 @@
     selectedBarbeiroId = null;
     document.querySelectorAll('.service-row.selected').forEach(r => r.classList.remove('selected'));
     document.getElementById('totalPrice').textContent = 'R$ 0';
-    document.getElementById('inputNome').value = '';
-    document.getElementById('inputTelefone').value = '';
+    prefillFromStorage(); // restaura nome/telefone salvos em vez de limpar — corrige o app pedindo de novo no 2º agendamento da mesma visita
     document.getElementById('successMsgPacote').style.display = 'none';
     PRODUTOS_CACHE.forEach(p => p.quantidade = 0);
     renderProdutosList();
