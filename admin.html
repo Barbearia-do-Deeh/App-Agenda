@@ -965,6 +965,78 @@
         </div>
       </div>
 
+      <!-- 8g. NOVO PRODUTO (admin) -->
+      <div class="screen" id="screen-produto-novo">
+        <div class="step-header">
+          <button class="back-btn" onclick="goTo('financeiro'); finTab('produtos');">←</button>
+          <h2 class="step-title">Novo produto</h2>
+        </div>
+        <div class="screen-body" style="padding-top:0;">
+          <div class="form-group">
+            <label class="form-label">Nome</label>
+            <input type="text" id="novoProdutoNome" class="form-input" placeholder="Ex: Pomada modeladora">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Descrição (opcional)</label>
+            <input type="text" id="novoProdutoDescricao" class="form-input">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Preço de venda (R$)</label>
+            <input type="number" id="novoProdutoPreco" class="form-input" min="0" step="0.01">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Preço de custo (R$)</label>
+            <input type="number" id="novoProdutoCusto" class="form-input" min="0" step="0.01" placeholder="Quanto você paga pelo produto">
+            <p class="hint" style="text-align:left; margin-top:6px;">Usado pra calcular a margem e a comissão do barbeiro sobre produto (que incide sobre a margem, não sobre o preço de venda).</p>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Imagem (nome do arquivo em /produtos/, opcional)</label>
+            <input type="text" id="novoProdutoImagem" class="form-input" placeholder="pomada.png">
+          </div>
+          <div id="novoProdutoError" class="error-banner" style="display:none;"></div>
+          <button class="cta-primary" onclick="salvarNovoProduto()">Cadastrar</button>
+        </div>
+      </div>
+
+      <!-- 8h. EDITAR PRODUTO (admin) -->
+      <div class="screen" id="screen-produto-editar">
+        <div class="step-header">
+          <button class="back-btn" onclick="goTo('financeiro'); finTab('produtos');">←</button>
+          <h2 class="step-title" id="editarProdutoNome">Produto</h2>
+        </div>
+        <div class="screen-body" style="padding-top:0;">
+          <div class="form-group">
+            <label class="form-label">Nome</label>
+            <input type="text" id="editProdutoNome" class="form-input">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Descrição (opcional)</label>
+            <input type="text" id="editProdutoDescricao" class="form-input">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Preço de venda (R$)</label>
+            <input type="number" id="editProdutoPreco" class="form-input" min="0" step="0.01">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Preço de custo (R$)</label>
+            <input type="number" id="editProdutoCusto" class="form-input" min="0" step="0.01">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Imagem (nome do arquivo em /produtos/, opcional)</label>
+            <input type="text" id="editProdutoImagem" class="form-input">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Status</label>
+            <select id="editProdutoAtivo" class="form-input">
+              <option value="true">Ativo (aparece pro cliente)</option>
+              <option value="false">Inativo</option>
+            </select>
+          </div>
+          <div id="editProdutoError" class="error-banner" style="display:none;"></div>
+          <button class="cta-primary" onclick="salvarEdicaoProduto()">Salvar alterações</button>
+        </div>
+      </div>
+
       <!-- 9. FINANCEIRO (admin) -->
       <div class="screen" id="screen-financeiro">
         <div class="step-header">
@@ -996,6 +1068,7 @@
           <div class="fin-subnav">
             <button class="fin-subnav-btn active" data-fintab="resumo" onclick="finTab('resumo')">Resumo</button>
             <button class="fin-subnav-btn" data-fintab="despesas" onclick="finTab('despesas')">Despesas</button>
+            <button class="fin-subnav-btn" data-fintab="produtos" onclick="finTab('produtos')">Produtos</button>
             <button class="fin-subnav-btn" data-fintab="equipe" onclick="finTab('equipe')">Equipe</button>
             <button class="fin-subnav-btn" data-fintab="retencao" onclick="finTab('retencao')">Clientes</button>
           </div>
@@ -1031,6 +1104,15 @@
             <div class="gold-divider"></div>
             <p class="eyebrow" style="margin-bottom:10px;">Despesas do mês (referência)</p>
             <div id="despesasLista"><p class="hint" style="text-align:left;">Carregando...</p></div>
+          </div>
+
+          <div class="fin-tab" id="fin-tab-produtos">
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+              <p class="eyebrow" style="margin-bottom:0;">Catálogo de produtos</p>
+            </div>
+            <button class="cta-primary" onclick="abrirNovoProduto()">+ Novo produto</button>
+            <div class="gold-divider"></div>
+            <div id="produtosAdminLista"><p class="hint" style="text-align:left;">Carregando...</p></div>
           </div>
 
           <div class="fin-tab" id="fin-tab-equipe">
@@ -1129,6 +1211,7 @@
   const API_FINANCEIRO_URL = `${NEGOCIO.apiBase}/financeiro`;
   const API_DESPESAS_URL = `${NEGOCIO.apiBase}/despesas`;
   const API_PAGAMENTOS_PLANOS_URL = `${NEGOCIO.apiBase}/pagamentos-planos`;
+  const API_ATENDIMENTOS_URL = `${NEGOCIO.apiBase}/atendimentos`;
   const API_PUSH_SUBSCRIBE_URL = `${NEGOCIO.apiBase}/push-subscribe`;
   const API_ENVIAR_LEMBRETES_URL = `${NEGOCIO.apiBase}/enviar-lembretes`;
   const CRON_SECRET_CLIENT = 'deeh261210'; // autoriza o envio manual de notificações (mesmo secret do cron)
@@ -1637,10 +1720,126 @@
     }
   }
 
-  // ---- Financeiro: sub-abas (Resumo/Despesas/Equipe/Clientes) ----
+  // ---- Financeiro: sub-abas (Resumo/Despesas/Produtos/Equipe/Clientes) ----
   function finTab(tab){
     document.querySelectorAll('.fin-subnav-btn').forEach(b => b.classList.toggle('active', b.dataset.fintab === tab));
     document.querySelectorAll('.fin-tab').forEach(t => t.classList.toggle('active', t.id === 'fin-tab-' + tab));
+    if(tab === 'produtos') carregarProdutosAdmin();
+  }
+
+  // ---- Catálogo de produtos (nome, preço de venda, preço de custo, ativo/inativo) ----
+  let produtosAdminCache = [];
+
+  async function carregarProdutosAdmin(){
+    const lista = document.getElementById('produtosAdminLista');
+    lista.innerHTML = '<p class="hint" style="text-align:left;">Carregando...</p>';
+    try{
+      const resp = await fetch(`${API_ATENDIMENTOS_URL}?tipo=produtos&recurso=catalogo`);
+      const data = await resp.json();
+      if(!data.success) throw new Error(data.error || 'Falha ao buscar produtos');
+      produtosAdminCache = data.produtos || [];
+      if(!produtosAdminCache.length){
+        lista.innerHTML = '<p class="hint" style="text-align:left;">Nenhum produto cadastrado ainda.</p>';
+        return;
+      }
+      lista.innerHTML = produtosAdminCache.map(p => {
+        const venda = Number(p.preco) || 0;
+        const custo = Number(p.preco_custo) || 0;
+        const margem = venda - custo;
+        const statusLabel = p.ativo ? '' : ' · inativo';
+        return `<div class="summary-card" style="margin-bottom:10px;cursor:pointer;" onclick="abrirEditarProduto(${p.id})">
+          <div class="summary-row"><span class="label" style="font-size:14px;color:var(--cream);font-weight:700;">${p.nome}${statusLabel}</span><span class="val" style="color:var(--gold);">R$ ${venda.toFixed(2)}</span></div>
+          <div class="summary-row" style="border-bottom:none;"><span class="label">Custo R$ ${custo.toFixed(2)} · Margem R$ ${margem.toFixed(2)}</span></div>
+        </div>`;
+      }).join('');
+    }catch(err){
+      lista.innerHTML = '<p class="hint" style="text-align:left;color:#e8a37f;">Erro ao carregar produtos.</p>';
+    }
+  }
+
+  function abrirNovoProduto(){
+    document.getElementById('novoProdutoNome').value = '';
+    document.getElementById('novoProdutoDescricao').value = '';
+    document.getElementById('novoProdutoPreco').value = '';
+    document.getElementById('novoProdutoCusto').value = '';
+    document.getElementById('novoProdutoImagem').value = '';
+    document.getElementById('novoProdutoError').style.display = 'none';
+    goTo('produto-novo');
+  }
+
+  async function salvarNovoProduto(){
+    const nome = document.getElementById('novoProdutoNome').value.trim();
+    const descricao = document.getElementById('novoProdutoDescricao').value.trim();
+    const preco = document.getElementById('novoProdutoPreco').value;
+    const preco_custo = document.getElementById('novoProdutoCusto').value;
+    const imagem_url = document.getElementById('novoProdutoImagem').value.trim();
+    const errorBox = document.getElementById('novoProdutoError');
+
+    if(!nome || preco === ''){
+      errorBox.textContent = 'Preencha nome e preço de venda.';
+      errorBox.style.display = 'block';
+      return;
+    }
+
+    try{
+      const resp = await fetch(`${API_ATENDIMENTOS_URL}?tipo=produtos&recurso=catalogo`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nome, descricao: descricao || null, preco, preco_custo: preco_custo || 0, imagem_url: imagem_url || null })
+      });
+      const data = await resp.json();
+      if(!resp.ok || !data.success) throw new Error(data.error || 'Falha ao cadastrar');
+      goTo('financeiro');
+      finTab('produtos');
+    }catch(err){
+      errorBox.textContent = 'Erro ao cadastrar produto. Tente novamente.';
+      errorBox.style.display = 'block';
+    }
+  }
+
+  let produtoEditandoId = null;
+
+  function abrirEditarProduto(id){
+    const p = produtosAdminCache.find(x => x.id === id);
+    if(!p) return;
+    produtoEditandoId = id;
+    document.getElementById('editarProdutoNome').textContent = p.nome;
+    document.getElementById('editProdutoNome').value = p.nome;
+    document.getElementById('editProdutoDescricao').value = p.descricao || '';
+    document.getElementById('editProdutoPreco').value = p.preco;
+    document.getElementById('editProdutoCusto').value = p.preco_custo ?? 0;
+    document.getElementById('editProdutoImagem').value = p.imagem_url || '';
+    document.getElementById('editProdutoAtivo').value = String(!!p.ativo);
+    document.getElementById('editProdutoError').style.display = 'none';
+    goTo('produto-editar');
+  }
+
+  async function salvarEdicaoProduto(){
+    if(!produtoEditandoId) return;
+    const errorBox = document.getElementById('editProdutoError');
+    const payload = {
+      id: produtoEditandoId,
+      nome: document.getElementById('editProdutoNome').value.trim(),
+      descricao: document.getElementById('editProdutoDescricao').value.trim() || null,
+      preco: document.getElementById('editProdutoPreco').value,
+      preco_custo: document.getElementById('editProdutoCusto').value || 0,
+      imagem_url: document.getElementById('editProdutoImagem').value.trim() || null,
+      ativo: document.getElementById('editProdutoAtivo').value === 'true'
+    };
+    try{
+      const resp = await fetch(`${API_ATENDIMENTOS_URL}?tipo=produtos&recurso=catalogo`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await resp.json();
+      if(!resp.ok || !data.success) throw new Error(data.error || 'Falha ao salvar');
+      goTo('financeiro');
+      finTab('produtos');
+    }catch(err){
+      errorBox.textContent = 'Erro ao salvar alterações: ' + err.message;
+      errorBox.style.display = 'block';
+    }
   }
 
   // ---- Período do Financeiro (semana / quinzena / mês / personalizado) ----
@@ -1773,7 +1972,8 @@
           <div class="summary-row"><span class="label" style="font-size:14px;color:var(--cream);font-weight:700;">${b.nome}${statusLabel}</span><span class="val" style="color:var(--gold);">${regimeLabel}</span></div>
           ${linhaBase}
           <div class="summary-row"><span class="label">Receita de produtos</span><span class="val">R$ ${b.receita_produtos.toFixed(2)}</span></div>
-          <div class="summary-row"><span class="label">Comissão sobre produtos</span><span class="val">R$ ${b.comissao_produtos.toFixed(2)}</span></div>
+          <div class="summary-row"><span class="label">Margem de produtos</span><span class="val">R$ ${(b.margem_produtos ?? 0).toFixed(2)}</span></div>
+          <div class="summary-row"><span class="label">Comissão sobre produtos (s/ margem)</span><span class="val">R$ ${b.comissao_produtos.toFixed(2)}</span></div>
           <div class="summary-row" style="border-bottom:none;"><span class="label" style="font-weight:700;color:var(--cream);">Total a pagar</span><span class="val" style="color:var(--gold);font-weight:700;">R$ ${b.total_a_pagar.toFixed(2)}</span></div>
         </div>`;
       }).join('');
