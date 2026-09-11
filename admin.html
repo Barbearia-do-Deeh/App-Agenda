@@ -828,6 +828,31 @@
           <button class="cta-primary" onclick="salvarEdicaoCliente()">Salvar alterações</button>
 
           <div class="gold-divider"></div>
+          <p class="eyebrow" style="margin-bottom:10px;">Venda de produto (balcão)</p>
+          <p class="hint" style="text-align:left; margin-bottom:8px;">Registra uma compra avulsa de produto, sem precisar de agendamento.</p>
+          <div id="vendaProdutoLista"><p class="hint" style="text-align:left;">Carregando produtos...</p></div>
+          <div class="form-group" id="vendaProdutoBarbeiroGroup" style="display:none; margin-top:10px;">
+            <label class="form-label">Barbeiro</label>
+            <select id="vendaProdutoBarbeiro" class="form-input"></select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Forma de pagamento (opcional)</label>
+            <select id="vendaProdutoMetodo" class="form-input">
+              <option value="">Não informado</option>
+              <option value="pix">Pix</option>
+              <option value="dinheiro">Dinheiro</option>
+              <option value="cartao">Cartão</option>
+            </select>
+          </div>
+          <div id="vendaProdutoError" class="error-banner" style="display:none;"></div>
+          <div id="vendaProdutoSucesso" class="hint" style="display:none;text-align:left;color:var(--gold);"></div>
+          <button class="cta-primary" style="background:var(--surface); color:var(--gold); border:1px solid var(--gold);" onclick="registrarVendaProduto()">🛍 Registrar venda</button>
+
+          <div class="gold-divider"></div>
+          <p class="eyebrow" style="margin-bottom:10px;">Histórico de atendimentos</p>
+          <div id="clienteHistoricoLista"><p class="hint" style="text-align:left;">Carregando...</p></div>
+
+          <div class="gold-divider"></div>
           <p class="eyebrow" style="margin-bottom:10px;">Horário fixo semanal</p>
           <div class="form-group">
             <label class="form-label">Serviço</label>
@@ -1466,6 +1491,37 @@
     }
   }
 
+  // ---- Histórico de atendimentos (ficha do cliente, admin) ----
+  const FORMA_PAGAMENTO_LABELS = { pacote: 'Pacote', avulso: 'Avulso', misto: 'Misto' };
+
+  async function carregarHistoricoCliente(telefone){
+    const box = document.getElementById('clienteHistoricoLista');
+    box.innerHTML = '<p class="hint" style="text-align:left;">Carregando...</p>';
+    try{
+      const telefoneLimpo = (telefone || '').replace(/\D/g, '');
+      const resp = await fetch(`${API_ATENDIMENTOS_URL}?telefone=${encodeURIComponent(telefoneLimpo)}`);
+      const data = await resp.json();
+      if(!data.success || !data.atendimentos || !data.atendimentos.length){
+        box.innerHTML = '<p class="hint" style="text-align:left;">Nenhum atendimento registrado ainda.</p>';
+        return;
+      }
+      box.innerHTML = data.atendimentos.map(a => {
+        const dataHora = new Date(a.data_hora);
+        const dataFmt = dataHora.toLocaleDateString('pt-BR');
+        const servicos = Array.isArray(a.servicos) ? a.servicos.join(', ') : (JSON.parse(a.servicos || '[]').join(', '));
+        const formaLabel = FORMA_PAGAMENTO_LABELS[a.forma_pagamento] || a.forma_pagamento || '';
+        const produtosLabel = Number(a.valor_produtos) > 0 ? ` · produtos R$ ${Number(a.valor_produtos).toFixed(2)}` : '';
+        const metodoLabel = a.metodo_pagamento ? ` · ${a.metodo_pagamento}` : '';
+        return `<div class="summary-card" style="margin-bottom:8px;">
+          <div class="summary-row"><span class="label">${dataFmt} · ${formaLabel}${metodoLabel}</span><span class="val" style="color:var(--gold);">R$ ${Number(a.valor_cobrado).toFixed(2)}</span></div>
+          <div class="summary-row" style="border-bottom:none;"><span class="label">${servicos}${produtosLabel}</span></div>
+        </div>`;
+      }).join('');
+    }catch(err){
+      box.innerHTML = '<p class="hint" style="text-align:left;color:#e8a37f;">Erro ao carregar histórico.</p>';
+    }
+  }
+
   let clienteEditandoId = null;
 
   function abrirEditarCliente(id){
@@ -1493,6 +1549,11 @@
     document.getElementById('pagamentoPlanoSucesso').style.display = 'none';
     const pagamentoPlanoData = document.getElementById('pagamentoPlanoData');
     if(pagamentoPlanoData) pagamentoPlanoData.value = new Date().toISOString().slice(0, 10);
+    document.getElementById('vendaProdutoError').style.display = 'none';
+    document.getElementById('vendaProdutoSucesso').style.display = 'none';
+    carregarProdutosVenda();
+    carregarBarbeirosParaVenda();
+    carregarHistoricoCliente(c.telefone);
     goTo('cliente-editar');
   }
 
@@ -1525,6 +1586,95 @@
       // DEBUG TEMPORÁRIO: mostra o erro real do servidor (Postgres) pra diagnosticar.
       // Depois de identificar e corrigir a causa, pode voltar essa linha pro texto genérico.
       errorBox.textContent = 'Erro ao salvar alterações: ' + err.message;
+      errorBox.style.display = 'block';
+    }
+  }
+
+  // ---- Venda avulsa de produto (balcão, dentro da ficha do cliente) ----
+  let produtosVendaCache = [];
+
+  async function carregarProdutosVenda(){
+    try{
+      const resp = await fetch(`${API_ATENDIMENTOS_URL}?tipo=produtos`);
+      const data = await resp.json();
+      produtosVendaCache = data.success ? (data.produtos || []) : [];
+    }catch(err){
+      produtosVendaCache = [];
+    }
+    renderVendaProdutoLista();
+  }
+
+  function renderVendaProdutoLista(){
+    const box = document.getElementById('vendaProdutoLista');
+    if(!produtosVendaCache.length){
+      box.innerHTML = '<p class="hint" style="text-align:left;">Nenhum produto ativo cadastrado.</p>';
+      return;
+    }
+    box.innerHTML = produtosVendaCache.map(p => `
+      <div class="summary-row" style="align-items:center;">
+        <span class="label">${p.nome} · R$ ${Number(p.preco).toFixed(2)}</span>
+        <input type="number" min="0" value="0" class="form-input" style="width:64px; padding:6px 8px; text-align:center;" id="vendaQtd-${p.id}">
+      </div>
+    `).join('');
+  }
+
+  async function carregarBarbeirosParaVenda(){
+    const group = document.getElementById('vendaProdutoBarbeiroGroup');
+    const select = document.getElementById('vendaProdutoBarbeiro');
+    try{
+      const resp = await fetch(`${API_CLIENTES_URL}?recurso=barbeiros&publico=1`);
+      const data = await resp.json();
+      const ativos = data.success ? (data.barbeiros || []) : [];
+      if(ativos.length > 1){
+        select.innerHTML = '<option value="">Sem barbeiro específico</option>' +
+          ativos.map(b => `<option value="${b.id}">${b.nome}</option>`).join('');
+        group.style.display = '';
+      } else if(ativos.length === 1){
+        select.innerHTML = `<option value="${ativos[0].id}">${ativos[0].nome}</option>`;
+        group.style.display = '';
+      } else {
+        group.style.display = 'none';
+      }
+    }catch(err){
+      group.style.display = 'none';
+    }
+  }
+
+  async function registrarVendaProduto(){
+    if(!clienteEditandoId) return;
+    const errorBox = document.getElementById('vendaProdutoError');
+    const sucessoBox = document.getElementById('vendaProdutoSucesso');
+    errorBox.style.display = 'none';
+    sucessoBox.style.display = 'none';
+
+    const produtosSelecionados = produtosVendaCache
+      .map(p => ({ id: p.id, quantidade: parseInt(document.getElementById(`vendaQtd-${p.id}`).value, 10) || 0 }))
+      .filter(p => p.quantidade > 0);
+
+    if(!produtosSelecionados.length){
+      errorBox.textContent = 'Escolha ao menos um produto com quantidade maior que zero.';
+      errorBox.style.display = 'block';
+      return;
+    }
+
+    const barbeiro_id = document.getElementById('vendaProdutoBarbeiro').value || null;
+    const metodo_pagamento = document.getElementById('vendaProdutoMetodo').value || null;
+
+    try{
+      const resp = await fetch(`${API_ATENDIMENTOS_URL}?tipo=produtos&recurso=venda-avulsa`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cliente_id: clienteEditandoId, produtos: produtosSelecionados, barbeiro_id, metodo_pagamento })
+      });
+      const data = await resp.json();
+      if(!resp.ok || !data.success) throw new Error(data.error || 'Falha ao registrar venda');
+      sucessoBox.textContent = `Venda registrada: R$ ${Number(data.valor_total).toFixed(2)}.`;
+      sucessoBox.style.display = 'block';
+      produtosVendaCache.forEach(p => { const el = document.getElementById(`vendaQtd-${p.id}`); if(el) el.value = 0; });
+      const c = clientesCache.find(x => x.id === clienteEditandoId);
+      if(c) carregarHistoricoCliente(c.telefone);
+    }catch(err){
+      errorBox.textContent = 'Erro ao registrar venda: ' + err.message;
       errorBox.style.display = 'block';
     }
   }
